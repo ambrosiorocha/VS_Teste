@@ -5,7 +5,7 @@
     <title>Sistema de Vendas - Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="css/style.css">
+    <style><?!= include('css/style.css'); ?></style>
 </head>
 <body>
 
@@ -41,8 +41,8 @@
         </div>
     </main>
 
-    <script src="js/config.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script><?!= include('js/config.js'); ?></script>
+    <script><?!= include('js/main.js'); ?></script>
+    <script><?!= include('js/dashboard.js'); ?></script>
 </body>
 </html>
