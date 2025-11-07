@@ -2,19 +2,21 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema de Vendas - Dashboard</title>
+    <title>Relatórios de Vendas</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style><?!= include('css/style.css'); ?></style>
 </head>
 <body>
 
     <main class="main-content p-4 md:p-8 overflow-y-auto">
         <div class="container">
-            <h1>Dashboard Principal</h1>
+            <h2>Relatórios de Vendas</h2>
+
             <div id="loading" class="text-center text-gray-500 mb-6">Carregando dados...</div>
-            
-            <div id="dashboard-content" class="hidden">
+
+            <div id="report-content" class="hidden">
                 <div class="kpi-grid">
                     <div class="kpi-card">
                         <h4>Venda Total</h4>
@@ -29,11 +31,15 @@
                         <p id="ticketMedio">R$ 0,00</p>
                     </div>
                 </div>
-                
-                <div class="nav-grid">
-                    <a href="Vendas.html" class="nav-link">Lançar Vendas</a>
-                    <a href="Produtos.html" class="nav-link">Gerenciar Produtos</a>
-                    <a href="Relatorios.html" class="nav-link">Visualizar Relatórios</a>
+
+                <div class="report-card">
+                    <h3 class="font-semibold text-lg mb-4">Vendas por Mês</h3>
+                    <canvas id="vendasPorMesChart"></canvas>
+                </div>
+
+                <div class="report-card">
+                    <h3 class="font-semibold text-lg mb-4">Vendas por Produto</h3>
+                    <canvas id="vendasPorProdutoChart"></canvas>
                 </div>
             </div>
 
@@ -43,6 +49,6 @@
 
     <script><?!= include('js/config.js'); ?></script>
     <script><?!= include('js/main.js'); ?></script>
-    <script><?!= include('js/dashboard.js'); ?></script>
+    <script><?!= include('js/relatorios.js'); ?></script>
 </body>
 </html>
