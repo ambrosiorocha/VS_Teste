@@ -5,333 +5,64 @@
     <title>Lançar Venda</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 20px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 5px;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-        .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            background-color: #27ae60;
-            color: #fff;
-            transition: background-color 0.3s;
-        }
-        .btn:hover {
-            background-color: #219d54;
-        }
-        #statusMessage {
-            text-align: center;
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 14px;
-            display: none;
-        }
-        #statusMessage.success {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
-        }
-        #statusMessage.error {
-            background-color: #ffebee;
-            color: #c62828;
-            border: 1px solid #ef9a9a;
-        }
-
-        /* Estilos do menu de navegação */
-        .desktop-sidebar {
-            display: none;
-            width: 256px;
-            background-color: #1f2937;
-            color: #fff;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        @media (min-width: 768px) {
-            .desktop-sidebar {
-                display: flex;
-                flex-direction: column;
-            }
-            .main-content {
-                margin-left: 256px;
-                padding: 4px 8px;
-            }
-        }
-        .sidebar-header {
-            padding: 24px;
-            text-align: center;
-            border-bottom: 1px solid #374151;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        .sidebar-nav {
-            margin-top: 24px;
-            display: flex;
-            flex-direction: column;
-        }
-        .nav-link-menu {
-            display: flex;
-            align-items: center;
-            padding: 12px 24px;
-            text-decoration: none;
-            color: #d1d5db;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .nav-link-menu:hover {
-            background-color: #374151;
-            color: #fff;
-        }
-        .nav-link-menu.active {
-            background-color: #4b5563;
-            color: #fff;
-        }
-        .nav-link-menu svg {
-            margin-right: 12px;
-            width: 20px;
-            height: 20px;
-        }
-    </style>
+    <style><?!= include('css/style.css'); ?></style>
 </head>
 <body>
-
-    <aside id="desktop-sidebar" class="desktop-sidebar hidden md:flex flex-col">
-        <div class="sidebar-header">
-            Sistema de Vendas
-        </div>
-        <nav id="desktop-nav" class="sidebar-nav flex-1">
-            <a href="index.html" class="nav-link-menu">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                <span>Início</span>
-            </a>
-            <a href="Vendas.html" class="nav-link-menu active">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-                <span>Vendas</span>
-            </a>
-            <a href="Produtos.html" class="nav-link-menu">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8H3a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2z"></path><path d="M3 10v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-14a2 2 0 0 0-2 2z"></path><rect x="1" y="4" width="22" height="6" rx="2" ry="2"></rect><rect x="1" y="14" width="22" height="6" rx="2" ry="2"></rect></svg>
-                <span>Produtos</span>
-            </a>
-            <a href="Relatorios.html" class="nav-link-menu">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v9H3z"></path><path d="M14 3h7v5h-7z"></path><path d="M14 12h7v9h-7z"></path><path d="M3 16h7v5h-7z"></path></svg>
-                <span>Relatórios</span>
-            </a>
-        </nav>
-    </aside>
 
     <main class="main-content p-4 md:p-8 overflow-y-auto">
         <div class="container">
             <h2>Lançar Nova Venda</h2>
-            <form id="vendaForm">
+            <form id="vendaForm" class="space-y-4">
                 <div class="form-group">
                     <label for="produto">Produto</label>
-                    <select id="produto" required>
+                    <select id="produto" required class="w-full">
                         <option value="">Carregando produtos...</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="quantidade">Quantidade Vendida</label>
-                    <input type="number" id="quantidade" step="any" min="0" required>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="form-group">
+                        <label for="quantidade">Quantidade Vendida</label>
+                        <input type="number" id="quantidade" step="any" min="0" required class="w-full">
+                    </div>
+                    <div class="form-group">
+                        <label for="precoUnitario">Preço Unitário (R$)</label>
+                        <input type="number" id="precoUnitario" step="0.01" min="0" readonly class="w-full bg-gray-100">
+                    </div>
+                    <div class="form-group">
+                        <label for="subtotal">Subtotal (R$)</label>
+                        <input type="number" id="subtotal" step="0.01" min="0" readonly class="w-full bg-gray-100">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="precoUnitario">Preço Unitário (R$)</label>
-                    <input type="number" id="precoUnitario" step="0.01" min="0" readonly>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="form-group">
+                        <label for="descontoPercentual">Desconto (%)</label>
+                        <input type="number" id="descontoPercentual" step="0.01" min="0" max="100" value="0" class="w-full">
+                    </div>
+                    <div class="form-group">
+                        <label for="descontoReal">Desconto (R$)</label>
+                        <input type="number" id="descontoReal" step="0.01" min="0" value="0" class="w-full">
+                    </div>
+                    <div class="form-group">
+                        <label for="totalComDesconto">Total com Desconto (R$)</label>
+                        <input type="number" id="totalComDesconto" step="0.01" min="0" readonly class="w-full bg-gray-100">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="subtotal">Subtotal (R$)</label>
-                    <input type="number" id="subtotal" step="0.01" min="0" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="descontoPercentual">Desconto (%)</label>
-                    <input type="number" id="descontoPercentual" step="0.01" min="0" max="100" value="0">
-                </div>
-                <div class="form-group">
-                    <label for="descontoReal">Desconto (R$)</label>
-                    <input type="number" id="descontoReal" step="0.01" min="0" value="0">
-                </div>
-                <div class="form-group">
-                    <label for="totalComDesconto">Total com Desconto (R$)</label>
-                    <input type="number" id="totalComDesconto" step="0.01" min="0" readonly>
-                </div>
+
                 <div class="form-group">
                     <label for="usuario">Usuário</label>
-                    <input type="text" id="usuario" value="Usuário Padrão" required>
+                    <input type="text" id="usuario" value="Usuário Padrão" required class="w-full">
                 </div>
+
                 <button type="submit" class="btn">Lançar Venda</button>
             </form>
             <div id="statusMessage"></div>
         </div>
     </main>
-    
-    <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxk0fSauvjEwhlq_DDRb21wHtH5qcFAs6j3XfJrHQlbW_d8qshOiEuX8lJfKQpHhZet/exec'; // COLOQUE A URL DO SEU APPS SCRIPT AQUI!
-        let produtos = [];
 
-        document.addEventListener('DOMContentLoaded', function() {
-            if(SCRIPT_URL === '') {
-                exibirStatus({ status: 'error', mensagem: 'Por favor, cole a URL do Apps Script no código.' });
-                return;
-            }
-            
-            carregarProdutos();
-            document.getElementById('vendaForm').addEventListener('submit', lancarVenda);
-            document.getElementById('produto').addEventListener('change', atualizarCampos);
-            document.getElementById('quantidade').addEventListener('input', atualizarCampos);
-            document.getElementById('descontoPercentual').addEventListener('input', () => atualizarCampos('percentual'));
-            document.getElementById('descontoReal').addEventListener('input', () => atualizarCampos('real'));
-        });
-
-        function exibirStatus(resposta) {
-            var statusMessage = document.getElementById('statusMessage');
-            statusMessage.textContent = resposta.mensagem;
-            statusMessage.className = '';
-            if (resposta.status) {
-                statusMessage.classList.add(resposta.status);
-            }
-            statusMessage.style.display = 'block';
-            setTimeout(function() {
-                statusMessage.style.display = 'none';
-            }, 5000);
-        }
-        
-        async function lancarVenda(event) {
-            event.preventDefault();
-            
-            const venda = {
-                data: new Date().toLocaleDateString(),
-                itens: document.getElementById('produto').value,
-                quantidadeVendida: parseFloat(document.getElementById('quantidade').value),
-                subtotal: parseFloat(document.getElementById('subtotal').value),
-                descontoPercentual: parseFloat(document.getElementById('descontoPercentual').value),
-                descontoReal: parseFloat(document.getElementById('descontoReal').value),
-                totalComDesconto: parseFloat(document.getElementById('totalComDesconto').value),
-                usuario: document.getElementById('usuario').value
-            };
-
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'lancarVenda', data: venda })
-                });
-
-                const data = await response.json();
-                exibirStatus(data);
-                if (data.status === 'sucesso') {
-                    document.getElementById('vendaForm').reset();
-                    atualizarCampos();
-                }
-            } catch (error) {
-                exibirStatus({ status: 'error', mensagem: 'Erro de comunicação: ' + error });
-            }
-        }
-        
-        async function carregarProdutos() {
-            const produtoSelect = document.getElementById('produto');
-            produtoSelect.innerHTML = '<option value="">Carregando produtos...</option>';
-
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'obterProdutos' })
-                });
-                const data = await response.json();
-
-                produtos = data.dados;
-                produtoSelect.innerHTML = '<option value="">Selecione um produto</option>';
-                if (data.status === 'sucesso' && produtos.length > 0) {
-                    produtos.forEach(produto => {
-                        const option = document.createElement('option');
-                        option.value = produto.Nome;
-                        option.textContent = produto.Nome;
-                        option.dataset.preco = produto.Preço;
-                        produtoSelect.appendChild(option);
-                    });
-                } else {
-                    produtoSelect.innerHTML = '<option value="">Nenhum produto encontrado</option>';
-                    exibirStatus({ status: 'error', mensagem: 'Nenhum produto encontrado. Cadastre um produto primeiro.' });
-                }
-            } catch (error) {
-                exibirStatus({ status: 'error', mensagem: 'Erro ao carregar produtos: ' + error.message });
-                produtoSelect.innerHTML = '<option value="">Erro ao carregar produtos</option>';
-            }
-        }
-
-        function atualizarCampos(origem) {
-            const produtoSelect = document.getElementById('produto');
-            const quantidadeInput = document.getElementById('quantidade');
-            const precoUnitarioInput = document.getElementById('precoUnitario');
-            const subtotalInput = document.getElementById('subtotal');
-            const descontoPercentualInput = document.getElementById('descontoPercentual');
-            const descontoRealInput = document.getElementById('descontoReal');
-            const totalComDescontoInput = document.getElementById('totalComDesconto');
-
-            const produtoSelecionado = produtos.find(p => p.Nome === produtoSelect.value);
-            const quantidade = parseFloat(quantidadeInput.value) || 0;
-            const precoUnitario = produtoSelecionado ? produtoSelecionado.Preço : 0;
-            
-            precoUnitarioInput.value = precoUnitario.toFixed(2);
-            
-            const subtotal = quantidade * precoUnitario;
-            subtotalInput.value = subtotal.toFixed(2);
-            
-            let descontoPercentual = parseFloat(descontoPercentualInput.value) || 0;
-            let descontoReal = parseFloat(descontoRealInput.value) || 0;
-
-            if (origem === 'percentual') {
-                descontoReal = subtotal * (descontoPercentual / 100);
-                descontoRealInput.value = descontoReal.toFixed(2);
-            } else if (origem === 'real') {
-                if (subtotal > 0) {
-                    descontoPercentual = (descontoReal / subtotal) * 100;
-                    descontoPercentualInput.value = descontoPercentual.toFixed(2);
-                } else {
-                    descontoPercentualInput.value = 0;
-                }
-            }
-            
-            const totalComDesconto = subtotal - descontoReal;
-            totalComDescontoInput.value = totalComDesconto.toFixed(2);
-        }
-    </script>
+    <script><?!= include('js/config.js'); ?></script>
+    <script><?!= include('js/main.js'); ?></script>
+    <script><?!= include('js/vendas.js'); ?></script>
 </body>
 </html>
