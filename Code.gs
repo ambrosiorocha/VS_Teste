@@ -192,8 +192,11 @@ function excluirProduto(id) {
 }
 
 function doGet(e) {
-  // Carrega o ficheiro index.html como a página principal.
-  var html = HtmlService.createHtmlOutputFromFile('index.html')
+  // Carrega o 'index.html' como um *modelo* (template).
+  var template = HtmlService.createTemplateFromFile('index.html');
+
+  // Executa (evaluate) o modelo, o que processa os <?!= include() ?>
+  var html = template.evaluate()
       .setTitle("Sistema de Vendas")
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
