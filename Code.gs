@@ -1,7 +1,11 @@
+// Função 'include' para carregar arquivos CSS/JS no HTML
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename)
       .getContent();
 }
+
+// --- Conteúdo do antigo 'Código.js' ---
+
 function doPost(e) {
   try {
     var requestData = JSON.parse(e.postData.contents);
