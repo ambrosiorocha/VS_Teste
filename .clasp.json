@@ -5,7 +5,9 @@
     ".gs"
   ],
   "htmlExtensions": [
-    ".html"
+    ".html",
+    ".js",
+    ".css"
   ],
   "jsonExtensions": [
     ".json"
