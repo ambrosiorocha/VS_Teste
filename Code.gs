@@ -192,5 +192,10 @@ function excluirProduto(id) {
 }
 
 function doGet(e) {
-  return ContentService.createTextOutput('O servidor está funcionando. Use POST para enviar dados.');
+  // Carrega o ficheiro index.html como a página principal.
+  var html = HtmlService.createHtmlOutputFromFile('index.html')
+      .setTitle("Sistema de Vendas")
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+
+  return html;
 }
