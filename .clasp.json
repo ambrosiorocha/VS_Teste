@@ -11,6 +11,6 @@
   "jsonExtensions": [
     ".json"
   ],
-  "filePushOrder": [],
+  "filePushOrder": ["Code.gs"],
   "skipSubdirectories": false
 }
