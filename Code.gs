@@ -1,6 +1,13 @@
 // Função 'include' para carregar arquivos CSS/JS no HTML
 function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename)
+  // Divide o nome do ficheiro pela barra "/"
+  var parts = filename.split('/');
+
+  // Pega apenas a última parte (o nome do ficheiro real)
+  var flattenedName = parts[parts.length - 1];
+
+  // Carrega o ficheiro com o nome aplainado
+  return HtmlService.createHtmlOutputFromFile(flattenedName)
       .getContent();
 }
 
