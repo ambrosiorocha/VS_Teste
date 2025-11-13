@@ -1,408 +1,87 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <base target="_top">
-    <title>Sistema Vendas (MVP Corrigido)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Teste de Comunicação Mínimo</title>
     <style>
-        /* O CSS foi simplificado e incorporado aqui. */
-        body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; color: #333; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto 30px auto; background-color: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 14px; color: #555; margin-bottom: 5px; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 14px; }
-        .form-group input[readonly] { background-color: #f0f2f5; cursor: not-allowed; color: #555; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
-        .grid-col-span-2 { grid-column: span 2; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background-color 0.3s; color: #fff; }
-        .btn-produto { background-color: #27ae60; }
-        .btn-produto:hover { background-color: #219d54; }
-        .btn-venda { background-color: #3498db; }
-        .btn-venda:hover { background-color: #2980b9; }
-        #statusMessage, #statusMessageVenda { text-align: center; margin-top: 15px; padding: 10px; border-radius: 8px; font-size: 14px; display: none; }
-        #statusMessage.success, #statusMessageVenda.success { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        #statusMessage.error, #statusMessageVenda.error { background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
-        .table-container { margin-top: 30px; overflow-x: auto; }
-        .table-container table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .table-container th, .table-container td { padding: 12px; border: 1px solid #ddd; text-align: left; font-size: 14px; }
-        .table-container th { background-color: #f2f2f2; }
-        .action-buttons button { padding: 6px 10px; font-size: 12px; cursor: pointer; border: none; border-radius: 4px; color: #fff; }
-        .edit-btn { background-color: #3498db; }
-        .delete-btn { background-color: #e74c3c; }
+        body { font-family: sans-serif; padding: 20px; }
+        .container { max-width: 400px; margin: auto; padding: 20px; border: 1px solid #ccc; }
+        #status { margin-top: 15px; padding: 10px; border-radius: 5px; background-color: #f0f0f0; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Lançar Nova Venda</h2>
-        <form id="vendaForm" onsubmit="return false;" name="vendaForm">
-            <div class="form-grid">
-                <div class="form-group grid-col-span-2">
-                    <label for="vendaProduto">Produto</label>
-                    <select id="vendaProduto" required>
-                        <option value="">Carregando produtos...</option>
-                    </select>
-                </div>
-                <div class="form-group grid-col-span-1">
-                    <label for="vendaPrecoUnitario">Preço Unitário (R$)</label>
-                    <input type="number" id="vendaPrecoUnitario" step="0.01" min="0" readonly>
-                </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-group grid-col-span-1">
-                    <label for="vendaQuantidade">Quantidade Vendida</label>
-                    <input type="number" id="vendaQuantidade" step="any" min="0" value="0" required>
-                </div>
-                <div class="form-group grid-col-span-2">
-                    <label for="vendaSubtotal">Subtotal (R$)</label>
-                    <input type="number" id="vendaSubtotal" step="0.01" min="0" readonly>
-                </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-group grid-col-span-1">
-                    <label for="vendaDescontoPercentual">Desconto (%)</label>
-                    <input type="number" id="vendaDescontoPercentual" step="0.01" min="0" max="100" value="0">
-                </div>
-                <div class="form-group grid-col-span-1">
-                    <label for="vendaDescontoReal">Desconto (R$)</label>
-                    <input type="number" id="vendaDescontoReal" step="0.01" min="0" value="0">
-                </div>
-                <div class="form-group grid-col-span-1">
-                    <label for="vendaTotalComDesconto">Total com Desconto (R$)</label>
-                    <input type="number" id="vendaTotalComDesconto" step="0.01" min="0" readonly>
-                </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-group grid-col-span-2">
-                    <label for="vendaUsuario">Usuário</label>
-                    <input type="text" id="vendaUsuario" value="Usuário Padrão" required>
-                </div>
-                <div class="form-group grid-col-span-1" style="margin-top: 27px;">
-                    <button id="btnLancarVenda" class="btn btn-venda">Lançar Venda</button>
-                </div>
-            </div>
-        </form>
-        <div id="statusMessageVenda"></div>
-    </div>
+        <h2>Teste MVP: Cadastro e Retorno</h2>
+        
+        <label for="nomeProduto">Nome do Produto</label>
+        <input type="text" id="nomeProduto" value="Teste_MVP_OK" style="width: 100%; margin-bottom: 10px;">
+        <button onclick="salvarProdutoMinimo()" style="padding: 10px; background-color: #3498db; color: white; border: none; cursor: pointer;">
+            1. Enviar Produto (POST)
+        </button>
 
+        <button onclick="carregarProdutosMinimo()" style="padding: 10px; background-color: #27ae60; color: white; border: none; cursor: pointer; margin-top: 10px;">
+            2. Carregar Dados (GET)
+        </button>
 
-    <div class="container">
-        <h2>Cadastrar Produto</h2>
-        <form id="produtoForm">
-            <input type="hidden" id="idProduto" value="">
-            <div class="form-group">
-                <label for="nome">Nome do Produto</label>
-                <input type="text" id="nome" required>
-            </div>
-            
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="unidadeVenda">Unidade de Venda</label>
-                    <input type="text" id="unidadeVenda" required>
-                </div>
-                <div class="form-group">
-                    <label for="preco">Preço (R$)</label>
-                    <input type="number" id="preco" step="0.01" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="quantidade">Quantidade em Estoque</label>
-                    <input type="number" id="quantidade" step="any" min="0" required>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="descricao">Descrição</label>
-                <input type="text" id="descricao">
-            </div>
-            <button type="submit" class="btn btn-produto">Cadastrar Produto</button>
-        </form>
-        <div id="statusMessage"></div>
-
-        <div class="table-container">
-            <h3>Produtos Cadastrados</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID do Produto</th>
-                        <th>Nome</th>
-                        <th>Unidade de Venda</th>
-                        <th>Preço</th>
-                        <th>Quantidade</th>
-                        <th>Descrição</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="listaProdutos">
-                    <tr><td colspan="7" style="text-align:center;">Carregando produtos...</td></tr>
-                </tbody>
-            </table>
-        </div>
+        <div id="status">Aguardando Teste...</div>
+        
+        <p style="margin-top: 20px;">**Produtos Recebidos do Servidor:**</p>
+        <ul id="listaRecebida"></ul>
     </div>
 
     <script>
-        // !! IMPORTANTE !!
-        // COLOQUE AQUI A SUA URL do Apps Script. Use o link do passo 1.
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5LucqaWV87k5xjlAxx16eDLHvaWZNZZzxcWZMN24QeagIxIl0emc15jG8uyOzMrLxPA/exec';
+        // !! COLOQUE O LINK /EXEC QUE VOCÊ COPIOU DO PASSO DE IMPLANTAÇÃO ACIMA !!
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwe71T3jVHi44RNt4yR5XE-BMVvDfxmWwZ960fdPpQz-2_q5srLe9RQKqjc5EVLb4UF/exec';
 
-        // --- Event Listeners (Gatilhos da Página) ---
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            if(SCRIPT_URL.includes('COLE_O_LINK')) {
-                exibirStatus('error', 'Por favor, cole a URL do Apps Script no código (SCRIPT_URL).', 'statusMessage');
-                return;
-            }
-            
-            document.getElementById('produtoForm').addEventListener('submit', salvarProduto);
-            document.getElementById('btnLancarVenda').addEventListener('click', submeterVenda);
-            
-            carregarProdutos();
-            carregarDropdownProdutos();
-            
-            // Gatilhos de Cálculo
-            document.getElementById('vendaProduto').addEventListener('change', calcularTotaisVenda);
-            document.getElementById('vendaQuantidade').addEventListener('input', calcularTotaisVenda);
-            document.getElementById('vendaDescontoPercentual').addEventListener('input', (e) => calcularTotaisVenda('percentual'));
-            document.getElementById('vendaDescontoReal').addEventListener('input', (e) => calcularTotaisVenda('real'));
-        });
-
-        
-        // --- Funções de Status ---
-
-        function exibirStatus(tipo, mensagem, elementoId) {
-            var statusMessage = document.getElementById(elementoId);
-            statusMessage.textContent = mensagem;
-            statusMessage.className = tipo;
-            statusMessage.style.display = 'block';
-            
-            setTimeout(function() {
-                statusMessage.style.display = 'none';
-            }, 5000);
+        function exibirStatus(tipo, mensagem) {
+            var statusDiv = document.getElementById('status');
+            statusDiv.className = tipo;
+            statusDiv.textContent = mensagem;
         }
 
-        
-        // =============================================
-        // === FUNÇÕES DE VENDA ===
-        // =============================================
-
-        async function carregarDropdownProdutos() {
-            const dropdown = document.getElementById('vendaProduto');
-            dropdown.innerHTML = '<option value="">Carregando...</option>';
-
+        async function salvarProdutoMinimo() {
+            const nome = document.getElementById('nomeProduto').value;
+            exibirStatus('default', 'Enviando dados...');
+            
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'obterProdutos' })
-                });
-                const data = await response.json();
-
-                if (data.status === 'sucesso' && data.dados.length > 0) {
-                    dropdown.innerHTML = '<option value="">Selecione um produto</option>';
-                    data.dados.forEach(produto => {
-                        const option = document.createElement('option');
-                        option.value = produto.Nome;
-                        option.textContent = `${produto.Nome} (R$ ${produto.Preço.toFixed(2)})`;
-                        option.dataset.preco = produto.Preço; 
-                        dropdown.appendChild(option);
-                    });
-                } else {
-                    dropdown.innerHTML = '<option value="">Nenhum produto encontrado</option>';
-                }
-            } catch (error) {
-                dropdown.innerHTML = '<option value="">Erro ao carregar</option>';
-            }
-            calcularTotaisVenda(); // Calcula ao carregar
-        }
-
-        function calcularTotaisVenda(origemDesconto = null) {
-            const dropdown = document.getElementById('vendaProduto');
-            const selectedOption = dropdown.options[dropdown.selectedIndex];
-            
-            const precoUnitario = parseFloat(selectedOption.dataset.preco) || 0;
-            const quantidade = parseFloat(document.getElementById('vendaQuantidade').value) || 0;
-            
-            document.getElementById('vendaPrecoUnitario').value = precoUnitario.toFixed(2);
-            
-            const subtotal = precoUnitario * quantidade;
-            document.getElementById('vendaSubtotal').value = subtotal.toFixed(2);
-            
-            let descontoPercentual = parseFloat(document.getElementById('vendaDescontoPercentual').value) || 0;
-            let descontoReal = parseFloat(document.getElementById('vendaDescontoReal').value) || 0;
-            
-            if (subtotal > 0) {
-                if (origemDesconto === 'percentual') {
-                    descontoReal = subtotal * (descontoPercentual / 100);
-                    document.getElementById('vendaDescontoReal').value = descontoReal.toFixed(2);
-                } else if (origemDesconto === 'real') {
-                    descontoPercentual = (descontoReal / subtotal) * 100;
-                    document.getElementById('vendaDescontoPercentual').value = descontoPercentual.toFixed(2);
-                }
-            }
-
-            const totalComDesconto = subtotal - descontoReal;
-            document.getElementById('vendaTotalComDesconto').value = totalComDesconto.toFixed(2);
-        }
-
-        async function submeterVenda(event) {
-            event.preventDefault();
-
-            const venda = {
-                data: new Date().toLocaleDateString("pt-BR"),
-                itens: document.getElementById('vendaProduto').value,
-                quantidadeVendida: parseFloat(document.getElementById('vendaQuantidade').value),
-                subtotal: parseFloat(document.getElementById('vendaSubtotal').value),
-                descontoPercentual: parseFloat(document.getElementById('vendaDescontoPercentual').value),
-                descontoReal: parseFloat(document.getElementById('vendaDescontoReal').value),
-                totalComDesconto: parseFloat(document.getElementById('vendaTotalComDesconto').value),
-                usuario: document.getElementById('vendaUsuario').value
-            };
-
-            if (!venda.itens || venda.quantidadeVendida <= 0 || !venda.usuario) {
-                exibirStatus('error', 'Produto, Quantidade e Usuário são obrigatórios.', 'statusMessageVenda');
-                return;
-            }
-
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'lancarVenda', data: venda })
+                    body: JSON.stringify({ action: 'salvarProdutoMinimo', data: { nome: nome } })
                 });
                 const data = await response.json();
                 
-                exibirStatus(data.status, data.mensagem, 'statusMessageVenda');
+                exibirStatus(data.status === 'sucesso' ? 'success' : 'error', 
+                             data.mensagem || 'Resposta recebida.');
+                
+            } catch (error) {
+                exibirStatus('error', '❌ Erro de Comunicação (POST): ' + error.message);
+            }
+        }
+
+        async function carregarProdutosMinimo() {
+            exibirStatus('default', 'Requisitando dados...');
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'obterProdutosMinimo' })
+                });
+                
+                // O servidor está a responder (isto prova o CORS)
+                const data = await response.json(); 
                 
                 if (data.status === 'sucesso') {
-                    document.getElementById('vendaForm').reset();
-                    document.getElementById('vendaUsuario').value = venda.usuario;
-                    await carregarProdutos(); 
-                    await carregarDropdownProdutos();
-                }
-
-            } catch (error) {
-                exibirStatus('error', 'Erro de comunicação: ' + error.message, 'statusMessageVenda');
-            }
-        }
-
-
-        // =============================================
-        // === FUNÇÕES DE PRODUTO ===
-        // =============================================
-
-        async function salvarProduto(event) {
-            event.preventDefault();
-            
-            const produto = {
-                idProduto: document.getElementById('idProduto').value || null,
-                nome: document.getElementById('nome').value,
-                unidadeVenda: document.getElementById('unidadeVenda').value,
-                preco: parseFloat(document.getElementById('preco').value),
-                quantidade: parseFloat(document.getElementById('quantidade').value),
-                descricao: document.getElementById('descricao').value
-            };
-
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'salvarProduto', data: produto })
-                });
-
-                const data = await response.json();
-                exibirStatus(data.status, data.mensagem, 'statusMessage');
-                
-                if (data.status === 'sucesso') {
-                    document.getElementById('produtoForm').reset();
-                    document.getElementById('idProduto').value = '';
-                    await carregarProdutos();
-                    await carregarDropdownProdutos();
-                }
-
-            } catch (error) {
-                exibirStatus('error', 'Erro de comunicação: ' + error.message, 'statusMessage');
-            }
-        }
-        
-        async function carregarProdutos() {
-            const listaProdutos = document.getElementById('listaProdutos');
-            listaProdutos.innerHTML = '<tr><td colspan="7" style="text-align:center;">Carregando produtos...</td></tr>';
-
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'obterProdutos' })
-                });
-                const data = await response.json();
-
-                if (data.status === 'sucesso' && data.dados.length > 0) {
-                    listaProdutos.innerHTML = '';
-                    data.dados.forEach(produto => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${produto['ID do Produto']}</td>
-                            <td>${produto.Nome}</td>
-                            <td>${produto['Unidade de Venda']}</td>
-                            <td>R$ ${produto.Preço.toFixed(2).replace('.', ',')}</td>
-                            <td>${produto.Quantidade}</td>
-                            <td>${produto.Descrição || ''}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="edit-btn" onclick="editarProduto(${produto['ID do Produto']})">Editar</button>
-                                    <button class="delete-btn" onclick="excluirProduto(${produto['ID do Produto']})">Excluir</button>
-                                </div>
-                            </td>
-                        `;
-                        listaProdutos.appendChild(row);
-                    });
+                    exibirStatus('success', '✅ Comunicação (GET) bem-sucedida! Dados recebidos.');
+                    const lista = document.getElementById('listaRecebida');
+                    lista.innerHTML = data.dados.map(item => `<li>${item}</li>`).join('');
                 } else {
-                    listaProdutos.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum produto cadastrado.</td></tr>';
+                    exibirStatus('error', 'Resposta do servidor: ' + data.mensagem);
                 }
-            } catch (error) {
-                exibirStatus('error', 'Erro ao carregar lista de produtos: ' + error.message, 'statusMessage');
-                listaProdutos.innerHTML = '<tr><td colspan="7" style="text-align:center;">Erro ao carregar produtos.</td></tr>';
-            }
-        }
-
-        async function editarProduto(id) {
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'obterProdutoPorId', data: { id: id } })
-                });
-                const data = await response.json();
                 
-                if (data.status === 'sucesso' && data.dados) {
-                    const produto = data.dados;
-                    document.getElementById('idProduto').value = produto['ID do Produto'];
-                    document.getElementById('nome').value = produto.Nome;
-                    document.getElementById('unidadeVenda').value = produto['Unidade de Venda'];
-                    document.getElementById('preco').value = produto.Preço;
-                    document.getElementById('quantidade').value = produto.Quantidade;
-                    document.getElementById('descricao').value = produto.Descrição || '';
-                    exibirStatus('success', 'Campos preenchidos. Agora você pode editar.', 'statusMessage');
-                    document.querySelectorAll('.container')[1].scrollIntoView({ behavior: 'smooth' });
-                } else {
-                    exibirStatus('error', 'Produto não encontrado para edição.', 'statusMessage');
-                }
             } catch (error) {
-                exibirStatus('error', 'Erro ao obter dados do produto: ' + error.message, 'statusMessage');
-            }
-        }
-
-        async function excluirProduto(id) {
-            if (confirm(`Tem certeza que deseja excluir o produto com ID ${id}?`)) {
-                try {
-                    const response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'excluirProduto', data: { id: id } })
-                    });
-                    const data = await response.json();
-                    exibirStatus(data.status, data.mensagem, 'statusMessage');
-                    if (data.status === 'sucesso') {
-                        await carregarProdutos();
-                        await carregarDropdownProdutos();
-                    }
-                } catch (error) {
-                    exibirStatus('error', 'Erro ao excluir o produto: ' + error.message, 'statusMessage');
-                }
+                exibirStatus('error', '❌ Erro de Comunicação (GET): ' + error.message);
             }
         }
     </script>
