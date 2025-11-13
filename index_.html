@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema de Vendas - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <main class="main-content p-4 md:p-8 overflow-y-auto">
+        <div class="container">
+            <h1>Dashboard Principal</h1>
+            <div id="loading" class="text-center text-gray-500 mb-6">Carregando dados...</div>
+            
+            <div id="dashboard-content" class="hidden">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <h4>Venda Total</h4>
+                        <p id="totalVendas">R$ 0,00</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h4>Total de Transações</h4>
+                        <p id="totalTransacoes">0</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h4>Ticket Médio</h4>
+                        <p id="ticketMedio">R$ 0,00</p>
+                    </div>
+                </div>
+                
+                <div class="nav-grid">
+                    <a href="Vendas.html" class="nav-link">Lançar Vendas</a>
+                    <a href="Produtos.html" class="nav-link">Gerenciar Produtos</a>
+                    <a href="Relatorios.html" class="nav-link">Visualizar Relatórios</a>
+                </div>
+            </div>
+
+            <div id="statusMessage"></div>
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
