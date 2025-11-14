@@ -84,11 +84,8 @@ h1, h2 {
     border: 1px solid #ef9a9a;
 }
 
-/* Estilos do menu de navegação 
-  (Estes estilos são usados pelo main.js)
-*/
+/* Estilos do menu de navegação */
 .desktop-sidebar {
-    /* O main.js usa classes do Tailwind (hidden md:flex) para controlar a exibição */
     width: 256px;
     background-color: #1f2937;
     color: #fff;
@@ -99,16 +96,11 @@ h1, h2 {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 @media (min-width: 768px) {
-    /* Esta classe é do seu CSS, mas o main.js também usa 'md:flex' 
-      para garantir que ele apareça.
-    */
     .desktop-sidebar {
         display: flex;
         flex-direction: column;
     }
     .main-content {
-        /* Esta classe é do Tailwind (p-4 md:p-8), 
-           mas também definimos o margin-left aqui. */
         margin-left: 256px;
     }
 }
