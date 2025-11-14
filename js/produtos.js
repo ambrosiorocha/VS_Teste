@@ -77,14 +77,13 @@ async function carregarProdutos() {
             listaProdutos.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Nenhum produto cadastrado.</td></tr>';
         }
     } catch (error) {
+        // CORREÇÃO: Mostra o erro do toFixed (se for ele)
         exibirStatus({ status: 'error', mensagem: 'Erro ao carregar lista de produtos: ' + error.message });
         listaProdutos.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Erro ao carregar produtos.</td></tr>';
     }
 }
 
-// -----------------------------------------------------------------------------
-// ### A PARCERIA CORRETA ###
-// -----------------------------------------------------------------------------
+
 function renderizarTabela(produtosParaRenderizar) {
     const listaProdutos = document.getElementById('listaProdutos');
     listaProdutos.innerHTML = ''; // Limpa a tabela
@@ -94,28 +93,35 @@ function renderizarTabela(produtosParaRenderizar) {
         return;
     }
 
-    // AQUI ESTÁ A CORREÇÃO:
-    // Nós adicionamos "table-cell" para dizer ao Tailwind como a célula deve se comportar.
-    const tdClasses = "table-cell align-middle p-3 border-b border-gray-200 text-sm text-gray-700";
+    // CORREÇÃO 1: Classes de layout do Tailwind para "PARCERIA"
+    const trClasses = "table-row"; // Define a linha como uma linha de tabela
+    const tdClasses = "table-cell align-middle"; // Define a célula como uma célula de tabela
 
     produtosParaRenderizar.forEach(produto => {
-        // --- Correção do Preço (que já tínhamos feito antes) ---
+        
+        // CORREÇÃO 2: O erro 'toFixed'
+        // Garante que 'produto.Preço' seja um número antes de formatar.
         const precoString = String(produto.Preço || 0); 
         const precoLimpo = precoString.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
         const precoNum = parseFloat(precoLimpo);
-        // --- Fim da correção do Preço ---
+
+        // Se 'precoNum' não for um número válido, define como 0
+        const precoFinal = isNaN(precoNum) ? 0 : precoNum; 
+        // --- Fim da correção do toFixed ---
+
 
         const row = document.createElement('tr');
         
-        // AQUI ESTÁ A CORREÇÃO:
-        // Nós adicionamos "table-row" para dizer ao Tailwind como a linha deve se comportar.
-        row.className = "table-row";
+        // Adiciona a classe de linha do Tailwind
+        row.className = trClasses;
         
+        // O seu CSS (style.css) vai cuidar das bordas e padding
+        // Este JS cuida do layout (table-cell)
         row.innerHTML = `
             <td class="${tdClasses}">${produto['ID do Produto']}</td>
             <td class="${tdClasses}">${produto.Nome}</td>
             <td class="${tdClasses}">${produto['Unidade de Venda']}</td>
-            <td class="${tdClasses}">R$ ${precoNum.toFixed(2).replace('.', ',')}</td>
+            <td class="${tdClasses}">R$ ${precoFinal.toFixed(2).replace('.', ',')}</td>
             <td class="${tdClasses}">${produto.Quantidade}</td>
             <td class="${tdClasses}">${produto.Descrição || ''}</td>
             <td class="${tdClasses}">
@@ -152,10 +158,12 @@ async function editarProduto(id) {
             document.getElementById('nome').value = produto.Nome;
             document.getElementById('unidadeVenda').value = produto['Unidade de Venda'];
             
+            // CORREÇÃO 2 (toFixed) também aplicada aqui
             const precoString = String(produto.Preço || 0);
             const precoLimpo = precoString.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
+            const precoNum = parseFloat(precoLimpo);
             
-            document.getElementById('preco').value = parseFloat(precoLimpo);
+            document.getElementById('preco').value = isNaN(precoNum) ? 0 : precoNum;
             document.getElementById('quantidade').value = produto.Quantidade;
             document.getElementById('descricao').value = produto.Descrição || '';
             exibirStatus({ status: 'success', mensagem: 'Campos preenchidos. Agora você pode editar.' });
