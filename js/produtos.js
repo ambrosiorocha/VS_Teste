@@ -1,165 +1,189 @@
 let produtos = []; // Array global para armazenar os produtos
 
 document.addEventListener('DOMContentLoaded', function() {
-    if(SCRIPT_URL === '') {
-        exibirStatus({ status: 'error', mensagem: 'Por favor, cole a URL do Apps Script no código.' });
-        return;
-    }
-    document.getElementById('produtoForm').addEventListener('submit', salvarProduto);
+    if(SCRIPT_URL === '') {
+        exibirStatus({ status: 'error', mensagem: 'Por favor, cole a URL do Apps Script no código.' });
+        return;
+    }
+    document.getElementById('produtoForm').addEventListener('submit', salvarProduto);
 
-    // NOVO: Adicionar listener para o campo de pesquisa
-    document.getElementById('pesquisa').addEventListener('input', filtrarProdutos);
+    // NOVO: Adicionar listener para o campo de pesquisa
+    document.getElementById('pesquisa').addEventListener('input', filtrarProdutos);
 
-    carregarProdutos();
+    carregarProdutos();
 });
 
 function exibirStatus(resposta) {
-    var statusMessage = document.getElementById('statusMessage');
-    statusMessage.textContent = resposta.mensagem;
-    statusMessage.className = '';
-    if (resposta.status) {
-        statusMessage.classList.add(resposta.status);
-    }
-    statusMessage.style.display = 'block';
-    setTimeout(function() {
-        statusMessage.style.display = 'none';
-    }, 5000);
+    var statusMessage = document.getElementById('statusMessage');
+    statusMessage.textContent = resposta.mensagem;
+    statusMessage.className = '';
+    if (resposta.status) {
+        statusMessage.classList.add(resposta.status);
+    }
+    statusMessage.style.display = 'block';
+    setTimeout(function() {
+        statusMessage.style.display = 'none';
+    }, 5000);
 }
 
 async function salvarProduto(event) {
-    event.preventDefault();
+    event.preventDefault();
 
-    const produto = {
-        idProduto: document.getElementById('idProduto').value || null,
-        nome: document.getElementById('nome').value,
-        unidadeVenda: document.getElementById('unidadeVenda').value,
-        preco: parseFloat(document.getElementById('preco').value),
-        quantidade: parseFloat(document.getElementById('quantidade').value),
-        descricao: document.getElementById('descricao').value
-    };
+    const produto = {
+        idProduto: document.getElementById('idProduto').value || null,
+        nome: document.getElementById('nome').value,
+        unidadeVenda: document.getElementById('unidadeVenda').value,
+        preco: parseFloat(document.getElementById('preco').value),
+        quantidade: parseFloat(document.getElementById('quantidade').value),
+        descricao: document.getElementById('descricao').value
+    };
 
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'salvarProduto', data: produto })
-        });
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'salvarProduto', data: produto })
+        });
 
-        const data = await response.json();
-        exibirStatus(data);
+        const data = await response.json();
+        exibirStatus(data);
 
-        if (data.status === 'sucesso') {
-            document.getElementById('produtoForm').reset();
-            document.getElementById('idProduto').value = '';
-            await carregarProdutos();
-        }
+        if (data.status === 'sucesso') {
+            document.getElementById('produtoForm').reset();
+            document.getElementById('idProduto').value = '';
+            await carregarProdutos();
+        }
 
-    } catch (error) {
-        exibirStatus({ status: 'error', mensagem: 'Erro de comunicação: ' + error });
-    }
+    } catch (error) {
+        exibirStatus({ status: 'error', mensagem: 'Erro de comunicação: ' + error });
+    }
 }
 
 async function carregarProdutos() {
-    const listaProdutos = document.getElementById('listaProdutos');
-    listaProdutos.innerHTML = '<tr><td colspan="7" style="text-align:center;">Carregando produtos...</td></tr>';
+    const listaProdutos = document.getElementById('listaProdutos');
+    listaProdutos.innerHTML = '<tr><td colspan="7" style="text-align:center;">Carregando produtos...</td></tr>';
 
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'obterProdutos' })
-        });
-        const data = await response.json();
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'obterProdutos' })
+        });
+        const data = await response.json();
 
-        if (data.status === 'sucesso' && data.dados.length > 0) {
-            produtos = data.dados; // Armazena a lista completa na variável global
-            renderizarTabela(produtos); // Renderiza a tabela com a lista completa
-        } else {
-            listaProdutos.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum produto cadastrado.</td></tr>';
-        }
-    } catch (error) {
-        exibirStatus({ status: 'error', mensagem: 'Erro ao carregar lista de produtos: ' + error.message });
-        listaProdutos.innerHTML = '<tr><td colspan="7" style="text-align:center;">Erro ao carregar produtos.</td></tr>';
-    }
+        if (data.status === 'sucesso' && data.dados.length > 0) {
+            produtos = data.dados; // Armazena a lista completa na variável global
+            renderizarTabela(produtos); // Renderiza a tabela com a lista completa
+        } else {
+            listaProdutos.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum produto cadastrado.</td></tr>';
+        }
+    } catch (error) {
+        // <-- CORREÇÃO: Notei que a mensagem de erro original estava incompleta (faltava error.message). Corrigi isso também.
+        exibirStatus({ status: 'error', mensagem: 'Erro ao carregar lista de produtos: ' + error.message });
+        listaProdutos.innerHTML = '<tr><td colspan="7" style="text-align:center;">Erro ao carregar produtos.</td></tr>';
+    }
 }
 
 // NOVO: Função para renderizar a tabela com base em um array de produtos
 function renderizarTabela(produtosParaRenderizar) {
-    const listaProdutos = document.getElementById('listaProdutos');
-    listaProdutos.innerHTML = ''; // Limpa a tabela
+    const listaProdutos = document.getElementById('listaProdutos');
+    listaProdutos.innerHTML = ''; // Limpa a tabela
 
-    if (produtosParaRenderizar.length === 0) {
-        listaProdutos.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum produto encontrado.</td></tr>';
-        return;
-    }
+    if (produtosParaRenderizar.length === 0) {
+        listaProdutos.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum produto encontrado.</td></tr>';
+        return;
+    }
 
-    produtosParaRenderizar.forEach(produto => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${produto['ID do Produto']}</td>
-            <td>${produto.Nome}</td>
-            <td>${produto['Unidade de Venda']}</td>
-            <td>R$ ${produto.Preço.toFixed(2).replace('.', ',')}</td>
-            <td>${produto.Quantidade}</td>
-            <td>${produto.Descrição || ''}</td>
-            <td>
-                <div class="action-buttons">
-                    <button class="edit-btn" onclick="editarProduto(${produto['ID do Produto']})">Editar</button>
-                    <button class="delete-btn" onclick="excluirProduto(${produto['ID do Produto']})">Excluir</button>
-                </div>
-            </td>
-        `;
-        listaProdutos.appendChild(row);
-    });
+    produtosParaRenderizar.forEach(produto => {
+
+        // <-- INÍCIO DA CORREÇÃO -->
+        // 1. Garante que o preço é uma string e define 0 se for nulo/vazio.
+        const precoString = String(produto.Preço || 0); 
+        
+        // 2. Limpa a string: remove "R$", remove separador de milhar (ponto) e troca vírgula decimal por ponto.
+        const precoLimpo = precoString.replace("R$", "")     // Remove R$
+                                    .replace(/\./g, "")   // Remove pontos (milhar)
+                                    .replace(",", ".")     // Troca vírgula por ponto
+                                    .trim();              // Remove espaços
+
+        // 3. Converte a string limpa para um número
+        const precoNum = parseFloat(precoLimpo);
+        // <-- FIM DA CORREÇÃO -->
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${produto['ID do Produto']}</td>
+            <td>${produto.Nome}</td>
+            <td>${produto['Unidade de Venda']}</td>
+            
+                        <td>R$ ${precoNum.toFixed(2).replace('.', ',')}</td> 
+            
+            <td>${produto.Quantidade}</td>
+            <td>${produto.Descrição || ''}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="edit-btn" onclick="editarProduto(${produto['ID do Produto']})">Editar</button>
+                    <button class="delete-btn" onclick="excluirProduto(${produto['ID do Produto']})">Excluir</button>
+                </div>
+            </td>
+        `;
+        listaProdutos.appendChild(row);
+    });
 }
 
 // NOVO: Função de pesquisa
 function filtrarProdutos() {
-    const termoPesquisa = document.getElementById('pesquisa').value.toLowerCase();
-    const produtosFiltrados = produtos.filter(produto => {
-        return produto.Nome.toLowerCase().includes(termoPesquisa) ||
-               produto['ID do Produto'].toString().includes(termoPesquisa);
-    });
-    renderizarTabela(produtosFiltrados);
+    const termoPesquisa = document.getElementById('pesquisa').value.toLowerCase();
+    const produtosFiltrados = produtos.filter(produto => {
+        return produto.Nome.toLowerCase().includes(termoPesquisa) ||
+               produto['ID do Produto'].toString().includes(termoPesquisa);
+    });
+    renderizarTabela(produtosFiltrados);
 }
 
 async function editarProduto(id) {
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'obterProdutoPorId', data: { id: id } })
-        });
-        const data = await response.json();
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'obterProdutoPorId', data: { id: id } })
+        });
+        const data = await response.json();
 
-        if (data.status === 'sucesso' && data.dados) {
-            const produto = data.dados;
-            document.getElementById('idProduto').value = produto['ID do Produto'];
-            document.getElementById('nome').value = produto.Nome;
-            document.getElementById('unidadeVenda').value = produto['Unidade de Venda'];
-            document.getElementById('preco').value = produto.Preço;
-            document.getElementById('quantidade').value = produto.Quantidade;
-            document.getElementById('descricao').value = produto.Descrição || '';
-            exibirStatus({ status: 'success', mensagem: 'Campos preenchidos. Agora você pode editar.' });
-        } else {
-            exibirStatus({ status: 'error', mensagem: 'Produto não encontrado para edição.' });
-        }
-    } catch (error) {
-        exibirStatus({ status: 'error', mensagem: 'Erro ao obter dados do produto: ' + error.message });
-    }
+        if (data.status === 'sucesso' && data.dados) {
+            const produto = data.dados;
+            document.getElementById('idProduto').value = produto['ID do Produto'];
+            document.getElementById('nome').value = produto.Nome;
+            document.getElementById('unidadeVenda').value = produto['Unidade de Venda'];
+            
+            // <-- CORREÇÃO OPCIONAL: Se o preço também vier formatado aqui, 
+            // aplicamos a mesma lógica de limpeza para o campo de edição.
+            const precoString = String(produto.Preço || 0);
+            const precoLimpo = precoString.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
+            
+            document.getElementById('preco').value = parseFloat(precoLimpo); // Usamos o valor numérico limpo
+            document.getElementById('quantidade').value = produto.Quantidade;
+            document.getElementById('descricao').value = produto.Descrição || '';
+            exibirStatus({ status: 'success', mensagem: 'Campos preenchidos. Agora você pode editar.' });
+        } else {
+            exibirStatus({ status: 'error', mensagem: 'Produto não encontrado para edição.' });
+        }
+    } catch (error) {
+        exibirStatus({ status: 'error', mensagem: 'Erro ao obter dados do produto: ' + error.message });
+    }
 }
 
 async function excluirProduto(id) {
-    if (confirm(`Tem certeza que deseja excluir o produto com ID ${id}?`)) {
-        try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'excluirProduto', data: { id: id } })
-            });
-            const data = await response.json();
-            exibirStatus(data);
-            if (data.status === 'sucesso') {
-                await carregarProdutos(); // Recarrega a lista
-            }
-        } catch (error) {
-            exibirStatus({ status: 'error', mensagem: 'Erro ao excluir o produto: ' + error.message });
-        }
-    }
+    if (confirm(`Tem certeza que deseja excluir o produto com ID ${id}?`)) {
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'excluirProduto', data: { id: id } })
+            });
+            const data = await response.json();
+            exibirStatus(data);
+            if (data.status === 'sucesso') {
+                await carregarProdutos(); // Recarrega a lista
+            }
+        } catch (error) {
+            exibirStatus({ status: 'error', mensagem: 'Erro ao excluir o produto: ' + error.message });
+        }
+    }
 }
