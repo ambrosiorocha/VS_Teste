@@ -1,70 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Gerenciar Produtos</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <title>Gerenciar Produtos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <main class="main-content p-4 md:p-8 overflow-y-auto">
-        <div class="container">
-            <h2>Gerenciar Produtos</h2>
-            <form id="produtoForm" class="space-y-4">
-                <input type="hidden" id="idProduto" value="">
+    <main class="main-content">
+        <div class="container">
+            <h2>Gerenciar Produtos</h2>
+            <form id="produtoForm">
+                <input type="hidden" id="idProduto" value="">
 
-                <div class="form-group">
-                    <label for="nome">Nome do Produto</label>
-                    <input type="text" id="nome" required>                 </div>
+                <div class="form-group">
+                    <label for="nome">Nome do Produto</label>
+                    <input type="text" id="nome" required>
+                </div>
 
-                                <div class="form-grid-container">
-                    <div class="form-group">
-                        <label for="unidadeVenda">Unidade de Venda</label>
-                        <input type="text" id="unidadeVenda" required>                     </div>
-                    <div class="form-group">
-                        <label for="preco">Preço (R$)</label>
-                        <input type="number" id="preco" step="0.01" min="0" required>                     </div>
-                    <div class="form-group">
-                        <label for="quantidade">Quantidade em Estoque</label>
-                        <input type="number" id="quantidade" step="any" min="0" required>                     </div>
-                </div>
+                <div class="form-grid-container">
+                    <div class="form-group">
+                        <label for="unidadeVenda">Unidade de Venda</label>
+                        <input type="text" id="unidadeVenda" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="preco">Preço (R$)</label>
+                        <input type="number" id="preco" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantidade">Quantidade em Estoque</label>
+                        <input type="number" id="quantidade" step="any" min="0" required>
+                    </div>
+                </div>
 
-                <div class="form-group">
-                    <label for="descricao">Descrição</label>
-                    <input type="text" id="descricao">                 </div>
+                <div class="form-group">
+                    <label for="descricao">Descrição</label>
+                    <input type="text" id="descricao">
+                </div>
 
-                <button type="submit" class="btn">Cadastrar Produto</button>
-            </form>
-            <div id="statusMessage"></div>
+                <button type="submit" class="btn">Cadastrar Produto</button>
+            </form>
+            <div id="statusMessage"></div>
 
-            <div class="table-container">
-                <h3>Produtos Cadastrados</h3>
-                <div class="form-group">
-        _           <label for="pesquisa">Pesquisar Produto</label>
-                    <input type="text" id="pesquisa" placeholder="Digite para pesquisar...">                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID do Produto</th>
-                            <th>Nome</th>
-                            <th>Unidade de Venda</th>
-                            <th>Preço</th>
-                        nbsp;   <th>Quantidade</th>
-                            <th>Descrição</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="listaProdutos">
-                        <tr><td colspan="7" style="text-align:center;">Carregando produtos...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
+            <div class="table-container">
+                <h3>Produtos Cadastrados</h3>
+                <div class="form-group">
+                    <label for="pesquisa">Pesquisar Produto</label>
+                    <input type="text" id="pesquisa" placeholder="Digite para pesquisar...">
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID do Produto</th>
+                            <th>Nome</th>
+                            <th>Unidade de Venda</th>
+                            <th>Preço</th>
+                            <th>Quantidade</th>
+                            <th>Descrição</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaProdutos">
+                        <tr><td colspan="7" style="text-align:center;">Carregando produtos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
 
-    <script src="js/config.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/produtos.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/produtos.js"></script>
 </body>
 </html>
