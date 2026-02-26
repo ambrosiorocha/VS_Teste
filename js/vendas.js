@@ -1,9 +1,10 @@
 // ================================
-// ESTADO GLOBAL DO CARRINHO
+// ESTADO GLOBAL
 // ================================
 let produtos = [];
 let carrinho = [];
 let formaPagamentoSelecionada = '';
+let vendaEditandoId = null; // ID da venda Pendente em edição
 
 // ================================
 // INICIALIZAÇÃO
@@ -22,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('descontoItemPct').addEventListener('input', () => sincronizarDesconto('pct'));
     document.getElementById('descontoItemReais').addEventListener('input', () => sincronizarDesconto('reais'));
 
-    // Botões de forma de pagamento no modal
     document.querySelectorAll('.pgto-btn').forEach(btn => {
         btn.addEventListener('click', function () {
             document.querySelectorAll('.pgto-btn').forEach(b => b.classList.remove('active'));
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // ================================
-// STATUS
+// STATUS MESSAGE
 // ================================
 function exibirStatus(resposta) {
     var el = document.getElementById('statusMessage');
@@ -44,11 +44,11 @@ function exibirStatus(resposta) {
     el.className = '';
     if (resposta.status) el.classList.add(resposta.status);
     el.style.display = 'block';
-    setTimeout(() => el.style.display = 'none', 6000);
+    setTimeout(() => el.style.display = 'none', 7000);
 }
 
 // ================================
-// CARREGAR PRODUTOS E CLIENTES
+// CARREGAR DADOS
 // ================================
 async function carregarProdutos() {
     const sel = document.getElementById('produto');
@@ -90,7 +90,7 @@ async function carregarClientes() {
 }
 
 // ================================
-// PREÇO E DESCONTO EM TEMPO REAL
+// DESCONTO E SUBTOTAL POR ITEM
 // ================================
 function getPrecoUnitario() {
     const sel = document.getElementById('produto');
@@ -101,26 +101,21 @@ function getPrecoUnitario() {
 function atualizarPrecoUnitario() {
     const preco = getPrecoUnitario();
     document.getElementById('precoUnitario').value = preco > 0 ? preco.toFixed(2) : '';
-    // Zera descontos ao trocar produto
     document.getElementById('descontoItemPct').value = '0';
     document.getElementById('descontoItemReais').value = '0';
     atualizarSubtotalItem();
 }
 
-// Sincroniza % ↔ R$ ao digitar em qualquer um
 function sincronizarDesconto(origem) {
     const preco = getPrecoUnitario();
     const qtd = parseFloat(document.getElementById('quantidade').value) || 0;
-    const subtotalBruto = preco * qtd;
-
+    const bruto = preco * qtd;
     if (origem === 'pct') {
         const pct = parseFloat(document.getElementById('descontoItemPct').value) || 0;
-        const reais = subtotalBruto > 0 ? (subtotalBruto * pct / 100) : 0;
-        document.getElementById('descontoItemReais').value = reais.toFixed(2);
+        document.getElementById('descontoItemReais').value = bruto > 0 ? (bruto * pct / 100).toFixed(2) : '0';
     } else {
         const reais = parseFloat(document.getElementById('descontoItemReais').value) || 0;
-        const pct = subtotalBruto > 0 ? (reais / subtotalBruto * 100) : 0;
-        document.getElementById('descontoItemPct').value = pct.toFixed(2);
+        document.getElementById('descontoItemPct').value = bruto > 0 ? (reais / bruto * 100).toFixed(2) : '0';
     }
     atualizarSubtotalItem();
 }
@@ -130,7 +125,6 @@ function atualizarSubtotalItem() {
     const qtd = parseFloat(document.getElementById('quantidade').value) || 0;
     const descPct = parseFloat(document.getElementById('descontoItemPct').value) || 0;
     const subtotal = Math.max(0, qtd * preco * (1 - descPct / 100));
-
     const el = document.getElementById('subtotalItem');
     if (qtd > 0 && preco > 0) {
         el.textContent = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
@@ -141,21 +135,18 @@ function atualizarSubtotalItem() {
 }
 
 // ================================
-// CARRINHO — ADICIONAR ITEM
+// CARRINHO
 // ================================
 function adicionarItemCarrinho() {
     const sel = document.getElementById('produto');
     const opt = sel.options[sel.selectedIndex];
-
     if (!sel.value) { exibirStatus({ status: 'error', mensagem: '⚠️ Selecione um produto.' }); return; }
-
     const quantidade = parseFloat(document.getElementById('quantidade').value);
     if (!quantidade || quantidade <= 0) { exibirStatus({ status: 'error', mensagem: '⚠️ Informe a quantidade.' }); return; }
 
     const descPct = parseFloat(document.getElementById('descontoItemPct').value) || 0;
     const estoqueDisp = parseFloat(opt.dataset.estoque) || 0;
-    const jaNoCarrinho = carrinho.filter(i => i.nome === sel.value && i.desconto === descPct)
-        .reduce((s, i) => s + i.quantidade, 0);
+    const jaNoCarrinho = carrinho.filter(i => i.nome === sel.value).reduce((s, i) => s + i.quantidade, 0);
 
     if (quantidade + jaNoCarrinho > estoqueDisp) {
         exibirStatus({ status: 'error', mensagem: `❌ Estoque insuficiente! Disponível: ${estoqueDisp - jaNoCarrinho}` });
@@ -164,8 +155,6 @@ function adicionarItemCarrinho() {
 
     const preco = parseFloat(opt.dataset.preco) || 0;
     const subtotal = Math.max(0, quantidade * preco * (1 - descPct / 100));
-
-    // Agrupa se mesmo produto e mesmo desconto
     const existente = carrinho.find(i => i.nome === sel.value && i.desconto === descPct);
     if (existente) {
         existente.quantidade += quantidade;
@@ -174,29 +163,29 @@ function adicionarItemCarrinho() {
         carrinho.push({ nome: sel.value, preco, quantidade, desconto: descPct, subtotal });
     }
 
-    // Limpa campos
     sel.value = '';
     document.getElementById('quantidade').value = '';
     document.getElementById('descontoItemPct').value = '0';
     document.getElementById('descontoItemReais').value = '0';
     document.getElementById('precoUnitario').value = '';
     document.getElementById('subtotalItem').textContent = '—';
-
     renderizarCarrinho();
 }
 
-// ================================
-// CARRINHO — RENDERIZAR
-// ================================
 function renderizarCarrinho() {
     const tbody = document.getElementById('carrinhoItens');
     tbody.innerHTML = '';
+    const editandoBadge = vendaEditandoId
+        ? `<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:0.5rem;padding:0.4rem 0.75rem;font-size:0.8rem;color:#92400e;margin-bottom:0.5rem;">✏️ Editando rascunho #${vendaEditandoId} &nbsp;<button onclick="cancelarEdicao()" style="border:none;background:none;color:#ef4444;cursor:pointer;font-size:0.8rem;">✕ cancelar edição</button></div>`
+        : '';
+    document.getElementById('editandoBadge').innerHTML = editandoBadge;
 
     if (carrinho.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="carrinho-vazio">Nenhum item adicionado ainda.</td></tr>';
         document.getElementById('totalCarrinho').textContent = 'R$ 0,00';
         document.getElementById('qtdItensLabel').textContent = '0 item(ns)';
         document.getElementById('btnFinalizar').disabled = true;
+        document.getElementById('btnRascunho').disabled = true;
         return;
     }
 
@@ -218,11 +207,36 @@ function renderizarCarrinho() {
     document.getElementById('totalCarrinho').textContent = `R$ ${totalGeral.toFixed(2).replace('.', ',')}`;
     document.getElementById('qtdItensLabel').textContent = `${carrinho.length} item(ns)`;
     document.getElementById('btnFinalizar').disabled = false;
+    document.getElementById('btnRascunho').disabled = false;
 }
 
-function removerItem(idx) {
-    carrinho.splice(idx, 1);
+function removerItem(idx) { carrinho.splice(idx, 1); renderizarCarrinho(); }
+
+function cancelarEdicao() {
+    vendaEditandoId = null;
+    carrinho = [];
     renderizarCarrinho();
+    exibirStatus({ status: 'success', mensagem: 'Edição cancelada.' });
+}
+
+// ================================
+// SALVAR RASCUNHO (Pendente — sem estoque, sem financeiro)
+// ================================
+async function salvarRascunho() {
+    if (carrinho.length === 0) { exibirStatus({ status: 'error', mensagem: '⚠️ Adicione itens ao pedido.' }); return; }
+    const payload = montarPayloadVenda();
+    payload.formaPagamento = payload.formaPagamento || '-';
+    try {
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'salvarRascunho', data: payload }) });
+        const data = await res.json();
+        exibirStatus(data);
+        if (data.status === 'sucesso') {
+            carrinho = [];
+            vendaEditandoId = null;
+            renderizarCarrinho();
+            await carregarHistoricoVendas();
+        }
+    } catch (e) { exibirStatus({ status: 'error', mensagem: 'Erro: ' + e }); }
 }
 
 // ================================
@@ -238,6 +252,7 @@ function abrirModal() {
     atualizarModalTotais();
     document.getElementById('modalFinalizar').style.display = 'flex';
 }
+function fecharModal() { document.getElementById('modalFinalizar').style.display = 'none'; }
 
 function aplicarPrazo(btn) {
     const prazo = btn.dataset.prazo;
@@ -247,14 +262,12 @@ function aplicarPrazo(btn) {
     const today = new Date();
     container.style.display = 'block';
     prazoCustom.style.display = 'none';
-
     if (prazo === '0') {
-        const d = today.toLocaleDateString('pt-BR');
-        prazoInfo.innerHTML = `<b style="color:#15803d">Pagamento imediato</b> — Vencimento: <b>${d}</b> | Status: <b>Pago</b>`;
+        prazoInfo.innerHTML = `<b style="color:#15803d">Pagamento imediato</b> — Venc: <b>${today.toLocaleDateString('pt-BR')}</b> | Status: <b>Pago</b>`;
         container.style.background = '#f0fdf4'; container.style.borderColor = '#bbf7d0';
     } else if (prazo === '30') {
-        const venc = new Date(today); venc.setDate(venc.getDate() + 30);
-        prazoInfo.innerHTML = `Crédito — Vencimento em <b>30 dias</b>: <b>${venc.toLocaleDateString('pt-BR')}</b> | Status: <b>Pendente</b>`;
+        const v = new Date(today); v.setDate(v.getDate() + 30);
+        prazoInfo.innerHTML = `Crédito — Venc.: <b>30 dias</b> (${v.toLocaleDateString('pt-BR')}) | Status: <b>Pendente</b>`;
         container.style.background = '#fff7ed'; container.style.borderColor = '#fed7aa';
     } else {
         prazoInfo.innerHTML = `<b>${formaPagamentoSelecionada}</b> — Informe o vencimento:`;
@@ -265,12 +278,10 @@ function aplicarPrazo(btn) {
     }
 }
 
-// Calcula vencimento e status baseado na forma de pagamento
 function calcularVencimentoStatus() {
     const btn = document.querySelector('.pgto-btn.active');
     if (!btn) return { vencimento: new Date().toLocaleDateString('pt-BR'), status: 'Pendente' };
     const prazo = btn.dataset.prazo;
-    const auto = btn.dataset.auto;
     const today = new Date();
     if (prazo === '0') {
         return { vencimento: today.toLocaleDateString('pt-BR'), status: 'Pago' };
@@ -285,10 +296,6 @@ function calcularVencimentoStatus() {
     }
 }
 
-function fecharModal() {
-    document.getElementById('modalFinalizar').style.display = 'none';
-}
-
 function atualizarModalTotais() {
     const subtotal = carrinho.reduce((s, i) => s + i.subtotal, 0);
     const desconto = parseFloat(document.getElementById('descontoGeralModal').value) || 0;
@@ -299,18 +306,11 @@ function atualizarModalTotais() {
 }
 
 // ================================
-// CONFIRMAR E ENVIAR VENDA
+// MONTAR PAYLOAD VENDA (compartilhado)
 // ================================
-async function confirmarVenda() {
-    if (!formaPagamentoSelecionada) { alert('Selecione a forma de pagamento.'); return; }
-    if (carrinho.length === 0) { fecharModal(); return; }
-
-    const btn = document.getElementById('btnConfirmarVenda');
-    btn.disabled = true;
-    btn.textContent = 'Registrando...';
-
+function montarPayloadVenda() {
     const subtotalItens = carrinho.reduce((s, i) => s + i.subtotal, 0);
-    const descontoGeral = parseFloat(document.getElementById('descontoGeralModal').value) || 0;
+    const descontoGeral = parseFloat(document.getElementById('descontoGeralModal') ? document.getElementById('descontoGeralModal').value : '0') || 0;
     const total = Math.max(0, subtotalItens - descontoGeral);
     const subtotalBruto = carrinho.reduce((s, i) => s + (i.quantidade * i.preco), 0);
     const descontoTotal = subtotalBruto - total;
@@ -319,11 +319,7 @@ async function confirmarVenda() {
         const d = i.desconto > 0 ? ` (-${i.desconto.toFixed(1)}%)` : '';
         return `${i.nome} (${i.quantidade}${d})`;
     }).join(', ');
-
-    const prazoResult = calcularVencimentoStatus();
-    if (!prazoResult) { btn.disabled = false; btn.textContent = '✅ Confirmar Venda'; return; }
-
-    const venda = {
+    return {
         data: new Date().toLocaleDateString('pt-BR'),
         cliente: document.getElementById('cliente').value || 'Consumidor Interno',
         itens: itensStr,
@@ -334,18 +330,39 @@ async function confirmarVenda() {
         descontoReal: descontoTotal,
         totalComDesconto: total,
         formaPagamento: formaPagamentoSelecionada,
-        usuario: document.getElementById('usuario').value || 'Usuário Padrão',
-        vencimento: prazoResult.vencimento,
-        statusFinanceiro: prazoResult.status
+        usuario: document.getElementById('usuario').value || 'Usuário Padrão'
     };
+}
+
+// ================================
+// CONFIRMAR VENDA (Finalizar — Concluída)
+// ================================
+async function confirmarVenda() {
+    if (!formaPagamentoSelecionada) { alert('Selecione a forma de pagamento.'); return; }
+    if (carrinho.length === 0) { fecharModal(); return; }
+
+    const prazoResult = calcularVencimentoStatus();
+    if (!prazoResult) return;
+
+    const btn = document.getElementById('btnConfirmarVenda');
+    btn.disabled = true; btn.textContent = 'Registrando...';
+
+    const payload = montarPayloadVenda();
+    payload.vencimento = prazoResult.vencimento;
+    payload.statusFinanceiro = prazoResult.status;
+
+    // Se for edição de rascunho: finaliza o pendente existente
+    const action = vendaEditandoId ? 'finalizarPendente' : 'lancarVenda';
+    if (vendaEditandoId) payload.id = vendaEditandoId;
 
     try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'lancarVenda', data: venda }) });
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, data: payload }) });
         const data = await res.json();
         fecharModal();
         exibirStatus(data);
         if (data.status === 'sucesso') {
             carrinho = [];
+            vendaEditandoId = null;
             renderizarCarrinho();
             await carregarProdutos();
             await carregarHistoricoVendas();
@@ -353,35 +370,34 @@ async function confirmarVenda() {
     } catch (e) {
         exibirStatus({ status: 'error', mensagem: 'Erro de comunicação: ' + e });
     } finally {
-        btn.disabled = false;
-        btn.textContent = '✅ Confirmar Venda';
+        btn.disabled = false; btn.textContent = '✅ Confirmar Venda';
     }
 }
 
 // ================================
-// HISTÓRICO DE VENDAS
+// HISTÓRICO DE VENDAS — COM STATUS E AÇÕES ERP
 // ================================
 async function carregarHistoricoVendas() {
     const tbody = document.getElementById('listaHistorico');
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1rem;color:#94a3b8;">Carregando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:1rem;color:#94a3b8;">Carregando...</td></tr>';
     try {
         const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterVendas' }) });
-        const text = await res.text(); // texto bruto primeiro para evitar erro silencioso
+        const text = await res.text();
         const data = JSON.parse(text);
 
         if (data.status === 'sucesso' && Array.isArray(data.dados) && data.dados.length > 0) {
-            const vendas = [...data.dados].reverse().slice(0, 30);
+            const vendas = [...data.dados].reverse().slice(0, 40);
             tbody.innerHTML = '';
-
             vendas.forEach(v => {
-                // Compatível com vários nomes de coluna possíveis
-                const id = v['ID da Venda'] || v['id'] || v['ID'] || '';
-                const dataV = formatarData(v['Data'] || v['data'] || '');
-                const cliente = v['Cliente'] || v['cliente'] || '-';
-                const itens = String(v['Itens'] || v['itens'] || '');
-                const pgto = v['Forma de Pagamento'] || v['formaPagamento'] || '-';
-                const totalRaw = v['Total com Desconto'] || v['totalComDesconto'] || v['Total'] || 0;
-                const total = isNaN(parseFloat(totalRaw)) ? 0 : parseFloat(totalRaw);
+                const id = v['ID da Venda'] || '';
+                const dataV = v['Data'] || '-';
+                const cliente = v['Cliente'] || '-';
+                const operador = v['Usuario'] || v['Usuário'] || '-';
+                const itens = String(v['Itens'] || '');
+                const pgto = v['Forma de Pagamento'] || '-';
+                const total = isNaN(parseFloat(v['Total com Desconto'])) ? 0 : parseFloat(v['Total com Desconto']);
+                const status = v['Status'] || '';
+                const itensJSON = v['ItensJSON'] || '[]';
 
                 const isMulti = itens.includes(',');
                 const itensDisplay = isMulti ? itens.substring(0, 35) + '...' : itens;
@@ -390,23 +406,44 @@ async function carregarHistoricoVendas() {
                        <div class="items-detail">${itens.split(', ').join('<br>')}</div>`
                     : '';
 
+                // Badge de status
+                let statusBadge = '';
+                let acoes = '';
+                if (status === 'Pendente') {
+                    statusBadge = `<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">🕐 Pendente</span>`;
+                    acoes = `
+                        <button class="edit-btn" style="font-size:11px;" onclick="editarRascunho(${id}, '${encodeURIComponent(itensJSON)}')">✏️ Editar</button>
+                        <button class="edit-btn" style="background:#16a34a;font-size:11px;" onclick="abrirModalFinalizarPendente(${id})">✅ Finalizar</button>
+                        <button class="delete-btn" style="font-size:11px;" onclick="excluirVenda(${id})">🗑</button>
+                    `;
+                } else if (status === 'Concluda' || status === '') {
+                    statusBadge = `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">✅ Concluída</span>`;
+                    acoes = `<button class="delete-btn" style="background:#f59e0b;color:#fff;font-size:11px;" onclick="confirmarEstorno(${id})">↩️ Estornar</button>`;
+                } else if (status === 'Estornada') {
+                    statusBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">↩️ Estornada</span>`;
+                    acoes = '';
+                }
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${id}</td>
                     <td>${dataV}</td>
                     <td>${cliente}</td>
+                    <td>${operador}</td>
                     <td><span>${itensDisplay}</span>${expandBtn}</td>
                     <td>${pgto}</td>
+                    <td>${statusBadge}</td>
                     <td><strong>R$ ${total.toFixed(2).replace('.', ',')}</strong></td>
+                    <td><div class="action-buttons">${acoes}</div></td>
                 `;
                 tbody.appendChild(tr);
             });
         } else {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1rem;color:#94a3b8;">Nenhuma venda registrada.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:1rem;color:#94a3b8;">Nenhuma venda registrada.</td></tr>';
         }
     } catch (e) {
         console.error('Erro histórico:', e);
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#ef4444;padding:1rem;">Erro ao carregar histórico: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#ef4444;padding:1rem;">Erro ao carregar histórico: ${e.message}</td></tr>`;
     }
 }
 
@@ -414,6 +451,62 @@ function toggleItens(btn) {
     const detail = btn.nextElementSibling;
     const isOpen = detail.classList.toggle('open');
     btn.textContent = isOpen ? '▼ ocultar' : '▶ ver itens';
+}
+
+// ================================
+// EDITAR RASCUNHO (carrega de volta ao carrinho)
+// ================================
+function editarRascunho(id, itensJSONEncoded) {
+    try {
+        const itensJSON = decodeURIComponent(itensJSONEncoded);
+        const itens = JSON.parse(itensJSON);
+        if (!itens || itens.length === 0) {
+            exibirStatus({ status: 'error', mensagem: 'ItensJSON vazio — não é possível editar este rascunho.' });
+            return;
+        }
+        carrinho = itens.map(i => ({
+            nome: i.nome, preco: parseFloat(i.preco) || 0,
+            quantidade: parseFloat(i.quantidade) || 0,
+            desconto: parseFloat(i.desconto) || 0,
+            subtotal: parseFloat(i.subtotal) || 0
+        }));
+        vendaEditandoId = id;
+        renderizarCarrinho();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        exibirStatus({ status: 'success', mensagem: `✏️ Rascunho #${id} carregado. Edite e finalize.` });
+    } catch (e) {
+        exibirStatus({ status: 'error', mensagem: 'Erro ao carregar rascunho: ' + e.message });
+    }
+}
+
+// ================================
+// FINALIZAR VENDA PENDENTE (via histórico)
+// ================================
+function abrirModalFinalizarPendente(id) {
+    vendaEditandoId = id;
+    // Abre o modal de finalização normalmente
+    abrirModal();
+}
+
+// ================================
+// ESTORNAR VENDA CONCLUÍDA
+// ================================
+async function confirmarEstorno(id) {
+    if (!confirm(`⚠️ Estornar a Venda #${id}?\n\nEsta ação irá:\n• Devolver os itens ao estoque\n• Cancelar o lançamento financeiro\n• Marcar a venda como Estornada\n\nEsta operação não pode ser desfeita.`)) return;
+    try {
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'estornarVenda', data: { id } }) });
+        const data = await res.json();
+        exibirStatus(data);
+        if (data.status === 'sucesso') {
+            await carregarProdutos();
+            await carregarHistoricoVendas();
+        }
+    } catch (e) { exibirStatus({ status: 'error', mensagem: 'Erro ao estornar: ' + e.message }); }
+}
+
+async function excluirVenda(id) {
+    if (!confirm(`Excluir o rascunho pendente #${id}?\nNão há estoque nem financeiro associados a este rascunho.`)) return;
+    exibirStatus({ status: 'error', mensagem: 'Função de exclusão de rascunho em desenvolvimento.' });
 }
 
 function formatarData(valor) {

@@ -248,6 +248,8 @@
 
             <!-- CARRINHO DE PEDIDO -->
             <div class="table-container" style="margin-bottom:0;">
+                <!-- Badge: editando rascunho -->
+                <div id="editandoBadge"></div>
                 <h3>📋 Itens do Pedido</h3>
                 <table class="carrinho-table" style="width:100%;">
                     <thead>
@@ -267,18 +269,28 @@
                     </tbody>
                 </table>
 
-                <!-- TOTAIS + FINALIZAR -->
+                <!-- TOTAIS + BOTÕES -->
                 <div class="total-bar">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
                         <div>
                             <div class="label">Total do Pedido</div>
                             <div class="value" id="totalCarrinho">R$ 0,00</div>
                         </div>
-                        <div style="text-align:right;">
+                        <div
+                            style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:0.4rem;">
                             <div class="label" id="qtdItensLabel">0 item(ns)</div>
-                            <button class="btn-finalizar" id="btnFinalizar" disabled onclick="abrirModal()">
-                                Finalizar Venda →
-                            </button>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button onclick="salvarRascunho()" id="btnRascunho" disabled
+                                    style="padding:0.6rem 1rem; border-radius:0.5rem; border:2px solid #f59e0b; background:white; color:#92400e; font-weight:600; cursor:not-allowed; font-size:0.85rem; transition:all 0.2s;"
+                                    onmouseover="if(!this.disabled){this.style.background='#fef3c7'}"
+                                    onmouseout="this.style.background='white'">
+                                    💾 Salvar Rascunho
+                                </button>
+                                <button class="btn-finalizar" id="btnFinalizar" disabled onclick="abrirModal()">
+                                    ✅ Finalizar Venda →
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -295,14 +307,17 @@
                             <th>ID</th>
                             <th>Data</th>
                             <th>Cliente</th>
+                            <th>Operador</th>
                             <th>Itens</th>
                             <th>Pagamento</th>
+                            <th>Status</th>
                             <th>Total</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="listaHistorico">
                         <tr>
-                            <td colspan="6" style="text-align:center; padding:1rem; color:#94a3b8;">Carregando...</td>
+                            <td colspan="9" style="text-align:center; padding:1rem; color:#94a3b8;">Carregando...</td>
                         </tr>
                     </tbody>
                 </table>

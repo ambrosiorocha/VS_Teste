@@ -20,9 +20,17 @@ function doPost(e) {
     var data = requestData.data;
     var result;
 
-    switch (action) {
       case 'lancarVenda':
         result = lancarVenda(data);
+        break;
+      case 'salvarRascunho':
+        result = salvarRascunho(data);
+        break;
+      case 'finalizarPendente':
+        result = finalizarPendente(data);
+        break;
+      case 'estornarVenda':
+        result = estornarVenda(data.id);
         break;
       case 'obterProdutos':
         result = { status: 'sucesso', dados: obterProdutos() };
@@ -85,101 +93,224 @@ function doPost(e) {
   }
 }
 
+// ==================================================
+// HELPER: Baixa de Estoque (multi-item)
+// ==================================================
+function baixarEstoqueItens(sheetProdutos, itensList) {
+  if (!sheetProdutos || sheetProdutos.getLastRow() < 2 || !itensList || itensList.length === 0) return null;
+  var dadosProd = sheetProdutos.getDataRange().getValues();
+  var colNome = dadosProd[0].indexOf('Nome');
+  var colQtd  = dadosProd[0].indexOf('Quantidade');
+  if (colNome === -1 || colQtd === -1) return 'Colunas Nome/Quantidade não encontradas em Produtos.';
+  // Valida primeiro
+  for (var k = 0; k < itensList.length; k++) {
+    var nm = String(itensList[k].nome).trim();
+    var qt = parseFloat(itensList[k].quantidade) || 0;
+    var found = false;
+    for (var i = 1; i < dadosProd.length; i++) {
+      if (String(dadosProd[i][colNome]).trim() === nm) {
+        if ((parseFloat(dadosProd[i][colQtd]) || 0) < qt)
+          return '❌ Estoque insuficiente para "' + nm + '"! Disponível: ' + dadosProd[i][colQtd];
+        found = true; break;
+      }
+    }
+    if (!found) return 'Produto "' + nm + '" não encontrado no estoque.';
+  }
+  // Subtrai
+  for (var k = 0; k < itensList.length; k++) {
+    var nm = String(itensList[k].nome).trim();
+    var qt = parseFloat(itensList[k].quantidade) || 0;
+    for (var i = 1; i < dadosProd.length; i++) {
+      if (String(dadosProd[i][colNome]).trim() === nm) {
+        var novo = (parseFloat(dadosProd[i][colQtd]) || 0) - qt;
+        sheetProdutos.getRange(i + 1, colQtd + 1).setValue(novo);
+        dadosProd[i][colQtd] = novo;
+        break;
+      }
+    }
+  }
+  return null; // sem erro
+}
+
+// Helper: devolve estoque
+function devolverEstoqueItens(sheetProdutos, itensList) {
+  if (!sheetProdutos || !itensList || itensList.length === 0) return;
+  var dadosProd = sheetProdutos.getDataRange().getValues();
+  var colNome = dadosProd[0].indexOf('Nome');
+  var colQtd  = dadosProd[0].indexOf('Quantidade');
+  if (colNome === -1 || colQtd === -1) return;
+  for (var k = 0; k < itensList.length; k++) {
+    var nm = String(itensList[k].nome).trim();
+    var qt = parseFloat(itensList[k].quantidade) || 0;
+    for (var i = 1; i < dadosProd.length; i++) {
+      if (String(dadosProd[i][colNome]).trim() === nm) {
+        sheetProdutos.getRange(i + 1, colQtd + 1).setValue((parseFloat(dadosProd[i][colQtd]) || 0) + qt);
+        break;
+      }
+    }
+  }
+}
+
+// Helper: gera ID sequencial para Vendas
+function proximoIdVendas(sheet) {
+  var last = sheet.getLastRow();
+  if (last < 2) return 1;
+  var val = sheet.getRange(last, 1).getValue();
+  return (parseInt(val) || 0) + 1;
+}
+
+// ==================================================
+// ESTRUTURA DA ABA VENDAS (colunas por posicao)
+// Col 1:ID  2:Data  3:Cliente  4:Itens  5:Qtd  6:Subtotal
+// Col 7:Desc%  8:DescR$  9:Total  10:FormaPgto  11:Usuario
+// Col 12:Status  13:Vencimento  14:ItensJSON
+// ==================================================
+
+// Salvar como Rascunho/Pendente — SEM estoque, SEM financeiro
+function salvarRascunho(dados) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Vendas');
+  if (!sheet) return { status: 'erro', mensagem: 'Aba Vendas não encontrada.' };
+  var novoId = proximoIdVendas(sheet);
+  sheet.appendRow([
+    novoId, dados.data,
+    dados.cliente || 'Consumidor Interno',
+    dados.itens, dados.quantidadeVendida,
+    dados.subtotal, dados.descontoPercentual, dados.descontoReal,
+    dados.totalComDesconto,
+    dados.formaPagamento || '',
+    dados.usuario || '',
+    'Pendente',            // col 12: Status
+    '',                    // col 13: Vencimento (definido ao finalizar)
+    JSON.stringify(dados.itensList || [])  // col 14: ItensJSON
+  ]);
+  return { status: 'sucesso', mensagem: '💾 Rascunho #' + novoId + ' salvo! Finalize quando quiser.', id: novoId };
+}
+
+// Finalização direta (nova venda, sem rascunho prévio)
 function lancarVenda(dados) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheetVendas = ss.getSheetByName("Vendas");
-  var sheetProdutos = ss.getSheetByName("Produtos");
-  var sheetFinanceiro = ss.getSheetByName("Financeiro");
+  var sheetVendas   = ss.getSheetByName('Vendas');
+  var sheetProdutos = ss.getSheetByName('Produtos');
+  var sheetFin      = ss.getSheetByName('Financeiro');
+  if (!sheetVendas) return { status: 'erro', mensagem: 'Aba Vendas não encontrada.' };
 
-  if (!sheetVendas) {
-    return { status: 'erro', mensagem: 'A planilha "Vendas" não foi encontrada.' };
-  }
+  // Baixa de estoque
+  var erro = baixarEstoqueItens(sheetProdutos, dados.itensList);
+  if (erro) return { status: 'erro', mensagem: erro };
 
-  // --- BAIXA DE ESTOQUE PARA MÚLTIPLOS ITENS ---
-  var itensList = dados.itensList; // array [{nome, quantidade}]
-  if (sheetProdutos && sheetProdutos.getLastRow() > 1 && itensList && itensList.length > 0) {
-    var dadosProdutos = sheetProdutos.getDataRange().getValues();
-    var headersProdutos = dadosProdutos[0];
-    var colNome = headersProdutos.indexOf('Nome');
-    var colQtd = headersProdutos.indexOf('Quantidade');
+  var novoId = proximoIdVendas(sheetVendas);
+  var vencimento  = dados.vencimento  || dados.data;
+  var statusFin   = dados.statusFinanceiro || 'Pendente';
 
-    if (colNome === -1 || colQtd === -1) {
-      return { status: 'erro', mensagem: 'Colunas "Nome" ou "Quantidade" não encontradas na aba Produtos.' };
-    }
-
-    // Primeiro valida estoque de todos os itens
-    for (var k = 0; k < itensList.length; k++) {
-      var itemNome = String(itensList[k].nome).trim();
-      var itemQtd = parseFloat(itensList[k].quantidade) || 0;
-      var linhaItem = -1;
-      for (var i = 1; i < dadosProdutos.length; i++) {
-        if (String(dadosProdutos[i][colNome]).trim() === itemNome) {
-          linhaItem = i;
-          break;
-        }
-      }
-      if (linhaItem === -1) {
-        return { status: 'erro', mensagem: 'Produto "' + itemNome + '" não encontrado no estoque.' };
-      }
-      var estoqueAtual = parseFloat(dadosProdutos[linhaItem][colQtd]) || 0;
-      if (estoqueAtual < itemQtd) {
-        return { status: 'erro', mensagem: '❌ Estoque insuficiente para "' + itemNome + '"! Disponível: ' + estoqueAtual + ' | Solicitado: ' + itemQtd };
-      }
-    }
-
-    // Depois subtrai estoque de todos
-    for (var k = 0; k < itensList.length; k++) {
-      var itemNome = String(itensList[k].nome).trim();
-      var itemQtd = parseFloat(itensList[k].quantidade) || 0;
-      for (var i = 1; i < dadosProdutos.length; i++) {
-        if (String(dadosProdutos[i][colNome]).trim() === itemNome) {
-          var novoEstoque = parseFloat(dadosProdutos[i][colQtd]) - itemQtd;
-          sheetProdutos.getRange(i + 1, colQtd + 1).setValue(novoEstoque);
-          dadosProdutos[i][colQtd] = novoEstoque; // atualiza cache local
-          break;
-        }
-      }
-    }
-  }
-  // --- FIM BAIXA DE ESTOQUE ---
-
-  var ultimaLinha = sheetVendas.getLastRow();
-  var ultimoId = (ultimaLinha > 1) ? sheetVendas.getRange(ultimaLinha, 1).getValue() : 0;
-  var novoId = ultimoId + 1;
-
-  // Registrar na aba Vendas (coluna Forma de Pagamento adicionada)
   sheetVendas.appendRow([
-    novoId,
-    dados.data,
+    novoId, dados.data,
     dados.cliente || 'Consumidor Interno',
-    dados.itens,
-    dados.quantidadeVendida,
-    dados.subtotal,
-    dados.descontoPercentual,
-    dados.descontoReal,
+    dados.itens, dados.quantidadeVendida,
+    dados.subtotal, dados.descontoPercentual, dados.descontoReal,
     dados.totalComDesconto,
-    dados.formaPagamento || '',  // col 10: Forma de Pagamento
-    dados.usuario                // col 11: Usuário
+    dados.formaPagamento || '',
+    dados.usuario || '',
+    'Concluda',            // col 12: Status
+    vencimento,            // col 13: Vencimento
+    JSON.stringify(dados.itensList || [])   // col 14: ItensJSON
   ]);
 
-  // Automação Financeira — usa vencimento e status da forma de pagamento
-  if (sheetFinanceiro) {
-    var ultimIdFin = sheetFinanceiro.getLastRow() > 1 ? sheetFinanceiro.getRange(sheetFinanceiro.getLastRow(), 1).getValue() : 0;
-    var vencimento = dados.vencimento || dados.data;          // usa prazo enviado pelo front
-    var statusFin = dados.statusFinanceiro || 'Pendente';     // Pago para à vista/PIX/débito
-    sheetFinanceiro.appendRow([
+  if (sheetFin) {
+    var ultimIdFin = sheetFin.getLastRow() > 1 ? sheetFin.getRange(sheetFin.getLastRow(), 1).getValue() : 0;
+    sheetFin.appendRow([
       ultimIdFin + 1,
       'Venda #' + novoId + ' - ' + (dados.cliente || 'Consumidor'),
-      dados.totalComDesconto,
-      'Receber',
-      vencimento,
-      statusFin,
-      'Venda',
-      novoId
+      dados.totalComDesconto, 'Receber',
+      vencimento, statusFin, 'Venda', novoId
     ]);
   }
+  return { status: 'sucesso', mensagem: '✅ Venda #' + novoId + ' concluída!', id: novoId };
+}
 
-  return { status: 'sucesso', mensagem: '✅ Venda #' + novoId + ' registrada com sucesso!' };
+// Finaliza uma venda Pendente já existente
+function finalizarPendente(dados) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheetVendas   = ss.getSheetByName('Vendas');
+  var sheetProdutos = ss.getSheetByName('Produtos');
+  var sheetFin      = ss.getSheetByName('Financeiro');
+  if (!sheetVendas) return { status: 'erro', mensagem: 'Aba Vendas não encontrada.' };
+
+  // Localiza a linha da venda pelo ID
+  var todosDados = sheetVendas.getDataRange().getValues();
+  var linhaVenda = -1;
+  for (var i = 1; i < todosDados.length; i++) {
+    if (String(todosDados[i][0]) === String(dados.id)) { linhaVenda = i + 1; break; }
+  }
+  if (linhaVenda === -1) return { status: 'erro', mensagem: 'Venda #' + dados.id + ' não encontrada.' };
+
+  // Lê itensList do JSON armazenado (col 14)
+  var itensList = [];
+  try { itensList = JSON.parse(todosDados[linhaVenda - 1][13] || '[]'); } catch(e) {}
+  if (dados.itensList && dados.itensList.length > 0) itensList = dados.itensList;
+
+  // Baixa de estoque
+  var erro = baixarEstoqueItens(sheetProdutos, itensList);
+  if (erro) return { status: 'erro', mensagem: erro };
+
+  var vencimento = dados.vencimento || dados.data || todosDados[linhaVenda - 1][1];
+  var statusFin  = dados.statusFinanceiro || 'Pendente';
+  var total      = parseFloat(todosDados[linhaVenda - 1][8]) || 0;
+  var cliente    = todosDados[linhaVenda - 1][2] || 'Consumidor';
+  var pgto       = dados.formaPagamento || todosDados[linhaVenda - 1][9] || '';
+
+  // Atualiza colunas Status (12), Vencimento (13), FormaPgto (10)
+  sheetVendas.getRange(linhaVenda, 10).setValue(pgto);
+  sheetVendas.getRange(linhaVenda, 12).setValue('Concluda');
+  sheetVendas.getRange(linhaVenda, 13).setValue(vencimento);
+
+  // Cria registro financeiro
+  if (sheetFin) {
+    var ultimIdFin = sheetFin.getLastRow() > 1 ? sheetFin.getRange(sheetFin.getLastRow(), 1).getValue() : 0;
+    sheetFin.appendRow([
+      ultimIdFin + 1,
+      'Venda #' + dados.id + ' - ' + cliente,
+      total, 'Receber', vencimento, statusFin, 'Venda', dados.id
+    ]);
+  }
+  return { status: 'sucesso', mensagem: '✅ Venda #' + dados.id + ' finalizada!' };
+}
+
+// Estorna uma venda Concluda: devolve estoque e cancela financeiro
+function estornarVenda(id) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheetVendas   = ss.getSheetByName('Vendas');
+  var sheetProdutos = ss.getSheetByName('Produtos');
+  var sheetFin      = ss.getSheetByName('Financeiro');
+  if (!sheetVendas) return { status: 'erro', mensagem: 'Aba Vendas não encontrada.' };
+
+  var todosDados = sheetVendas.getDataRange().getValues();
+  var linhaVenda = -1;
+  for (var i = 1; i < todosDados.length; i++) {
+    if (String(todosDados[i][0]) === String(id)) { linhaVenda = i + 1; break; }
+  }
+  if (linhaVenda === -1) return { status: 'erro', mensagem: 'Venda #' + id + ' não encontrada.' };
+
+  // Devolve estoque
+  var itensList = [];
+  try { itensList = JSON.parse(todosDados[linhaVenda - 1][13] || '[]'); } catch(e) {}
+  devolverEstoqueItens(sheetProdutos, itensList);
+
+  // Marca venda como Estornada
+  sheetVendas.getRange(linhaVenda, 12).setValue('Estornada');
+
+  // Cancela o registro financeiro ligado
+  if (sheetFin && sheetFin.getLastRow() > 1) {
+    var dadosFin = sheetFin.getDataRange().getValues();
+    for (var i = 1; i < dadosFin.length; i++) {
+      // Procura pelo campo referencia (col 8 = novoId)
+      if (String(dadosFin[i][7]) === String(id) && dadosFin[i][3] === 'Receber') {
+        sheetFin.getRange(i + 1, 6).setValue('Estornado');
+        break;
+      }
+    }
+  }
+  return { status: 'sucesso', mensagem: '↩️ Venda #' + id + ' estornada. Estoque devolvido.' };
 }
 
 // Marca lançamento financeiro como Pago/Recebido
@@ -254,32 +385,46 @@ function obterProdutoPorId(id) {
   return null;
 }
 
+// obterVendas — mapeamento EXPLÍCITO por posição de coluna (resolve bug do Cliente)
+// Col: 0=ID 1=Data 2=Cliente 3=Itens 4=Qtd 5=Sub 6=Desc% 7=DescR$ 8=Total
+//      9=FormaPgto 10=Usuario 11=Status 12=Vencimento 13=ItensJSON
 function obterVendas() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheetVendas = ss.getSheetByName("Vendas");
-  if (!sheetVendas || sheetVendas.getLastRow() < 2) {
-    return [];
+  var sheet = ss.getSheetByName('Vendas');
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var dados = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+
+  function fmtDate(val) {
+    if (!val) return '';
+    if (val instanceof Date && !isNaN(val)) {
+      return val.getDate().toString().padStart(2,'0') + '/' +
+             (val.getMonth()+1).toString().padStart(2,'0') + '/' +
+             val.getFullYear();
+    }
+    return String(val);
   }
-  var headers = sheetVendas.getRange(1, 1, 1, sheetVendas.getLastColumn()).getValues()[0];
-  var dados = sheetVendas.getRange(2, 1, sheetVendas.getLastRow() - 1, sheetVendas.getLastColumn()).getValues();
-  var vendas = dados.map(function(row) {
-    var venda = {};
-    headers.forEach(function(header, i) {
-      var val = row[i];
-      // Converte objetos Date para string dd/mm/yyyy para evitar erro de serialização JSON
-      if (val instanceof Date) {
-        var d = val.getDate().toString().padStart(2,'0');
-        var m = (val.getMonth()+1).toString().padStart(2,'0');
-        var a = val.getFullYear();
-        venda[header] = d + '/' + m + '/' + a;
-      } else {
-        venda[header] = val;
-      }
-    });
-    return venda;
+
+  return dados.map(function(row) {
+    return {
+      'ID da Venda'       : row[0],
+      'Data'              : fmtDate(row[1]),
+      'Cliente'           : row[2] || '',
+      'Itens'             : row[3] || '',
+      'Quantidade Vendida': row[4] || 0,
+      'Subtotal'          : row[5] || 0,
+      'Desconto (%)'      : row[6] || 0,
+      'Desconto (R$)'     : row[7] || 0,
+      'Total com Desconto': row[8] || 0,
+      'Forma de Pagamento': row[9] || '',
+      'Usuario'           : row[10] || '',
+      'Status'            : row[11] || '',
+      'Vencimento'        : fmtDate(row[12]),
+      'ItensJSON'         : row[13] || '[]'
+    };
   });
-  return vendas;
 }
+
+
 
 function salvarProduto(dados) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
