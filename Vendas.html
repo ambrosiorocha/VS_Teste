@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>Lançar Venda</title>
@@ -7,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
     <main class="main-content p-4 md:p-8 overflow-y-auto">
@@ -14,8 +16,15 @@
             <h2>Lançar Nova Venda</h2>
             <form id="vendaForm" class="space-y-4">
                 <div class="form-group">
+                    <label for="cliente">Cliente</label>
+                    <select id="cliente" required class="w-full p-2 border border-gray-300 rounded">
+                        <option value="">Selecione um cliente...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="produto">Produto</label>
-                    <select id="produto" required class="w-full">
+                    <select id="produto" required class="w-full p-2 border border-gray-300 rounded">
                         <option value="">Carregando produtos...</option>
                     </select>
                 </div>
@@ -38,7 +47,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="form-group">
                         <label for="descontoPercentual">Desconto (%)</label>
-                        <input type="number" id="descontoPercentual" step="0.01" min="0" max="100" value="0" class="w-full">
+                        <input type="number" id="descontoPercentual" step="0.01" min="0" max="100" value="0"
+                            class="w-full">
                     </div>
                     <div class="form-group">
                         <label for="descontoReal">Desconto (R$)</label>
@@ -46,7 +56,8 @@
                     </div>
                     <div class="form-group">
                         <label for="totalComDesconto">Total com Desconto (R$)</label>
-                        <input type="number" id="totalComDesconto" step="0.01" min="0" readonly class="w-full bg-gray-100">
+                        <input type="number" id="totalComDesconto" step="0.01" min="0" readonly
+                            class="w-full bg-gray-100">
                     </div>
                 </div>
 
@@ -65,4 +76,5 @@
     <script src="js/main.js"></script>
     <script src="js/vendas.js"></script>
 </body>
+
 </html>

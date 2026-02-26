@@ -1,5 +1,5 @@
-document.addEventListener('DOMContentLoaded', function() {
-    if(SCRIPT_URL === '') {
+document.addEventListener('DOMContentLoaded', function () {
+    if (SCRIPT_URL === '') {
         exibirStatus({ status: 'error', mensagem: 'Por favor, cole a URL do Apps Script no código.' });
         document.getElementById('loading').classList.add('hidden');
         return;
@@ -15,7 +15,7 @@ function exibirStatus(resposta) {
         statusMessage.classList.add(resposta.status);
     }
     statusMessage.style.display = 'block';
-    setTimeout(function() {
+    setTimeout(function () {
         statusMessage.style.display = 'none';
     }, 5000);
 }
@@ -55,15 +55,55 @@ function renderizarKPIs(vendas) {
     document.getElementById('ticketMedio').textContent = `R$ ${ticketMedio.toFixed(2).replace('.', ',')}`;
 }
 
+/**
+ * Extrai "MM/AAAA" de qualquer valor de data (string dd/mm/yyyy, timestamp, Date object).
+ * Retorna null se não conseguir interpretar.
+ */
+function extrairMesAno(valorData) {
+    if (!valorData) return null;
+
+    // Se já for um objeto Date (ex: vindo do Google Sheets como Date)
+    if (valorData instanceof Date && !isNaN(valorData)) {
+        const mes = String(valorData.getMonth() + 1).padStart(2, '0');
+        const ano = valorData.getFullYear();
+        return `${mes}/${ano}`;
+    }
+
+    const str = String(valorData).trim();
+
+    // Formato dd/mm/yyyy ou dd/mm/yyyy hh:mm:ss
+    const matchBr = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (matchBr) {
+        const mes = matchBr[2].padStart(2, '0');
+        const ano = matchBr[3];
+        return `${mes}/${ano}`;
+    }
+
+    // Tenta parsear como Date genérico (ISO, etc.)
+    const d = new Date(str);
+    if (!isNaN(d)) {
+        const mes = String(d.getMonth() + 1).padStart(2, '0');
+        const ano = d.getFullYear();
+        return `${mes}/${ano}`;
+    }
+
+    return null;
+}
+
 function renderizarGraficoVendasPorMes(vendas) {
     const vendasPorMes = vendas.reduce((acc, venda) => {
-        const dataSplit = venda.Data.split('/');
-        const mesAno = `${dataSplit[1]}/${dataSplit[2]}`;
+        const mesAno = extrairMesAno(venda.Data || venda['Data']);
+        if (!mesAno) return acc;
         acc[mesAno] = (acc[mesAno] || 0) + (parseFloat(venda['Total com Desconto']) || 0);
         return acc;
     }, {});
 
-    const labels = Object.keys(vendasPorMes).sort();
+    // Ordena cronologicamente (MM/AAAA → AAAA/MM para sort correto)
+    const labels = Object.keys(vendasPorMes).sort((a, b) => {
+        const [ma, ya] = a.split('/');
+        const [mb, yb] = b.split('/');
+        return new Date(`${ya}-${ma}-01`) - new Date(`${yb}-${mb}-01`);
+    });
     const dados = labels.map(mes => vendasPorMes[mes]);
 
     const ctx = document.getElementById('vendasPorMesChart').getContext('2d');
@@ -92,7 +132,7 @@ function renderizarGraficoVendasPorMes(vendas) {
 
 function renderizarGraficoVendasPorProduto(vendas) {
     const vendasPorProduto = vendas.reduce((acc, venda) => {
-        const produto = venda.Itens;
+        const produto = venda.Itens || venda.itens || 'Desconhecido';
         acc[produto] = (acc[produto] || 0) + (parseFloat(venda['Total com Desconto']) || 0);
         return acc;
     }, {});

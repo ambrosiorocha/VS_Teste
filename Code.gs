@@ -42,6 +42,33 @@ function doPost(e) {
       case 'obterVendas':
         result = { status: 'sucesso', dados: obterVendas() };
         break;
+      case 'obterClientes':
+        result = { status: 'sucesso', dados: obterDadosGeral("Clientes") };
+        break;
+      case 'salvarCliente':
+        result = salvarDadosGeral("Clientes", data);
+        break;
+      case 'excluirCliente':
+        result = excluirDadosGeral("Clientes", data.id);
+        break;
+      case 'obterFornecedores':
+        result = { status: 'sucesso', dados: obterDadosGeral("Fornecedores") };
+        break;
+      case 'salvarFornecedor':
+        result = salvarDadosGeral("Fornecedores", data);
+        break;
+      case 'excluirFornecedor':
+        result = excluirDadosGeral("Fornecedores", data.id);
+        break;
+      case 'obterFinanceiro':
+        result = { status: 'sucesso', dados: obterDadosGeral("Financeiro") };
+        break;
+      case 'salvarFinanceiro':
+        result = salvarDadosGeral("Financeiro", data);
+        break;
+      case 'excluirFinanceiro':
+        result = excluirDadosGeral("Financeiro", data.id);
+        break;
       default:
         result = { status: 'erro', mensagem: 'Ação não reconhecida: ' + action };
     }
@@ -58,16 +85,65 @@ function doPost(e) {
 function lancarVenda(dados) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheetVendas = ss.getSheetByName("Vendas");
+  var sheetProdutos = ss.getSheetByName("Produtos");
+  var sheetFinanceiro = ss.getSheetByName("Financeiro");
+
   if (!sheetVendas) {
     return { status: 'erro', mensagem: 'A planilha "Vendas" não foi encontrada.' };
   }
+
+  // --- CMD 4: VERIFICAÇÃO E BAIXA DE ESTOQUE ---
+  if (sheetProdutos && sheetProdutos.getLastRow() > 1) {
+    var dadosProdutos = sheetProdutos.getDataRange().getValues();
+    var headersProdutos = dadosProdutos[0];
+
+    // Localiza índices das colunas pelo cabeçalho
+    var colNome = headersProdutos.indexOf('Nome');
+    var colQtd = headersProdutos.indexOf('Quantidade');
+
+    if (colNome === -1 || colQtd === -1) {
+      return { status: 'erro', mensagem: 'Colunas "Nome" ou "Quantidade" não encontradas na aba Produtos.' };
+    }
+
+    // Encontra a linha do produto pelo nome
+    var linhaEncontrada = -1;
+    for (var i = 1; i < dadosProdutos.length; i++) {
+      if (String(dadosProdutos[i][colNome]).trim() === String(dados.itens).trim()) {
+        linhaEncontrada = i + 1; // +1 porque getValues() é 0-indexed, sheet é 1-indexed
+        break;
+      }
+    }
+
+    if (linhaEncontrada === -1) {
+      return { status: 'erro', mensagem: 'Produto "' + dados.itens + '" não encontrado na aba Produtos.' };
+    }
+
+    var estoqueAtual = parseFloat(dadosProdutos[linhaEncontrada - 1][colQtd]) || 0;
+    var quantidadeVendida = parseFloat(dados.quantidadeVendida) || 0;
+
+    // Verifica se há estoque suficiente
+    if (estoqueAtual < quantidadeVendida) {
+      return {
+        status: 'erro',
+        mensagem: '❌ Estoque insuficiente! Disponível: ' + estoqueAtual + ' | Solicitado: ' + quantidadeVendida
+      };
+    }
+
+    // Subtrai o estoque
+    var novoEstoque = estoqueAtual - quantidadeVendida;
+    sheetProdutos.getRange(linhaEncontrada, colQtd + 1).setValue(novoEstoque);
+  }
+  // --- FIM DA BAIXA DE ESTOQUE ---
+
   var ultimaLinha = sheetVendas.getLastRow();
   var ultimoId = (ultimaLinha > 1) ? sheetVendas.getRange(ultimaLinha, 1).getValue() : 0;
   var novoId = ultimoId + 1;
-  
+
+  // Registrar na aba Vendas
   sheetVendas.appendRow([
     novoId,
     dados.data,
+    dados.cliente || "Consumidor Interno",
     dados.itens,
     dados.quantidadeVendida,
     dados.subtotal,
@@ -76,8 +152,23 @@ function lancarVenda(dados) {
     dados.totalComDesconto,
     dados.usuario,
   ]);
-  
-  return { status: 'sucesso', mensagem: `✅ Venda de ${dados.itens} registrada com sucesso!` };
+
+  // Automação Financeira: Criar conta a receber
+  if (sheetFinanceiro) {
+    var ultimIdFin = sheetFinanceiro.getLastRow() > 1 ? sheetFinanceiro.getRange(sheetFinanceiro.getLastRow(), 1).getValue() : 0;
+    sheetFinanceiro.appendRow([
+      ultimIdFin + 1,
+      'Venda #' + novoId + ' - ' + (dados.cliente || "Consumidor"),
+      dados.totalComDesconto,
+      "Receber",
+      dados.data,
+      "Pendente",
+      "Venda",
+      novoId
+    ]);
+  }
+
+  return { status: 'sucesso', mensagem: '✅ Venda #' + novoId + ' registrada! Estoque atualizado.' };
 }
 
 function obterProdutos() {
@@ -198,14 +289,74 @@ function excluirProduto(id) {
   }
 }
 
-function doGet(e) {
-  // Carrega o 'index.html' como um *modelo* (template).
-  var template = HtmlService.createTemplateFromFile('index.html');
+function obterDadosGeral(nomePlanilha) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(nomePlanilha);
+  if (!sheet || sheet.getLastRow() < 2) {
+    return [];
+  }
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var dados = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  return dados.map(function(row) {
+    var obj = {};
+    headers.forEach(function(header, i) {
+      obj[header] = row[i];
+    });
+    return obj;
+  });
+}
 
-  // Executa (evaluate) o modelo, o que processa os <?!= include() ?>
+function salvarDadosGeral(nomePlanilha, dados) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(nomePlanilha);
+  if (!sheet) {
+    return { status: 'erro', mensagem: `A planilha "${nomePlanilha}" não foi encontrada.` };
+  }
+  
+  var id = dados.id;
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var rowValues = headers.map(header => {
+    var val = dados[header];
+    return val !== undefined ? val : "";
+  });
+
+  if (id) {
+    var dataIds = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+    var rowIndex = dataIds.findIndex(function(row) { return row[0] == id; });
+    if (rowIndex > -1) {
+      sheet.getRange(rowIndex + 2, 1, 1, headers.length).setValues([rowValues]);
+      return { status: 'sucesso', mensagem: `Registro atualizado com sucesso!` };
+    }
+    return { status: 'erro', mensagem: 'Registro não encontrado para atualização.' };
+  } else {
+    var lastRow = sheet.getLastRow();
+    var nextId = lastRow > 1 ? sheet.getRange(lastRow, 1).getValue() + 1 : 1;
+    rowValues[0] = nextId; // Assume primeira coluna é ID
+    sheet.appendRow(rowValues);
+    return { status: 'sucesso', mensagem: `Registro cadastrado com sucesso!` };
+  }
+}
+
+function excluirDadosGeral(nomePlanilha, id) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(nomePlanilha);
+  if (!sheet || sheet.getLastRow() < 2) {
+    return { status: 'erro', mensagem: `A planilha "${nomePlanilha}" não foi encontrada ou está vazia.` };
+  }
+  var dadosIds = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+  var linha = dadosIds.findIndex(function(row) { return row[0] == id; });
+  if (linha > -1) {
+    sheet.deleteRow(linha + 2);
+    return { status: 'sucesso', mensagem: 'Registro excluído com sucesso!' };
+  } else {
+    return { status: 'erro', mensagem: 'Registro não encontrado para exclusão.' };
+  }
+}
+
+function doGet(e) {
+  var template = HtmlService.createTemplateFromFile('index.html');
   var html = template.evaluate()
       .setTitle("Sistema de Vendas")
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-
   return html;
 }

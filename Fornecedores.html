@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Fornecedores</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <main class="main-content p-4 md:p-8 overflow-y-auto">
+        <div class="container">
+            <div class="flex justify-between items-center mb-6">
+                <h2>Gerenciar Fornecedores</h2>
+                <a href="index.html" class="text-blue-500 hover:underline">Voltar ao Dashboard</a>
+            </div>
+
+            <form id="fornecedorForm">
+                <input type="hidden" id="idFornecedor" value="">
+
+                <div class="form-group">
+                    <label for="razaoSocial">Razão Social / Nome Fantasia</label>
+                    <input type="text" id="razaoSocial" required>
+                </div>
+
+                <div class="form-grid-container">
+                    <div class="form-group">
+                        <label for="cnpj">CNPJ / CPF</label>
+                        <input type="text" id="cnpj">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefone">Telefone</label>
+                        <input type="text" id="telefone">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="categoria">Categoria de Produto/Serviço</label>
+                    <input type="text" id="categoria" placeholder="Ex: Matéria-prima, Embalagens, etc.">
+                </div>
+
+                <button type="submit" class="btn">Salvar Fornecedor</button>
+            </form>
+
+            <div id="statusMessage"></div>
+
+            <div class="table-container">
+                <h3>Fornecedores Cadastrados</h3>
+                <div class="form-group">
+                    <label for="pesquisa">Pesquisar Fornecedor</label>
+                    <input type="text" id="pesquisa" placeholder="Nome ou CNPJ...">
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Razão Social</th>
+                            <th>CNPJ</th>
+                            <th>Telefone</th>
+                            <th>E-mail</th>
+                            <th>Categoria</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaFornecedores">
+                        <tr>
+                            <td colspan="7" style="text-align:center;">Carregando fornecedores...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/fornecedores.js"></script>
+</body>
+
+</html>
