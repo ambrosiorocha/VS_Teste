@@ -263,7 +263,16 @@ function obterVendas() {
   var vendas = dados.map(function(row) {
     var venda = {};
     headers.forEach(function(header, i) {
-      venda[header] = row[i];
+      var val = row[i];
+      // Converte objetos Date para string dd/mm/yyyy para evitar erro de serialização JSON
+      if (val instanceof Date) {
+        var d = val.getDate().toString().padStart(2,'0');
+        var m = (val.getMonth()+1).toString().padStart(2,'0');
+        var a = val.getFullYear();
+        venda[header] = d + '/' + m + '/' + a;
+      } else {
+        venda[header] = val;
+      }
     });
     return venda;
   });

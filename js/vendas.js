@@ -2,7 +2,7 @@
 // ESTADO GLOBAL DO CARRINHO
 // ================================
 let produtos = [];
-let carrinho = []; // [{nome, preco, quantidade, desconto, subtotal}]
+let carrinho = [];
 let formaPagamentoSelecionada = '';
 
 // ================================
@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('produto').addEventListener('change', atualizarPrecoUnitario);
     document.getElementById('quantidade').addEventListener('input', atualizarSubtotalItem);
-    document.getElementById('descontoItem').addEventListener('input', atualizarSubtotalItem);
+    document.getElementById('descontoItemPct').addEventListener('input', () => sincronizarDesconto('pct'));
+    document.getElementById('descontoItemReais').addEventListener('input', () => sincronizarDesconto('reais'));
 
     // Botões de forma de pagamento no modal
     document.querySelectorAll('.pgto-btn').forEach(btn => {
@@ -88,24 +89,54 @@ async function carregarClientes() {
 }
 
 // ================================
-// PREÇO E SUBTOTAL DO ITEM EM TEMPO REAL
+// PREÇO E DESCONTO EM TEMPO REAL
 // ================================
-function atualizarPrecoUnitario() {
+function getPrecoUnitario() {
     const sel = document.getElementById('produto');
     const opt = sel.options[sel.selectedIndex];
-    const preco = opt ? parseFloat(opt.dataset.preco) || 0 : 0;
-    document.getElementById('precoUnitario').value = preco.toFixed(2);
+    return opt ? parseFloat(opt.dataset.preco) || 0 : 0;
+}
+
+function atualizarPrecoUnitario() {
+    const preco = getPrecoUnitario();
+    document.getElementById('precoUnitario').value = preco > 0 ? preco.toFixed(2) : '';
+    // Zera descontos ao trocar produto
+    document.getElementById('descontoItemPct').value = '0';
+    document.getElementById('descontoItemReais').value = '0';
+    atualizarSubtotalItem();
+}
+
+// Sincroniza % ↔ R$ ao digitar em qualquer um
+function sincronizarDesconto(origem) {
+    const preco = getPrecoUnitario();
+    const qtd = parseFloat(document.getElementById('quantidade').value) || 0;
+    const subtotalBruto = preco * qtd;
+
+    if (origem === 'pct') {
+        const pct = parseFloat(document.getElementById('descontoItemPct').value) || 0;
+        const reais = subtotalBruto > 0 ? (subtotalBruto * pct / 100) : 0;
+        document.getElementById('descontoItemReais').value = reais.toFixed(2);
+    } else {
+        const reais = parseFloat(document.getElementById('descontoItemReais').value) || 0;
+        const pct = subtotalBruto > 0 ? (reais / subtotalBruto * 100) : 0;
+        document.getElementById('descontoItemPct').value = pct.toFixed(2);
+    }
     atualizarSubtotalItem();
 }
 
 function atualizarSubtotalItem() {
-    const sel = document.getElementById('produto');
-    const opt = sel.options[sel.selectedIndex];
-    const preco = opt ? parseFloat(opt.dataset.preco) || 0 : 0;
+    const preco = getPrecoUnitario();
     const qtd = parseFloat(document.getElementById('quantidade').value) || 0;
-    const desc = parseFloat(document.getElementById('descontoItem').value) || 0;
-    const subtotal = Math.max(0, qtd * preco * (1 - desc / 100));
-    document.getElementById('subtotalItem').value = subtotal.toFixed(2);
+    const descPct = parseFloat(document.getElementById('descontoItemPct').value) || 0;
+    const subtotal = Math.max(0, qtd * preco * (1 - descPct / 100));
+
+    const el = document.getElementById('subtotalItem');
+    if (qtd > 0 && preco > 0) {
+        el.textContent = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+        el.style.color = '#16a34a';
+    } else {
+        el.textContent = '—';
+    }
 }
 
 // ================================
@@ -118,11 +149,12 @@ function adicionarItemCarrinho() {
     if (!sel.value) { exibirStatus({ status: 'error', mensagem: '⚠️ Selecione um produto.' }); return; }
 
     const quantidade = parseFloat(document.getElementById('quantidade').value);
-    if (!quantidade || quantidade <= 0) { exibirStatus({ status: 'error', mensagem: '⚠️ Informe uma quantidade válida.' }); return; }
+    if (!quantidade || quantidade <= 0) { exibirStatus({ status: 'error', mensagem: '⚠️ Informe a quantidade.' }); return; }
 
-    const desconto = parseFloat(document.getElementById('descontoItem').value) || 0;
+    const descPct = parseFloat(document.getElementById('descontoItemPct').value) || 0;
     const estoqueDisp = parseFloat(opt.dataset.estoque) || 0;
-    const jaNoCarrinho = carrinho.filter(i => i.nome === sel.value).reduce((s, i) => s + i.quantidade, 0);
+    const jaNoCarrinho = carrinho.filter(i => i.nome === sel.value && i.desconto === descPct)
+        .reduce((s, i) => s + i.quantidade, 0);
 
     if (quantidade + jaNoCarrinho > estoqueDisp) {
         exibirStatus({ status: 'error', mensagem: `❌ Estoque insuficiente! Disponível: ${estoqueDisp - jaNoCarrinho}` });
@@ -130,23 +162,24 @@ function adicionarItemCarrinho() {
     }
 
     const preco = parseFloat(opt.dataset.preco) || 0;
-    const subtotal = Math.max(0, quantidade * preco * (1 - desconto / 100));
+    const subtotal = Math.max(0, quantidade * preco * (1 - descPct / 100));
 
     // Agrupa se mesmo produto e mesmo desconto
-    const existente = carrinho.find(i => i.nome === sel.value && i.desconto === desconto);
+    const existente = carrinho.find(i => i.nome === sel.value && i.desconto === descPct);
     if (existente) {
         existente.quantidade += quantidade;
         existente.subtotal = Math.max(0, existente.quantidade * existente.preco * (1 - existente.desconto / 100));
     } else {
-        carrinho.push({ nome: sel.value, preco, quantidade, desconto, subtotal });
+        carrinho.push({ nome: sel.value, preco, quantidade, desconto: descPct, subtotal });
     }
 
     // Limpa campos
     sel.value = '';
     document.getElementById('quantidade').value = '';
-    document.getElementById('descontoItem').value = '0';
+    document.getElementById('descontoItemPct').value = '0';
+    document.getElementById('descontoItemReais').value = '0';
     document.getElementById('precoUnitario').value = '';
-    document.getElementById('subtotalItem').value = '';
+    document.getElementById('subtotalItem').textContent = '—';
 
     renderizarCarrinho();
 }
@@ -170,13 +203,12 @@ function renderizarCarrinho() {
     carrinho.forEach((item, idx) => {
         totalGeral += item.subtotal;
         const tr = document.createElement('tr');
-        const descTxt = item.desconto > 0 ? `<span style="color:#ef4444; font-size:11px;"> (-${item.desconto}%)</span>` : '';
         tr.innerHTML = `
             <td>${item.nome}</td>
             <td style="text-align:center;">${item.quantidade}</td>
             <td>R$ ${item.preco.toFixed(2).replace('.', ',')}</td>
-            <td>${item.desconto > 0 ? item.desconto + '%' : '-'}</td>
-            <td><strong>R$ ${item.subtotal.toFixed(2).replace('.', ',')}</strong>${descTxt}</td>
+            <td>${item.desconto > 0 ? item.desconto.toFixed(1) + '%' : '-'}</td>
+            <td><strong>R$ ${item.subtotal.toFixed(2).replace('.', ',')}</strong></td>
             <td><button class="remove-item" onclick="removerItem(${idx})" title="Remover">✕</button></td>
         `;
         tbody.appendChild(tr);
@@ -234,15 +266,13 @@ async function confirmarVenda() {
     const descontoTotal = subtotalBruto - total;
     const qtdTotal = carrinho.reduce((s, i) => s + i.quantidade, 0);
     const itensStr = carrinho.map(i => {
-        const d = i.desconto > 0 ? ` (-${i.desconto}%)` : '';
+        const d = i.desconto > 0 ? ` (-${i.desconto.toFixed(1)}%)` : '';
         return `${i.nome} (${i.quantidade}${d})`;
     }).join(', ');
 
-    const cliente = document.getElementById('cliente').value || 'Consumidor Interno';
-
     const venda = {
         data: new Date().toLocaleDateString('pt-BR'),
-        cliente: cliente,
+        cliente: document.getElementById('cliente').value || 'Consumidor Interno',
         itens: itensStr,
         itensList: carrinho,
         quantidadeVendida: qtdTotal,
@@ -255,10 +285,7 @@ async function confirmarVenda() {
     };
 
     try {
-        const res = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'lancarVenda', data: venda })
-        });
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'lancarVenda', data: venda }) });
         const data = await res.json();
         fecharModal();
         exibirStatus(data);
@@ -277,33 +304,32 @@ async function confirmarVenda() {
 }
 
 // ================================
-// HISTÓRICO DE VENDAS — COM EXPANSÃO DE ITENS
+// HISTÓRICO DE VENDAS
 // ================================
 async function carregarHistoricoVendas() {
     const tbody = document.getElementById('listaHistorico');
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1rem;color:#94a3b8;">Carregando...</td></tr>';
     try {
         const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterVendas' }) });
-        const data = await res.json();
+        const text = await res.text(); // texto bruto primeiro para evitar erro silencioso
+        const data = JSON.parse(text);
 
-        if (data.status === 'sucesso' && data.dados.length > 0) {
-            const vendas = data.dados.slice().reverse().slice(0, 30);
+        if (data.status === 'sucesso' && Array.isArray(data.dados) && data.dados.length > 0) {
+            const vendas = [...data.dados].reverse().slice(0, 30);
             tbody.innerHTML = '';
 
             vendas.forEach(v => {
-                const id = v['ID da Venda'] || v.id || '';
-                const data_v = formatarData(v.Data || v.data || '');
-                // Cliente: tenta várias chaves possíveis
-                const cliente = v.Cliente || v.cliente || v['Cliente'] || '-';
-                const itens = v.Itens || v.itens || '';
-                const pgto = v['Forma de Pagamento'] || v.formaPagamento || '-';
-                const total = parseFloat(v['Total com Desconto'] || v.totalComDesconto || 0);
+                // Compatível com vários nomes de coluna possíveis
+                const id = v['ID da Venda'] || v['id'] || v['ID'] || '';
+                const dataV = formatarData(v['Data'] || v['data'] || '');
+                const cliente = v['Cliente'] || v['cliente'] || '-';
+                const itens = String(v['Itens'] || v['itens'] || '');
+                const pgto = v['Forma de Pagamento'] || v['formaPagamento'] || '-';
+                const totalRaw = v['Total com Desconto'] || v['totalComDesconto'] || v['Total'] || 0;
+                const total = isNaN(parseFloat(totalRaw)) ? 0 : parseFloat(totalRaw);
 
-                // Detecta multi-item
                 const isMulti = itens.includes(',');
-                const itensDisplay = isMulti
-                    ? itens.substring(0, 30) + '...'
-                    : itens;
+                const itensDisplay = isMulti ? itens.substring(0, 35) + '...' : itens;
                 const expandBtn = isMulti
                     ? `<button class="expand-btn" onclick="toggleItens(this)">▶ ver itens</button>
                        <div class="items-detail">${itens.split(', ').join('<br>')}</div>`
@@ -312,12 +338,9 @@ async function carregarHistoricoVendas() {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${id}</td>
-                    <td>${data_v}</td>
+                    <td>${dataV}</td>
                     <td>${cliente}</td>
-                    <td>
-                        <span>${itensDisplay}</span>
-                        ${expandBtn}
-                    </td>
+                    <td><span>${itensDisplay}</span>${expandBtn}</td>
                     <td>${pgto}</td>
                     <td><strong>R$ ${total.toFixed(2).replace('.', ',')}</strong></td>
                 `;
@@ -327,19 +350,19 @@ async function carregarHistoricoVendas() {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1rem;color:#94a3b8;">Nenhuma venda registrada.</td></tr>';
         }
     } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ef4444;padding:1rem;">Erro ao carregar histórico.</td></tr>';
+        console.error('Erro histórico:', e);
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#ef4444;padding:1rem;">Erro ao carregar histórico: ${e.message}</td></tr>`;
     }
 }
 
 function toggleItens(btn) {
     const detail = btn.nextElementSibling;
     const isOpen = detail.classList.toggle('open');
-    btn.textContent = isOpen ? '▼ ocultar itens' : '▶ ver itens';
+    btn.textContent = isOpen ? '▼ ocultar' : '▶ ver itens';
 }
 
 function formatarData(valor) {
     if (!valor) return '-';
-    if (valor instanceof Date) return valor.toLocaleDateString('pt-BR');
     const str = String(valor);
     if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(str)) return str.substring(0, 10);
     const d = new Date(str);
