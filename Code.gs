@@ -158,8 +158,8 @@ function lancarVenda(dados) {
     dados.descontoPercentual,
     dados.descontoReal,
     dados.totalComDesconto,
-    dados.usuario,
-    dados.formaPagamento || ''
+    dados.formaPagamento || '',  // col 10: Forma de Pagamento
+    dados.usuario                // col 11: Usuário
   ]);
 
   // Automação Financeira
