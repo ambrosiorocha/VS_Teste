@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.pgto-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             formaPagamentoSelecionada = this.dataset.pgto;
+            aplicarPrazo(this);
             atualizarModalTotais();
         });
     });
@@ -231,8 +232,57 @@ function abrirModal() {
     formaPagamentoSelecionada = '';
     document.querySelectorAll('.pgto-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('descontoGeralModal').value = '0';
+    document.getElementById('prazoContainer').style.display = 'none';
+    document.getElementById('prazoCustom').style.display = 'none';
+    document.getElementById('vencimentoCustom').value = '';
     atualizarModalTotais();
     document.getElementById('modalFinalizar').style.display = 'flex';
+}
+
+function aplicarPrazo(btn) {
+    const prazo = btn.dataset.prazo;
+    const container = document.getElementById('prazoContainer');
+    const prazoInfo = document.getElementById('prazoInfo');
+    const prazoCustom = document.getElementById('prazoCustom');
+    const today = new Date();
+    container.style.display = 'block';
+    prazoCustom.style.display = 'none';
+
+    if (prazo === '0') {
+        const d = today.toLocaleDateString('pt-BR');
+        prazoInfo.innerHTML = `<b style="color:#15803d">Pagamento imediato</b> — Vencimento: <b>${d}</b> | Status: <b>Pago</b>`;
+        container.style.background = '#f0fdf4'; container.style.borderColor = '#bbf7d0';
+    } else if (prazo === '30') {
+        const venc = new Date(today); venc.setDate(venc.getDate() + 30);
+        prazoInfo.innerHTML = `Crédito — Vencimento em <b>30 dias</b>: <b>${venc.toLocaleDateString('pt-BR')}</b> | Status: <b>Pendente</b>`;
+        container.style.background = '#fff7ed'; container.style.borderColor = '#fed7aa';
+    } else {
+        prazoInfo.innerHTML = `<b>${formaPagamentoSelecionada}</b> — Informe o vencimento:`;
+        container.style.background = '#fef3c7'; container.style.borderColor = '#fde68a';
+        prazoCustom.style.display = 'block';
+        const sug = new Date(today); sug.setDate(sug.getDate() + 30);
+        document.getElementById('vencimentoCustom').value = sug.toISOString().substring(0, 10);
+    }
+}
+
+// Calcula vencimento e status baseado na forma de pagamento
+function calcularVencimentoStatus() {
+    const btn = document.querySelector('.pgto-btn.active');
+    if (!btn) return { vencimento: new Date().toLocaleDateString('pt-BR'), status: 'Pendente' };
+    const prazo = btn.dataset.prazo;
+    const auto = btn.dataset.auto;
+    const today = new Date();
+    if (prazo === '0') {
+        return { vencimento: today.toLocaleDateString('pt-BR'), status: 'Pago' };
+    } else if (prazo === '30') {
+        const v = new Date(today); v.setDate(v.getDate() + 30);
+        return { vencimento: v.toLocaleDateString('pt-BR'), status: 'Pendente' };
+    } else {
+        const raw = document.getElementById('vencimentoCustom').value;
+        if (!raw) { alert('Informe a data de vencimento.'); return null; }
+        const [y, m, d] = raw.split('-');
+        return { vencimento: `${d}/${m}/${y}`, status: 'Pendente' };
+    }
 }
 
 function fecharModal() {
@@ -270,6 +320,9 @@ async function confirmarVenda() {
         return `${i.nome} (${i.quantidade}${d})`;
     }).join(', ');
 
+    const prazoResult = calcularVencimentoStatus();
+    if (!prazoResult) { btn.disabled = false; btn.textContent = '✅ Confirmar Venda'; return; }
+
     const venda = {
         data: new Date().toLocaleDateString('pt-BR'),
         cliente: document.getElementById('cliente').value || 'Consumidor Interno',
@@ -281,7 +334,9 @@ async function confirmarVenda() {
         descontoReal: descontoTotal,
         totalComDesconto: total,
         formaPagamento: formaPagamentoSelecionada,
-        usuario: document.getElementById('usuario').value || 'Usuário Padrão'
+        usuario: document.getElementById('usuario').value || 'Usuário Padrão',
+        vencimento: prazoResult.vencimento,
+        statusFinanceiro: prazoResult.status
     };
 
     try {

@@ -162,16 +162,18 @@ function lancarVenda(dados) {
     dados.usuario                // col 11: Usuário
   ]);
 
-  // Automação Financeira
+  // Automação Financeira — usa vencimento e status da forma de pagamento
   if (sheetFinanceiro) {
     var ultimIdFin = sheetFinanceiro.getLastRow() > 1 ? sheetFinanceiro.getRange(sheetFinanceiro.getLastRow(), 1).getValue() : 0;
+    var vencimento = dados.vencimento || dados.data;          // usa prazo enviado pelo front
+    var statusFin = dados.statusFinanceiro || 'Pendente';     // Pago para à vista/PIX/débito
     sheetFinanceiro.appendRow([
       ultimIdFin + 1,
       'Venda #' + novoId + ' - ' + (dados.cliente || 'Consumidor'),
       dados.totalComDesconto,
       'Receber',
-      dados.data,
-      'Pendente',
+      vencimento,
+      statusFin,
       'Venda',
       novoId
     ]);
