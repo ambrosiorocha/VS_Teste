@@ -69,6 +69,9 @@ function doPost(e) {
       case 'excluirFinanceiro':
         result = excluirDadosGeral("Financeiro", data.id);
         break;
+      case 'baixarLancamento':
+        result = baixarLancamento(data.id);
+        break;
       default:
         result = { status: 'erro', mensagem: 'Ação não reconhecida: ' + action };
     }
@@ -92,12 +95,11 @@ function lancarVenda(dados) {
     return { status: 'erro', mensagem: 'A planilha "Vendas" não foi encontrada.' };
   }
 
-  // --- CMD 4: VERIFICAÇÃO E BAIXA DE ESTOQUE ---
-  if (sheetProdutos && sheetProdutos.getLastRow() > 1) {
+  // --- BAIXA DE ESTOQUE PARA MÚLTIPLOS ITENS ---
+  var itensList = dados.itensList; // array [{nome, quantidade}]
+  if (sheetProdutos && sheetProdutos.getLastRow() > 1 && itensList && itensList.length > 0) {
     var dadosProdutos = sheetProdutos.getDataRange().getValues();
     var headersProdutos = dadosProdutos[0];
-
-    // Localiza índices das colunas pelo cabeçalho
     var colNome = headersProdutos.indexOf('Nome');
     var colQtd = headersProdutos.indexOf('Quantidade');
 
@@ -105,45 +107,51 @@ function lancarVenda(dados) {
       return { status: 'erro', mensagem: 'Colunas "Nome" ou "Quantidade" não encontradas na aba Produtos.' };
     }
 
-    // Encontra a linha do produto pelo nome
-    var linhaEncontrada = -1;
-    for (var i = 1; i < dadosProdutos.length; i++) {
-      if (String(dadosProdutos[i][colNome]).trim() === String(dados.itens).trim()) {
-        linhaEncontrada = i + 1; // +1 porque getValues() é 0-indexed, sheet é 1-indexed
-        break;
+    // Primeiro valida estoque de todos os itens
+    for (var k = 0; k < itensList.length; k++) {
+      var itemNome = String(itensList[k].nome).trim();
+      var itemQtd = parseFloat(itensList[k].quantidade) || 0;
+      var linhaItem = -1;
+      for (var i = 1; i < dadosProdutos.length; i++) {
+        if (String(dadosProdutos[i][colNome]).trim() === itemNome) {
+          linhaItem = i;
+          break;
+        }
+      }
+      if (linhaItem === -1) {
+        return { status: 'erro', mensagem: 'Produto "' + itemNome + '" não encontrado no estoque.' };
+      }
+      var estoqueAtual = parseFloat(dadosProdutos[linhaItem][colQtd]) || 0;
+      if (estoqueAtual < itemQtd) {
+        return { status: 'erro', mensagem: '❌ Estoque insuficiente para "' + itemNome + '"! Disponível: ' + estoqueAtual + ' | Solicitado: ' + itemQtd };
       }
     }
 
-    if (linhaEncontrada === -1) {
-      return { status: 'erro', mensagem: 'Produto "' + dados.itens + '" não encontrado na aba Produtos.' };
+    // Depois subtrai estoque de todos
+    for (var k = 0; k < itensList.length; k++) {
+      var itemNome = String(itensList[k].nome).trim();
+      var itemQtd = parseFloat(itensList[k].quantidade) || 0;
+      for (var i = 1; i < dadosProdutos.length; i++) {
+        if (String(dadosProdutos[i][colNome]).trim() === itemNome) {
+          var novoEstoque = parseFloat(dadosProdutos[i][colQtd]) - itemQtd;
+          sheetProdutos.getRange(i + 1, colQtd + 1).setValue(novoEstoque);
+          dadosProdutos[i][colQtd] = novoEstoque; // atualiza cache local
+          break;
+        }
+      }
     }
-
-    var estoqueAtual = parseFloat(dadosProdutos[linhaEncontrada - 1][colQtd]) || 0;
-    var quantidadeVendida = parseFloat(dados.quantidadeVendida) || 0;
-
-    // Verifica se há estoque suficiente
-    if (estoqueAtual < quantidadeVendida) {
-      return {
-        status: 'erro',
-        mensagem: '❌ Estoque insuficiente! Disponível: ' + estoqueAtual + ' | Solicitado: ' + quantidadeVendida
-      };
-    }
-
-    // Subtrai o estoque
-    var novoEstoque = estoqueAtual - quantidadeVendida;
-    sheetProdutos.getRange(linhaEncontrada, colQtd + 1).setValue(novoEstoque);
   }
-  // --- FIM DA BAIXA DE ESTOQUE ---
+  // --- FIM BAIXA DE ESTOQUE ---
 
   var ultimaLinha = sheetVendas.getLastRow();
   var ultimoId = (ultimaLinha > 1) ? sheetVendas.getRange(ultimaLinha, 1).getValue() : 0;
   var novoId = ultimoId + 1;
 
-  // Registrar na aba Vendas
+  // Registrar na aba Vendas (coluna Forma de Pagamento adicionada)
   sheetVendas.appendRow([
     novoId,
     dados.data,
-    dados.cliente || "Consumidor Interno",
+    dados.cliente || 'Consumidor Interno',
     dados.itens,
     dados.quantidadeVendida,
     dados.subtotal,
@@ -151,24 +159,48 @@ function lancarVenda(dados) {
     dados.descontoReal,
     dados.totalComDesconto,
     dados.usuario,
+    dados.formaPagamento || ''
   ]);
 
-  // Automação Financeira: Criar conta a receber
+  // Automação Financeira
   if (sheetFinanceiro) {
     var ultimIdFin = sheetFinanceiro.getLastRow() > 1 ? sheetFinanceiro.getRange(sheetFinanceiro.getLastRow(), 1).getValue() : 0;
     sheetFinanceiro.appendRow([
       ultimIdFin + 1,
-      'Venda #' + novoId + ' - ' + (dados.cliente || "Consumidor"),
+      'Venda #' + novoId + ' - ' + (dados.cliente || 'Consumidor'),
       dados.totalComDesconto,
-      "Receber",
+      'Receber',
       dados.data,
-      "Pendente",
-      "Venda",
+      'Pendente',
+      'Venda',
       novoId
     ]);
   }
 
-  return { status: 'sucesso', mensagem: '✅ Venda #' + novoId + ' registrada! Estoque atualizado.' };
+  return { status: 'sucesso', mensagem: '✅ Venda #' + novoId + ' registrada com sucesso!' };
+}
+
+// Marca lançamento financeiro como Pago/Recebido
+function baixarLancamento(id) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Financeiro');
+  if (!sheet || sheet.getLastRow() < 2) {
+    return { status: 'erro', mensagem: 'Planilha Financeiro não encontrada ou vazia.' };
+  }
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var colId = headers.indexOf('id');
+  var colStatus = headers.indexOf('status');
+  if (colId === -1 || colStatus === -1) {
+    return { status: 'erro', mensagem: 'Colunas id/status não encontradas na aba Financeiro.' };
+  }
+  var dados = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  for (var i = 0; i < dados.length; i++) {
+    if (String(dados[i][colId]) === String(id)) {
+      sheet.getRange(i + 2, colStatus + 1).setValue('Pago');
+      return { status: 'sucesso', mensagem: 'Lançamento #' + id + ' baixado com sucesso!' };
+    }
+  }
+  return { status: 'erro', mensagem: 'Lançamento #' + id + ' não encontrado.' };
 }
 
 function obterProdutos() {

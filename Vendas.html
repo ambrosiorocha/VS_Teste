@@ -1,74 +1,171 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <title>Lançar Venda</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .carrinho-table th { background: #f1f5f9; font-size: 0.8rem; }
+        .carrinho-table td { font-size: 0.88rem; padding: 0.5rem 0.75rem; }
+        .carrinho-vazio { text-align:center; color:#94a3b8; padding: 1rem; font-style: italic; }
+        .total-bar { background: #1e293b; color: white; border-radius: 0.75rem; padding: 1rem 1.5rem; margin-top: 1rem; }
+        .total-bar .label { font-size: 0.8rem; opacity: 0.7; }
+        .total-bar .value { font-size: 1.25rem; font-weight: 700; }
+        .pgto-btn { padding: 0.4rem 0.9rem; border-radius: 999px; border: 2px solid #e2e8f0; font-size: 0.8rem; cursor: pointer; transition: all .2s; }
+        .pgto-btn.active { background:#16a34a; color:white; border-color:#16a34a; }
+        .pgto-btn:not(.active):hover { border-color:#16a34a; color:#16a34a; }
+        .btn-add { background:#2563eb; color:white; padding:0.5rem 1.25rem; border-radius:0.5rem; font-size:0.9rem; cursor:pointer; border:none; }
+        .btn-add:hover { background:#1d4ed8; }
+        .btn-finalizar { background:#16a34a; color:white; width:100%; padding:0.85rem; border-radius:0.5rem; font-size:1rem; font-weight:600; cursor:pointer; border:none; margin-top:0.75rem; }
+        .btn-finalizar:hover { background:#15803d; }
+        .btn-finalizar:disabled { background:#94a3b8; cursor:not-allowed; }
+        .remove-item { color:#ef4444; background:none; border:none; cursor:pointer; font-weight:700; font-size:1rem; }
+        /* Histórico */
+        .hist-table { font-size: 0.82rem; }
+        .hist-table th { background:#f8fafc; font-size:0.78rem; }
+    </style>
 </head>
-
 <body>
+
+    <!-- Modal Finalizar Venda -->
+    <div id="modalFinalizar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:1rem; padding:2rem; width: min(460px, 95vw); box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="margin-bottom:1rem; font-size:1.1rem;">💳 Finalizar Venda</h3>
+            <div style="background:#f8fafc; border-radius:0.5rem; padding:1rem; margin-bottom:1rem;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                    <span style="color:#64748b; font-size:0.85rem;">Subtotal</span>
+                    <span id="modalSubtotal" style="font-weight:600;">R$ 0,00</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                    <span style="color:#64748b; font-size:0.85rem;">Desconto Total</span>
+                    <span id="modalDesconto" style="color:#ef4444; font-weight:600;">- R$ 0,00</span>
+                </div>
+                <hr style="margin:0.5rem 0;">
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="font-weight:700;">Total</span>
+                    <span id="modalTotal" style="font-weight:700; font-size:1.15rem; color:#16a34a;">R$ 0,00</span>
+                </div>
+            </div>
+            <div style="margin-bottom:1rem;">
+                <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:0.5rem;">Forma de Pagamento</label>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;" id="pgtoOpcoes">
+                    <button class="pgto-btn" data-pgto="À Vista">💵 À Vista</button>
+                    <button class="pgto-btn" data-pgto="PIX">📱 PIX</button>
+                    <button class="pgto-btn" data-pgto="Cartão Débito">💳 Débito</button>
+                    <button class="pgto-btn" data-pgto="Cartão Crédito">💳 Crédito</button>
+                    <button class="pgto-btn" data-pgto="Boleto">📄 Boleto</button>
+                    <button class="pgto-btn" data-pgto="Fiado">🤝 Fiado</button>
+                </div>
+            </div>
+            <div style="margin-bottom:1rem;">
+                <label style="font-size:0.85rem; font-weight:600;">Desconto Geral (R$)</label>
+                <input type="number" id="descontoGeralModal" value="0" step="0.01" min="0" style="width:100%; margin-top:0.35rem;">
+            </div>
+            <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+                <button onclick="fecharModal()" style="flex:1; padding:0.7rem; border-radius:0.5rem; border:2px solid #e2e8f0; background:white; cursor:pointer;">Cancelar</button>
+                <button onclick="confirmarVenda()" id="btnConfirmarVenda" style="flex:2; padding:0.7rem; border-radius:0.5rem; background:#16a34a; color:white; border:none; font-weight:600; cursor:pointer;">✅ Confirmar Venda</button>
+            </div>
+        </div>
+    </div>
 
     <main class="main-content p-4 md:p-8 overflow-y-auto">
         <div class="container">
-            <h2>Lançar Nova Venda</h2>
-            <form id="vendaForm" class="space-y-4">
+            <h2>🛒 Pedido de Venda</h2>
+
+            <!-- SELEÇÃO DE CLIENTE E PRODUTO -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;" class="form-grid-container">
                 <div class="form-group">
                     <label for="cliente">Cliente</label>
-                    <select id="cliente" required class="w-full p-2 border border-gray-300 rounded">
-                        <option value="">Selecione um cliente...</option>
+                    <select id="cliente" class="w-full p-2 border border-gray-300 rounded">
+                        <option value="Consumidor Interno">Consumidor Interno</option>
                     </select>
                 </div>
-
                 <div class="form-group">
-                    <label for="produto">Produto</label>
-                    <select id="produto" required class="w-full p-2 border border-gray-300 rounded">
-                        <option value="">Carregando produtos...</option>
-                    </select>
+                    <label for="usuario">Operador</label>
+                    <input type="text" id="usuario" value="Usuário Padrão" class="w-full">
                 </div>
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="form-group">
-                        <label for="quantidade">Quantidade Vendida</label>
-                        <input type="number" id="quantidade" step="any" min="0" required class="w-full">
+            <!-- ADICIONAR ITEM -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:0.75rem; padding:1.25rem; margin-bottom:1rem;">
+                <h4 style="margin-bottom:0.75rem; font-size:0.9rem; color:#475569;">➕ Adicionar Item ao Pedido</h4>
+                <div style="display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:0.75rem; align-items:end;" class="form-grid-add">
+                    <div class="form-group" style="margin:0;">
+                        <label for="produto" style="font-size:0.8rem;">Produto</label>
+                        <select id="produto" class="w-full p-2 border border-gray-300 rounded">
+                            <option value="">Carregando...</option>
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label for="precoUnitario">Preço Unitário (R$)</label>
-                        <input type="number" id="precoUnitario" step="0.01" min="0" readonly class="w-full bg-gray-100">
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.8rem;">Preço Unit. (R$)</label>
+                        <input type="number" id="precoUnitario" step="0.01" min="0" readonly style="background:#e2e8f0; width:100%;">
                     </div>
-                    <div class="form-group">
-                        <label for="subtotal">Subtotal (R$)</label>
-                        <input type="number" id="subtotal" step="0.01" min="0" readonly class="w-full bg-gray-100">
+                    <div class="form-group" style="margin:0;">
+                        <label for="quantidade" style="font-size:0.8rem;">Quantidade</label>
+                        <input type="number" id="quantidade" step="any" min="0.01" value="" placeholder="0" class="w-full">
+                    </div>
+                    <button class="btn-add" onclick="adicionarItemCarrinho()">+ Adicionar</button>
+                </div>
+            </div>
+
+            <!-- CARRINHO DE PEDIDO -->
+            <div class="table-container" style="margin-bottom:0;">
+                <h3>📋 Itens do Pedido</h3>
+                <table class="carrinho-table" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Qtd</th>
+                            <th>Preço Unit.</th>
+                            <th>Subtotal</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="carrinhoItens">
+                        <tr><td colspan="5" class="carrinho-vazio">Nenhum item adicionado ainda.</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- TOTAIS + FINALIZAR -->
+                <div class="total-bar">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div class="label">Total do Pedido</div>
+                            <div class="value" id="totalCarrinho">R$ 0,00</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="label" id="qtdItensLabel">0 item(ns)</div>
+                            <button class="btn-finalizar" id="btnFinalizar" disabled onclick="abrirModal()">
+                                Finalizar Venda →
+                            </button>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="form-group">
-                        <label for="descontoPercentual">Desconto (%)</label>
-                        <input type="number" id="descontoPercentual" step="0.01" min="0" max="100" value="0"
-                            class="w-full">
-                    </div>
-                    <div class="form-group">
-                        <label for="descontoReal">Desconto (R$)</label>
-                        <input type="number" id="descontoReal" step="0.01" min="0" value="0" class="w-full">
-                    </div>
-                    <div class="form-group">
-                        <label for="totalComDesconto">Total com Desconto (R$)</label>
-                        <input type="number" id="totalComDesconto" step="0.01" min="0" readonly
-                            class="w-full bg-gray-100">
-                    </div>
-                </div>
+            <div id="statusMessage" style="margin-top:1rem;"></div>
 
-                <div class="form-group">
-                    <label for="usuario">Usuário</label>
-                    <input type="text" id="usuario" value="Usuário Padrão" required class="w-full">
-                </div>
-
-                <button type="submit" class="btn">Lançar Venda</button>
-            </form>
-            <div id="statusMessage"></div>
+            <!-- HISTÓRICO DE VENDAS -->
+            <div class="table-container" style="margin-top:2rem;">
+                <h3>📊 Histórico de Vendas Recentes</h3>
+                <table class="hist-table" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Data</th>
+                            <th>Cliente</th>
+                            <th>Itens</th>
+                            <th>Pagamento</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaHistorico">
+                        <tr><td colspan="6" style="text-align:center; padding:1rem; color:#94a3b8;">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -76,5 +173,4 @@
     <script src="js/main.js"></script>
     <script src="js/vendas.js"></script>
 </body>
-
 </html>
