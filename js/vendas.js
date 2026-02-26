@@ -2,7 +2,7 @@
 // ESTADO GLOBAL DO CARRINHO
 // ================================
 let produtos = [];
-let carrinho = []; // [{nome, preco, quantidade, subtotal}]
+let carrinho = []; // [{nome, preco, quantidade, desconto, subtotal}]
 let formaPagamentoSelecionada = '';
 
 // ================================
@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', function () {
     carregarHistoricoVendas();
 
     document.getElementById('produto').addEventListener('change', atualizarPrecoUnitario);
-    document.getElementById('quantidade').addEventListener('input', atualizarPrecoUnitario);
+    document.getElementById('quantidade').addEventListener('input', atualizarSubtotalItem);
+    document.getElementById('descontoItem').addEventListener('input', atualizarSubtotalItem);
 
     // Botões de forma de pagamento no modal
     document.querySelectorAll('.pgto-btn').forEach(btn => {
@@ -29,8 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
             atualizarModalTotais();
         });
     });
-
-    // Desconto geral no modal recalcula total
     document.getElementById('descontoGeralModal').addEventListener('input', atualizarModalTotais);
 });
 
@@ -38,117 +37,116 @@ document.addEventListener('DOMContentLoaded', function () {
 // STATUS
 // ================================
 function exibirStatus(resposta) {
-    var statusMessage = document.getElementById('statusMessage');
-    statusMessage.textContent = resposta.mensagem;
-    statusMessage.className = '';
-    if (resposta.status) statusMessage.classList.add(resposta.status);
-    statusMessage.style.display = 'block';
-    setTimeout(() => statusMessage.style.display = 'none', 6000);
+    var el = document.getElementById('statusMessage');
+    el.textContent = resposta.mensagem;
+    el.className = '';
+    if (resposta.status) el.classList.add(resposta.status);
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 6000);
 }
 
 // ================================
 // CARREGAR PRODUTOS E CLIENTES
 // ================================
 async function carregarProdutos() {
-    const produtoSelect = document.getElementById('produto');
-    produtoSelect.innerHTML = '<option value="">Carregando...</option>';
+    const sel = document.getElementById('produto');
+    sel.innerHTML = '<option value="">Carregando...</option>';
     try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'obterProdutos' })
-        });
-        const data = await response.json();
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterProdutos' }) });
+        const data = await res.json();
         produtos = data.dados || [];
-        produtoSelect.innerHTML = '<option value="">Selecione um produto</option>';
-        if (produtos.length > 0) {
-            produtos.forEach(p => {
-                const estoque = parseFloat(p.Quantidade) || 0;
-                const opt = document.createElement('option');
-                opt.value = p.Nome;
-                opt.textContent = `${p.Nome}  (Estoque: ${estoque})`;
-                opt.dataset.preco = String(p['Preço'] || p.Preco || 0).replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
-                opt.dataset.estoque = estoque;
-                produtoSelect.appendChild(opt);
-            });
-        } else {
-            produtoSelect.innerHTML = '<option value="">Nenhum produto cadastrado</option>';
-        }
-    } catch (e) {
-        produtoSelect.innerHTML = '<option value="">Erro ao carregar</option>';
-    }
+        sel.innerHTML = '<option value="">Selecione um produto</option>';
+        produtos.forEach(p => {
+            const estoque = parseFloat(p.Quantidade) || 0;
+            const precoRaw = String(p['Preço'] || p.Preco || 0).replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+            const opt = document.createElement('option');
+            opt.value = p.Nome;
+            opt.textContent = `${p.Nome}  (Estoque: ${estoque})`;
+            opt.dataset.preco = parseFloat(precoRaw) || 0;
+            opt.dataset.estoque = estoque;
+            sel.appendChild(opt);
+        });
+    } catch (e) { sel.innerHTML = '<option value="">Erro ao carregar</option>'; }
 }
 
 async function carregarClientes() {
-    const clienteSelect = document.getElementById('cliente');
+    const sel = document.getElementById('cliente');
     try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'obterClientes' })
-        });
-        const data = await response.json();
-        clienteSelect.innerHTML = '<option value="Consumidor Interno">Consumidor Interno</option>';
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterClientes' }) });
+        const data = await res.json();
+        sel.innerHTML = '<option value="Consumidor Interno">Consumidor Interno</option>';
         if (data.status === 'sucesso' && data.dados.length > 0) {
             data.dados.forEach(c => {
                 const opt = document.createElement('option');
-                opt.value = c.nome || c.Nome;
-                opt.textContent = c.nome || c.Nome;
-                clienteSelect.appendChild(opt);
+                const nome = c.nome || c.Nome || '';
+                opt.value = nome;
+                opt.textContent = nome;
+                sel.appendChild(opt);
             });
         }
     } catch (e) { /* mantém Consumidor Interno */ }
 }
 
 // ================================
-// PREÇO UNITÁRIO EM TEMPO REAL
+// PREÇO E SUBTOTAL DO ITEM EM TEMPO REAL
 // ================================
 function atualizarPrecoUnitario() {
-    const produtoSelect = document.getElementById('produto');
-    const selectedOpt = produtoSelect.options[produtoSelect.selectedIndex];
-    const preco = selectedOpt ? parseFloat(selectedOpt.dataset.preco) || 0 : 0;
+    const sel = document.getElementById('produto');
+    const opt = sel.options[sel.selectedIndex];
+    const preco = opt ? parseFloat(opt.dataset.preco) || 0 : 0;
     document.getElementById('precoUnitario').value = preco.toFixed(2);
+    atualizarSubtotalItem();
+}
+
+function atualizarSubtotalItem() {
+    const sel = document.getElementById('produto');
+    const opt = sel.options[sel.selectedIndex];
+    const preco = opt ? parseFloat(opt.dataset.preco) || 0 : 0;
+    const qtd = parseFloat(document.getElementById('quantidade').value) || 0;
+    const desc = parseFloat(document.getElementById('descontoItem').value) || 0;
+    const subtotal = Math.max(0, qtd * preco * (1 - desc / 100));
+    document.getElementById('subtotalItem').value = subtotal.toFixed(2);
 }
 
 // ================================
 // CARRINHO — ADICIONAR ITEM
 // ================================
 function adicionarItemCarrinho() {
-    const produtoSelect = document.getElementById('produto');
-    const selectedOpt = produtoSelect.options[produtoSelect.selectedIndex];
-    const quantidadeInput = document.getElementById('quantidade');
+    const sel = document.getElementById('produto');
+    const opt = sel.options[sel.selectedIndex];
 
-    if (!produtoSelect.value) {
-        exibirStatus({ status: 'error', mensagem: '⚠️ Selecione um produto.' });
-        return;
-    }
-    const quantidade = parseFloat(quantidadeInput.value);
-    if (!quantidade || quantidade <= 0) {
-        exibirStatus({ status: 'error', mensagem: '⚠️ Informe uma quantidade válida.' });
-        return;
-    }
-    const estoqueDisp = parseFloat(selectedOpt.dataset.estoque) || 0;
-    // Verificar estoque contando itens já no carrinho
-    const jaNoCarrinho = carrinho.filter(i => i.nome === produtoSelect.value).reduce((s, i) => s + i.quantidade, 0);
+    if (!sel.value) { exibirStatus({ status: 'error', mensagem: '⚠️ Selecione um produto.' }); return; }
+
+    const quantidade = parseFloat(document.getElementById('quantidade').value);
+    if (!quantidade || quantidade <= 0) { exibirStatus({ status: 'error', mensagem: '⚠️ Informe uma quantidade válida.' }); return; }
+
+    const desconto = parseFloat(document.getElementById('descontoItem').value) || 0;
+    const estoqueDisp = parseFloat(opt.dataset.estoque) || 0;
+    const jaNoCarrinho = carrinho.filter(i => i.nome === sel.value).reduce((s, i) => s + i.quantidade, 0);
+
     if (quantidade + jaNoCarrinho > estoqueDisp) {
         exibirStatus({ status: 'error', mensagem: `❌ Estoque insuficiente! Disponível: ${estoqueDisp - jaNoCarrinho}` });
         return;
     }
 
-    const preco = parseFloat(selectedOpt.dataset.preco) || 0;
-    const subtotal = quantidade * preco;
+    const preco = parseFloat(opt.dataset.preco) || 0;
+    const subtotal = Math.max(0, quantidade * preco * (1 - desconto / 100));
 
-    // Verificar se produto já está no carrinho → soma quantidade
-    const itemExistente = carrinho.find(i => i.nome === produtoSelect.value);
-    if (itemExistente) {
-        itemExistente.quantidade += quantidade;
-        itemExistente.subtotal = itemExistente.quantidade * itemExistente.preco;
+    // Agrupa se mesmo produto e mesmo desconto
+    const existente = carrinho.find(i => i.nome === sel.value && i.desconto === desconto);
+    if (existente) {
+        existente.quantidade += quantidade;
+        existente.subtotal = Math.max(0, existente.quantidade * existente.preco * (1 - existente.desconto / 100));
     } else {
-        carrinho.push({ nome: produtoSelect.value, preco, quantidade, subtotal });
+        carrinho.push({ nome: sel.value, preco, quantidade, desconto, subtotal });
     }
 
-    // Limpa seleção
-    produtoSelect.value = '';
-    quantidadeInput.value = '';
+    // Limpa campos
+    sel.value = '';
+    document.getElementById('quantidade').value = '';
+    document.getElementById('descontoItem').value = '0';
     document.getElementById('precoUnitario').value = '';
+    document.getElementById('subtotalItem').value = '';
 
     renderizarCarrinho();
 }
@@ -161,7 +159,7 @@ function renderizarCarrinho() {
     tbody.innerHTML = '';
 
     if (carrinho.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="carrinho-vazio">Nenhum item adicionado ainda.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="carrinho-vazio">Nenhum item adicionado ainda.</td></tr>';
         document.getElementById('totalCarrinho').textContent = 'R$ 0,00';
         document.getElementById('qtdItensLabel').textContent = '0 item(ns)';
         document.getElementById('btnFinalizar').disabled = true;
@@ -172,11 +170,13 @@ function renderizarCarrinho() {
     carrinho.forEach((item, idx) => {
         totalGeral += item.subtotal;
         const tr = document.createElement('tr');
+        const descTxt = item.desconto > 0 ? `<span style="color:#ef4444; font-size:11px;"> (-${item.desconto}%)</span>` : '';
         tr.innerHTML = `
             <td>${item.nome}</td>
-            <td>${item.quantidade}</td>
+            <td style="text-align:center;">${item.quantidade}</td>
             <td>R$ ${item.preco.toFixed(2).replace('.', ',')}</td>
-            <td><strong>R$ ${item.subtotal.toFixed(2).replace('.', ',')}</strong></td>
+            <td>${item.desconto > 0 ? item.desconto + '%' : '-'}</td>
+            <td><strong>R$ ${item.subtotal.toFixed(2).replace('.', ',')}</strong>${descTxt}</td>
             <td><button class="remove-item" onclick="removerItem(${idx})" title="Remover">✕</button></td>
         `;
         tbody.appendChild(tr);
@@ -220,58 +220,56 @@ function atualizarModalTotais() {
 // CONFIRMAR E ENVIAR VENDA
 // ================================
 async function confirmarVenda() {
-    if (!formaPagamentoSelecionada) {
-        alert('Selecione a forma de pagamento.');
-        return;
-    }
-    if (carrinho.length === 0) {
-        fecharModal();
-        return;
-    }
+    if (!formaPagamentoSelecionada) { alert('Selecione a forma de pagamento.'); return; }
+    if (carrinho.length === 0) { fecharModal(); return; }
 
     const btn = document.getElementById('btnConfirmarVenda');
     btn.disabled = true;
     btn.textContent = 'Registrando...';
 
-    const subtotal = carrinho.reduce((s, i) => s + i.subtotal, 0);
-    const desconto = parseFloat(document.getElementById('descontoGeralModal').value) || 0;
-    const total = Math.max(0, subtotal - desconto);
-
-    // Monta string de itens para a planilha
-    const itensStr = carrinho.map(i => `${i.nome} (${i.quantidade})`).join(', ');
+    const subtotalItens = carrinho.reduce((s, i) => s + i.subtotal, 0);
+    const descontoGeral = parseFloat(document.getElementById('descontoGeralModal').value) || 0;
+    const total = Math.max(0, subtotalItens - descontoGeral);
+    const subtotalBruto = carrinho.reduce((s, i) => s + (i.quantidade * i.preco), 0);
+    const descontoTotal = subtotalBruto - total;
     const qtdTotal = carrinho.reduce((s, i) => s + i.quantidade, 0);
+    const itensStr = carrinho.map(i => {
+        const d = i.desconto > 0 ? ` (-${i.desconto}%)` : '';
+        return `${i.nome} (${i.quantidade}${d})`;
+    }).join(', ');
+
+    const cliente = document.getElementById('cliente').value || 'Consumidor Interno';
 
     const venda = {
         data: new Date().toLocaleDateString('pt-BR'),
-        cliente: document.getElementById('cliente').value || 'Consumidor Interno',
+        cliente: cliente,
         itens: itensStr,
-        itensList: carrinho, // array completo para baixa de estoque individual
+        itensList: carrinho,
         quantidadeVendida: qtdTotal,
-        subtotal: subtotal,
-        descontoPercentual: subtotal > 0 ? ((desconto / subtotal) * 100).toFixed(2) : 0,
-        descontoReal: desconto,
+        subtotal: subtotalBruto,
+        descontoPercentual: subtotalBruto > 0 ? ((descontoTotal / subtotalBruto) * 100).toFixed(2) : 0,
+        descontoReal: descontoTotal,
         totalComDesconto: total,
         formaPagamento: formaPagamentoSelecionada,
         usuario: document.getElementById('usuario').value || 'Usuário Padrão'
     };
 
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const res = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'lancarVenda', data: venda })
         });
-        const data = await response.json();
+        const data = await res.json();
         fecharModal();
         exibirStatus(data);
-
         if (data.status === 'sucesso') {
             carrinho = [];
             renderizarCarrinho();
-            await carregarProdutos(); // atualiza estoque
+            await carregarProdutos();
             await carregarHistoricoVendas();
         }
-    } catch (error) {
-        exibirStatus({ status: 'error', mensagem: 'Erro de comunicação: ' + error });
+    } catch (e) {
+        exibirStatus({ status: 'error', mensagem: 'Erro de comunicação: ' + e });
     } finally {
         btn.disabled = false;
         btn.textContent = '✅ Confirmar Venda';
@@ -279,29 +277,48 @@ async function confirmarVenda() {
 }
 
 // ================================
-// HISTÓRICO DE VENDAS
+// HISTÓRICO DE VENDAS — COM EXPANSÃO DE ITENS
 // ================================
 async function carregarHistoricoVendas() {
     const tbody = document.getElementById('listaHistorico');
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1rem;color:#94a3b8;">Carregando...</td></tr>';
     try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'obterVendas' })
-        });
-        const data = await response.json();
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterVendas' }) });
+        const data = await res.json();
+
         if (data.status === 'sucesso' && data.dados.length > 0) {
-            const vendas = data.dados.slice().reverse().slice(0, 20); // últimas 20
+            const vendas = data.dados.slice().reverse().slice(0, 30);
             tbody.innerHTML = '';
+
             vendas.forEach(v => {
+                const id = v['ID da Venda'] || v.id || '';
+                const data_v = formatarData(v.Data || v.data || '');
+                // Cliente: tenta várias chaves possíveis
+                const cliente = v.Cliente || v.cliente || v['Cliente'] || '-';
+                const itens = v.Itens || v.itens || '';
+                const pgto = v['Forma de Pagamento'] || v.formaPagamento || '-';
+                const total = parseFloat(v['Total com Desconto'] || v.totalComDesconto || 0);
+
+                // Detecta multi-item
+                const isMulti = itens.includes(',');
+                const itensDisplay = isMulti
+                    ? itens.substring(0, 30) + '...'
+                    : itens;
+                const expandBtn = isMulti
+                    ? `<button class="expand-btn" onclick="toggleItens(this)">▶ ver itens</button>
+                       <div class="items-detail">${itens.split(', ').join('<br>')}</div>`
+                    : '';
+
                 const tr = document.createElement('tr');
-                const total = parseFloat(v['Total com Desconto'] || v['totalComDesconto'] || 0);
                 tr.innerHTML = `
-                    <td>${v['ID da Venda'] || v.id || ''}</td>
-                    <td>${formatarData(v.Data || v.data)}</td>
-                    <td>${v.Cliente || v.cliente || ''}</td>
-                    <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${v.Itens || v.itens || ''}">${v.Itens || v.itens || ''}</td>
-                    <td>${v['Forma de Pagamento'] || v.formaPagamento || '-'}</td>
+                    <td>${id}</td>
+                    <td>${data_v}</td>
+                    <td>${cliente}</td>
+                    <td>
+                        <span>${itensDisplay}</span>
+                        ${expandBtn}
+                    </td>
+                    <td>${pgto}</td>
                     <td><strong>R$ ${total.toFixed(2).replace('.', ',')}</strong></td>
                 `;
                 tbody.appendChild(tr);
@@ -310,18 +327,21 @@ async function carregarHistoricoVendas() {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1rem;color:#94a3b8;">Nenhuma venda registrada.</td></tr>';
         }
     } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1rem;color:#ef4444;">Erro ao carregar histórico.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ef4444;padding:1rem;">Erro ao carregar histórico.</td></tr>';
     }
+}
+
+function toggleItens(btn) {
+    const detail = btn.nextElementSibling;
+    const isOpen = detail.classList.toggle('open');
+    btn.textContent = isOpen ? '▼ ocultar itens' : '▶ ver itens';
 }
 
 function formatarData(valor) {
     if (!valor) return '-';
     if (valor instanceof Date) return valor.toLocaleDateString('pt-BR');
     const str = String(valor);
-    // Já está no formato dd/mm/yyyy
     if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(str)) return str.substring(0, 10);
-    // ISO ou timestamp
     const d = new Date(str);
-    if (!isNaN(d)) return d.toLocaleDateString('pt-BR');
-    return str;
+    return isNaN(d) ? str : d.toLocaleDateString('pt-BR');
 }

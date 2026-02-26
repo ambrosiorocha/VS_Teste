@@ -1,6 +1,4 @@
-/* Este é o seu CSS completo, com estilos
-   para o menu, layout, e a tabela.
-*/
+/* ===== BASE ===== */
 body {
     font-family: 'Poppins', sans-serif;
     background-color: #f0f2f5;
@@ -8,247 +6,176 @@ body {
     min-height: 100vh;
 }
 .container {
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
     background-color: #fff;
-    padding: 30px;
+    padding: 24px 28px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
-h1, h2 {
-    text-align: center;
-    color: #2c3e50;
-    margin-bottom: 20px;
-}
+h1, h2 { text-align:center; color:#2c3e50; margin-bottom:16px; }
+h3 { color:#2c3e50; margin-bottom:10px; font-size:1rem; }
+
+/* ===== NAV GRID (Dashboard) ===== */
 .nav-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-top: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
 }
 .nav-link {
-    display: block;
-    background-color: #3498db;
-    color: #fff;
-    text-decoration: none;
-    padding: 20px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    text-align: center;
-    transition: background-color 0.3s, transform 0.2s;
+    display:block; background:#3498db; color:#fff;
+    text-decoration:none; padding:18px; border-radius:8px;
+    font-size:15px; font-weight:600; text-align:center;
+    transition: background 0.3s, transform 0.2s;
 }
-.nav-link:hover {
-    background-color: #2980b9;
-    transform: translateY(-2px);
-}
+.nav-link:hover { background:#2980b9; transform:translateY(-2px); }
+
+/* ===== KPI ===== */
 .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap:16px; margin-bottom:24px;
 }
 .kpi-card {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    text-align: center;
+    background:#fff; padding:16px; border-radius:8px;
+    box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:center;
 }
-.kpi-card h4 {
-    font-size: 14px;
-    color: #777;
-    margin-bottom: 5px;
-}
-.kpi-card p {
-    font-size: 2rem;
-    font-weight: 600;
-    color: #2c3e50;
-}
-#statusMessage {
-    text-align: center;
-    margin-top: 15px;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 14px;
-    display: none;
-}
-#statusMessage.success {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    border: 1px solid #c8e6c9;
-}
-#statusMessage.error {
-    background-color: #ffebee;
-    color: #c62828;
-    border: 1px solid #ef9a9a;
-}
+.kpi-card h4 { font-size:12px; color:#777; margin-bottom:4px; }
+.kpi-card p { font-size:1.7rem; font-weight:600; color:#2c3e50; }
 
-/* ===== ESTILOS DO MENU (ESSENCIAIS) ===== */
+/* ===== STATUS MESSAGE ===== */
+#statusMessage {
+    text-align:center; margin-top:12px; padding:10px;
+    border-radius:8px; font-size:13px; display:none;
+}
+#statusMessage.success { background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; }
+#statusMessage.error   { background:#ffebee; color:#c62828; border:1px solid #ef9a9a; }
+#statusMessage.sucesso { background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; }
+#statusMessage.erro    { background:#ffebee; color:#c62828; border:1px solid #ef9a9a; }
+
+/* ===== MENU LATERAL ===== */
 .desktop-sidebar {
-    width: 256px;
-    background-color: #1f2937;
-    color: #fff;
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    /* O js/main.js usa Tailwind (hidden md:flex) para mostrar/esconder */
+    width:220px; background:#1f2937; color:#fff;
+    height:100vh; position:fixed; left:0; top:0;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
 }
 @media (min-width: 768px) {
-    .desktop-sidebar {
-        display: flex;
-        flex-direction: column;
-    }
-    .main-content {
-        /* O HTML usa classes do Tailwind (p-4 md:p-8) para padding,
-           mas este CSS define a margem. */
-        margin-left: 256px;
-    }
+    .desktop-sidebar { display:flex; flex-direction:column; }
+    .main-content { margin-left:220px; }
 }
 .sidebar-header {
-    padding: 24px;
-    text-align: center;
-    border-bottom: 1px solid #374151;
-    font-size: 1.5rem;
-    font-weight: bold;
+    padding:18px 20px; text-align:center;
+    border-bottom:1px solid #374151;
+    font-size:1.1rem; font-weight:700; line-height:1.3;
 }
-.sidebar-nav {
-    margin-top: 24px;
-    display: flex;
-    flex-direction: column;
-}
+.sidebar-nav { margin-top:16px; display:flex; flex-direction:column; }
 .nav-link-menu {
-    display: flex;
-    align-items: center;
-    padding: 12px 24px;
-    text-decoration: none;
-    color: #d1d5db;
-    transition: background-color 0.3s, color 0.3s;
+    display:flex; align-items:center;
+    padding:10px 18px; text-decoration:none;
+    color:#d1d5db; font-size:0.88rem;
+    transition: background 0.2s, color 0.2s;
 }
-.nav-link-menu:hover {
-    background-color: #374151;
-    color: #fff;
-}
-.nav-link-menu.active {
-    background-color: #4b5563;
-    color: #fff;
-}
-.nav-link-menu svg {
-    margin-right: 12px;
-    width: 20px;
-    height: 20px;
-}
-/* ===== FIM DOS ESTILOS DO MENU ===== */
+.nav-link-menu:hover { background:#374151; color:#fff; }
+.nav-link-menu.active { background:#4b5563; color:#fff; }
+.nav-link-menu svg { margin-right:10px; width:18px; height:18px; flex-shrink:0; }
 
-
-/* ===== ESTILOS DO FORMULÁRIO ===== */
-.form-group {
-    margin-bottom: 15px;
-}
+/* ===== FORMULÁRIOS — CAMPOS PROPORCIONAIS ===== */
+.form-group { margin-bottom:12px; }
 .form-group label {
-    display: block;
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 5px;
+    display:block; font-size:12px;
+    color:#555; margin-bottom:3px; font-weight:500;
 }
-.form-group input, .form-group select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    box-sizing: border-box; 
-    font-size: 14px;
+/* Tamanho padrão — compacto */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width:100%; padding:7px 10px;
+    border-radius:7px; border:1px solid #ccc;
+    box-sizing:border-box; font-size:13px;
+    font-family:'Poppins', sans-serif;
+    transition: border-color 0.2s;
 }
+.form-group input:focus,
+.form-group select:focus { outline:none; border-color:#3498db; }
 
-/* Layout de 3 colunas para o formulário */
+/* Campos numéricos / código — mais estreitos */
+input[type="number"] { max-width:100%; }
+
+/* Grid de formulário padrão (3 colunas no desktop) */
 .form-grid-container {
-    display: grid;
-    grid-template-columns: 1fr; /* 1 coluna em telas pequenas */
-    gap: 15px; 
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
 }
-@media (min-width: 768px) {
-    .form-grid-container {
-        grid-template-columns: repeat(3, 1fr); /* 3 colunas */
-    }
+@media (min-width: 640px) {
+    .form-grid-container { grid-template-columns: repeat(3, 1fr); }
 }
 
+/* Grid 2 colunas */
+.form-grid-2 {
+    display:grid; grid-template-columns:1fr; gap:12px;
+}
+@media (min-width: 640px) {
+    .form-grid-2 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===== BOTÕES ===== */
 .btn {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    background-color: #27ae60;
-    color: #fff;
-    transition: background-color 0.3s;
+    width:100%; padding:10px;
+    border:none; border-radius:8px;
+    font-size:15px; font-weight:600;
+    cursor:pointer; background:#27ae60;
+    color:#fff; transition: background 0.3s;
+    font-family:'Poppins', sans-serif;
 }
-.btn:hover {
-    background-color: #219d54;
-}
+.btn:hover { background:#219d54; }
 
-/* ===== FIM DOS ESTILOS DO FORMULÁRIOS ===== */
-
-
-/* 3. ESTILOS DA TABELA (VERSÃO LIMPA - PARCERIA)
-   O Tailwind (via js/produtos.js) cuidará do layout.
-   Este CSS cuida da aparência (bordas, cores).
-*/
-.table-container {
-    margin-top: 30px;
-    overflow-x: auto; 
-}
-
+/* ===== TABELAS ===== */
+.table-container { margin-top:24px; overflow-x:auto; }
 .table-container table {
-    width: 100%;
-    border-collapse: collapse; 
-    margin-top: 10px;
+    width:100%; border-collapse:collapse; margin-top:8px;
+    font-size:13px;
 }
-
-/* Estilos de aparência para TODAS as células */
-.table-container th, 
+.table-container th,
 .table-container td {
-    padding: 12px;
-    border: 1px solid #ddd; 
-    text-align: left;
-    font-size: 14px;
+    padding:8px 10px;
+    border:1px solid #e5e7eb;
+    text-align:left;
 }
-
-/* Estilo específico para o CABEÇALHO */
 .table-container th {
-    background-color: #f2f2f2;
-    font-weight: 600;
+    background:#f8fafc; font-weight:600;
+    font-size:12px; color:#475569;
 }
-/* ===== FIM DO BLOCO DA TABELA ===== */
+.table-container tr:hover td { background:#f8fafc; }
 
-
-/* ===== OUTROS ESTILOS ===== */
-.action-buttons {
-    display: flex;
-    gap: 5px;
-}
+/* ===== BOTÕES DE AÇÃO ===== */
+.action-buttons { display:flex; gap:4px; flex-wrap:wrap; }
 .action-buttons button {
-    padding: 6px 10px;
-    font-size: 12px;
-    cursor: pointer;
-    border: none;
-    border-radius: 4px;
+    padding:4px 9px; font-size:11px;
+    cursor:pointer; border:none; border-radius:4px;
+    font-family:'Poppins', sans-serif;
 }
-.edit-btn {
-    background-color: #3498db;
-    color: #fff;
-}
-.delete-btn {
-    background-color: #e74c3c;
-    color: #fff;
-}
+.edit-btn   { background:#3498db; color:#fff; }
+.delete-btn { background:#e74c3c; color:#fff; }
+
+/* ===== RELATÓRIOS ===== */
 .report-card {
-    background-color: #f9fafb;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background:#f9fafb; border-radius:8px;
+    padding:18px; margin-bottom:18px;
+    box-shadow:0 2px 4px rgba(0,0,0,0.05);
 }
+
+/* ===== EXPANSÃO DE ITENS NO HISTÓRICO ===== */
+.expand-btn {
+    background:none; border:none; cursor:pointer;
+    color:#3498db; font-size:11px; padding:0;
+    text-decoration:underline; white-space:nowrap;
+}
+.items-detail {
+    background:#f1f5f9; border-radius:6px;
+    padding:6px 10px; margin-top:4px;
+    font-size:11px; color:#475569; line-height:1.6;
+    display:none;
+}
+.items-detail.open { display:block; }
