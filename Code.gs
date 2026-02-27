@@ -79,7 +79,17 @@ function doPost(e) {
       case 'excluirFinanceiro':
         result = excluirDadosGeral("Financeiro", data.id);
         break;
+      case 'obterOperadores':
+        result = { status: 'sucesso', dados: obterOperadores() };
+        break;
+      case 'salvarOperador':
+        result = salvarOperador(data);
+        break;
+      case 'excluirOperador':
+        result = excluirOperador(data.nome);
+        break;
       case 'baixarLancamento':
+
         result = baixarLancamento(data.id);
         break;
       default:
@@ -542,6 +552,60 @@ function excluirDadosGeral(nomePlanilha, id) {
     return { status: 'erro', mensagem: 'Registro não encontrado para exclusão.' };
   }
 }
+
+// ==================================================
+// CONFIGURAÇÕES — Operadores/Usuários Autorizados
+// Aba: "Configurações" | Coluna A: Nome
+// ==================================================
+function obterConfiguracoes() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Configurações');
+  if (!sheet) {
+    // Cria a aba com operadores padrão
+    sheet = ss.insertSheet('Configurações');
+    sheet.appendRow(['Nome']);
+    sheet.appendRow(['Administrador']);
+    sheet.appendRow(['Operador 1']);
+  }
+  return sheet;
+}
+
+function obterOperadores() {
+  var sheet = obterConfiguracoes();
+  if (sheet.getLastRow() < 2) return ['Administrador'];
+  var nomes = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+  return nomes.map(function(r) { return String(r[0]).trim(); }).filter(function(n) { return n !== ''; });
+}
+
+function salvarOperador(dados) {
+  if (!dados || !dados.nome || String(dados.nome).trim() === '') {
+    return { status: 'erro', mensagem: 'Nome do operador não pode ser vazio.' };
+  }
+  var sheet = obterConfiguracoes();
+  var nome = String(dados.nome).trim();
+  // Verifica duplicata
+  if (sheet.getLastRow() > 1) {
+    var existentes = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().flat();
+    if (existentes.indexOf(nome) > -1) return { status: 'erro', mensagem: 'Operador "' + nome + '" já existe.' };
+  }
+  sheet.appendRow([nome]);
+  return { status: 'sucesso', mensagem: 'Operador "' + nome + '" adicionado!' };
+}
+
+function excluirOperador(nome) {
+  var sheet = obterConfiguracoes();
+  if (sheet.getLastRow() < 2) return { status: 'erro', mensagem: 'Nenhum operador cadastrado.' };
+  var dados = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+  for (var i = 0; i < dados.length; i++) {
+    if (String(dados[i][0]).trim() === String(nome).trim()) {
+      sheet.deleteRow(i + 2);
+      return { status: 'sucesso', mensagem: 'Operador removido.' };
+    }
+  }
+  return { status: 'erro', mensagem: 'Operador não encontrado.' };
+}
+
+
 
 function doGet(e) {
   var template = HtmlService.createTemplateFromFile('index.html');

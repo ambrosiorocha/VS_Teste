@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     carregarProdutos();
     carregarClientes();
+    carregarOperadores();
     carregarHistoricoVendas();
 
     document.getElementById('produto').addEventListener('change', atualizarPrecoUnitario);
@@ -69,6 +70,22 @@ async function carregarProdutos() {
             sel.appendChild(opt);
         });
     } catch (e) { sel.innerHTML = '<option value="">Erro ao carregar</option>'; }
+}
+
+async function carregarOperadores() {
+    const sel = document.getElementById('usuario');
+    try {
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterOperadores' }) });
+        const data = await res.json();
+        if (data.status === 'sucesso' && Array.isArray(data.dados) && data.dados.length > 0) {
+            sel.innerHTML = '';
+            data.dados.forEach(nome => {
+                const opt = document.createElement('option');
+                opt.value = nome; opt.textContent = nome;
+                sel.appendChild(opt);
+            });
+        }
+    } catch (e) { /* mantém opção padrão */ }
 }
 
 async function carregarClientes() {
@@ -361,11 +378,26 @@ async function confirmarVenda() {
         fecharModal();
         exibirStatus(data);
         if (data.status === 'sucesso') {
+            // Prepara dados do cupom antes de limpar o carrinho
+            const cupomData = {
+                id: data.id || '?',
+                data: payload.data,
+                cliente: payload.cliente,
+                operador: document.getElementById('usuario').value,
+                itens: [...carrinho],
+                formaPagamento: formaPagamentoSelecionada,
+                vencimento: prazoResult.vencimento,
+                statusPgto: prazoResult.status,
+                subtotal: carrinho.reduce((s, i) => s + i.subtotal, 0),
+                descontoGeral: parseFloat(document.getElementById('descontoGeralModal').value) || 0,
+                total: payload.totalComDesconto
+            };
             carrinho = [];
             vendaEditandoId = null;
             renderizarCarrinho();
             await carregarProdutos();
             await carregarHistoricoVendas();
+            abrirCupom(cupomData);
         }
     } catch (e) {
         exibirStatus({ status: 'error', mensagem: 'Erro de comunicação: ' + e });
@@ -515,4 +547,70 @@ function formatarData(valor) {
     if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(str)) return str.substring(0, 10);
     const d = new Date(str);
     return isNaN(d) ? str : d.toLocaleDateString('pt-BR');
+}
+
+// ================================
+// CUPOM DE VENDA
+// ================================
+let ultimoCupomData = null;
+
+function abrirCupom(cupom) {
+    ultimoCupomData = cupom;
+    const linha = '--------------------------------';
+    const linhaDupla = '================================';
+
+    const itensHtml = cupom.itens.map(i => {
+        const desc = i.desconto > 0 ? ` (-${i.desconto.toFixed(1)}%)` : '';
+        const sub = i.subtotal.toFixed(2).replace('.', ',');
+        const qtd = `${i.quantidade}x`;
+        const preco = `R$ ${i.preco.toFixed(2).replace('.', ',')}`;
+        return `<div style="display:flex;justify-content:space-between;"><span>${qtd} ${i.nome}${desc}</span><span>${preco}</span></div>` +
+            `<div style="text-align:right;color:#475569;">Subtotal: R$ ${sub}</div>`;
+    }).join('');
+
+    const html = `
+        <div style="text-align:center;font-weight:bold;font-size:14px;margin-bottom:4px;">SISTEMA DE VENDAS</div>
+        <div style="text-align:center;font-size:11px;color:#64748b;">Cupom não fiscal</div>
+        <div style="margin:6px 0;">${linhaDupla}</div>
+        <div><b>Venda #:</b> ${cupom.id}</div>
+        <div><b>Data:</b> ${cupom.data}</div>
+        <div><b>Cliente:</b> ${cupom.cliente}</div>
+        <div><b>Operador:</b> ${cupom.operador}</div>
+        <div style="margin:6px 0;">${linha}</div>
+        <div style="font-weight:bold;margin-bottom:4px;">ITENS</div>
+        ${itensHtml}
+        <div style="margin:6px 0;">${linha}</div>
+        <div style="display:flex;justify-content:space-between;"><span>Subtotal bruto:</span><span>R$ ${cupom.subtotal.toFixed(2).replace('.', ',')}</span></div>
+        ${cupom.descontoGeral > 0 ? `<div style="display:flex;justify-content:space-between;color:#ef4444;"><span>Desconto geral:</span><span>- R$ ${cupom.descontoGeral.toFixed(2).replace('.', ',')}</span></div>` : ''}
+        <div style="margin:6px 0;">${linhaDupla}</div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:bold;"><span>TOTAL:</span><span>R$ ${cupom.total.toFixed(2).replace('.', ',')}</span></div>
+        <div style="margin:6px 0;">${linha}</div>
+        <div><b>Pagamento:</b> ${cupom.formaPagamento}</div>
+        <div><b>Vencimento:</b> ${cupom.vencimento} (${cupom.statusPgto})</div>
+        <div style="margin:6px 0;">${linhaDupla}</div>
+        <div style="text-align:center;font-size:11px;color:#64748b;">Obrigado pela preferência!</div>
+        <div style="text-align:center;font-size:10px;color:#94a3b8;">${new Date().toLocaleString('pt-BR')}</div>
+    `;
+    document.getElementById('cupomConteudo').innerHTML = html;
+    document.getElementById('modalCupom').style.display = 'flex';
+}
+
+function fecharCupom() {
+    document.getElementById('modalCupom').style.display = 'none';
+}
+
+function imprimirCupomAgora() {
+    const conteudo = document.getElementById('cupomConteudo').innerHTML;
+    const win = window.open('', '_blank', 'width=360,height=600');
+    win.document.write(`
+        <html><head><title>Cupom de Venda</title>
+        <style>
+            body { font-family: 'Courier New', monospace; font-size: 12px; margin: 10px; width: 280px; }
+            @media print { body { margin: 0; } }
+        </style></head>
+        <body>${conteudo}</body></html>
+    `);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); win.close(); }, 300);
 }

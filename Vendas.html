@@ -122,7 +122,33 @@
 
 <body>
 
+    <!-- ===== MODAL CUPOM DE VENDA ===== -->
+    <div id="modalCupom"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:2000; align-items:center; justify-content:center;">
+        <div
+            style="background:white; border-radius:0.75rem; padding:1.5rem; width:min(400px,95vw); box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="font-size:1rem; font-weight:700;">🧾 Cupom de Venda</h3>
+                <button onclick="fecharCupom()"
+                    style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94a3b8;">✕</button>
+            </div>
+            <!-- Área do cupom (impressão térmica básica) -->
+            <div id="cupomConteudo"
+                style="font-family:'Courier New',monospace; font-size:12px; border:1px dashed #cbd5e1; border-radius:0.5rem; padding:1rem; background:#fafafa; max-height:400px; overflow-y:auto;">
+                <!-- Preenchido via JS -->
+            </div>
+            <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                <button onclick="fecharCupom()"
+                    style="flex:1; padding:0.6rem; border:2px solid #e2e8f0; border-radius:0.5rem; background:white; cursor:pointer; font-size:0.85rem;">Fechar</button>
+                <button onclick="imprimirCupomAgora()"
+                    style="flex:2; padding:0.6rem; background:#16a34a; color:white; border:none; border-radius:0.5rem; font-weight:600; cursor:pointer; font-size:0.85rem;">🖨️
+                    Imprimir</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Finalizar Venda -->
+
     <div id="modalFinalizar"
         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
         <div
@@ -201,9 +227,12 @@
                 </div>
                 <div class="form-group">
                     <label for="usuario">Operador</label>
-                    <input type="text" id="usuario" value="Usuário Padrão" class="w-full">
+                    <select id="usuario">
+                        <option value="Administrador">Administrador</option>
+                    </select>
                 </div>
             </div>
+
 
             <!-- ADICIONAR ITEM -->
             <div

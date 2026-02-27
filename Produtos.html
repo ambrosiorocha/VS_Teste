@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>Gerenciar Produtos</title>
@@ -7,43 +8,58 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
     <main class="main-content p-4 md:p-8 overflow-y-auto">
         <div class="container">
             <h2>Gerenciar Produtos</h2>
-            
+
             <form id="produtoForm">
                 <input type="hidden" id="idProduto" value="">
 
-                <div class="form-group">
-                    <label for="nome">Nome do Produto</label>
-                    <input type="text" id="nome" required>
+                <!-- Linha 1: Nome (flex-1) + Unidade (estreito) -->
+                <div style="display:flex; gap:0.75rem; margin-bottom:0.75rem; align-items:flex-end; flex-wrap:wrap;">
+                    <div class="form-group" style="flex:1; min-width:200px; margin:0;">
+                        <label for="nome">Nome do Produto</label>
+                        <input type="text" id="nome" required placeholder="Ex: Mandioca crua, Feijão carioca...">
+                    </div>
+                    <div class="form-group" style="width:120px; margin:0;">
+                        <label for="unidadeVenda">Unidade</label>
+                        <select id="unidadeVenda" required>
+                            <option value="">--</option>
+                            <option value="kg">kg</option>
+                            <option value="L">L</option>
+                            <option value="Un">Un</option>
+                            <option value="Mt">Mt</option>
+                            <option value="Cx">Cx</option>
+                            <option value="Dz">Dz</option>
+                            <option value="Pc">Pc</option>
+                            <option value="Sc">Sc</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="form-grid-container">
-                    <div class="form-group">
-                        <label for="unidadeVenda">Unidade de Venda</label>
-                        <input type="text" id="unidadeVenda" required>
-                    </div>
-                    <div class="form-group">
+                <!-- Linha 2: Preço (médio) + Quantidade (médio) + Descrição (flex-1) -->
+                <div style="display:flex; gap:0.75rem; margin-bottom:0.75rem; align-items:flex-end; flex-wrap:wrap;">
+                    <div class="form-group" style="width:140px; margin:0;">
                         <label for="preco">Preço (R$)</label>
-                        <input type="number" id="preco" step="0.01" min="0" required>
+                        <input type="number" id="preco" step="0.01" min="0" required placeholder="0,00">
                     </div>
-                    <div class="form-group">
-                        <label for="quantidade">Quantidade em Estoque</label>
-                        <input type="number" id="quantidade" step="any" min="0" required>
+                    <div class="form-group" style="width:140px; margin:0;">
+                        <label for="quantidade">Qtd. Estoque</label>
+                        <input type="number" id="quantidade" step="any" min="0" required placeholder="0">
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="descricao">Descrição</label>
-                    <input type="text" id="descricao">
+                    <div class="form-group" style="flex:1; min-width:160px; margin:0;">
+                        <label for="descricao">Descrição / Observação</label>
+                        <input type="text" id="descricao" placeholder="Ex: Produto resfriado, validade 7 dias...">
+                    </div>
                 </div>
 
                 <button type="submit" class="btn">Cadastrar Produto</button>
             </form>
-            
+
+
             <div id="statusMessage"></div>
 
             <div class="table-container">
@@ -65,7 +81,9 @@
                         </tr>
                     </thead>
                     <tbody id="listaProdutos">
-                        <tr><td colspan="7" style="text-align:center;">Carregando produtos...</td></tr>
+                        <tr>
+                            <td colspan="7" style="text-align:center;">Carregando produtos...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -73,5 +91,8 @@
     </main>
 
     <script src="js/config.js"></script>
-    <script src="js/main.js"></script> <script src="js/produtos.js"></script> </body>
+    <script src="js/main.js"></script>
+    <script src="js/produtos.js"></script>
+</body>
+
 </html>
