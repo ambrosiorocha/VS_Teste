@@ -314,13 +314,23 @@ function calcularVencimentoStatus() {
 }
 
 function atualizarModalTotais() {
-    const subtotal = carrinho.reduce((s, i) => s + i.subtotal, 0);
-    const desconto = parseFloat(document.getElementById('descontoGeralModal').value) || 0;
-    const total = Math.max(0, subtotal - desconto);
-    document.getElementById('modalSubtotal').textContent = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
-    document.getElementById('modalDesconto').textContent = `- R$ ${desconto.toFixed(2).replace('.', ',')}`;
+    // Subtotal BRUTO (sem nenhum desconto)
+    const subtotalBruto = carrinho.reduce((s, i) => s + (i.quantidade * i.preco), 0);
+    // Subtotal já com descontos por item
+    const subtotalComItens = carrinho.reduce((s, i) => s + i.subtotal, 0);
+    // Desconto dos itens individualmente
+    const descontoItens = subtotalBruto - subtotalComItens;
+    // Desconto geral adicional no modal
+    const descontoGeral = parseFloat(document.getElementById('descontoGeralModal').value) || 0;
+    // Desconto total
+    const descontoTotal = descontoItens + descontoGeral;
+    const total = Math.max(0, subtotalBruto - descontoTotal);
+
+    document.getElementById('modalSubtotal').textContent = `R$ ${subtotalBruto.toFixed(2).replace('.', ',')}`;
+    document.getElementById('modalDesconto').textContent = `- R$ ${descontoTotal.toFixed(2).replace('.', ',')}`;
     document.getElementById('modalTotal').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
+
 
 // ================================
 // MONTAR PAYLOAD VENDA (compartilhado)
