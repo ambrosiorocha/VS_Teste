@@ -569,6 +569,26 @@ function obterConfiguracoes() {
     sheet.appendRow(['Administrador', 'Admin', 'admin123']);
     sheet.appendRow(['Operador 1', 'Operador', '1234']);
     sheet.getRange(1, 1, 1, 3).setFontWeight('bold');
+  } else {
+    // Corrige planilha antiga que só tinha a coluna 'Nome'
+    var lr = sheet.getLastRow();
+    var lc = sheet.getLastColumn();
+    if (lc < 3) {
+      if (lc === 1) {
+        sheet.getRange("B1").setValue("Nível");
+        sheet.getRange("C1").setValue("Senha");
+        if (lr > 1) {
+          // Preenche os níveis/senhas faltantes
+          var nomes = sheet.getRange(2, 1, lr - 1, 1).getValues();
+          for (var i = 0; i < nomes.length; i++) {
+             var isAdm = (String(nomes[i][0]).toLowerCase() === 'administrador');
+             sheet.getRange(i + 2, 2).setValue(isAdm ? 'Admin' : 'Operador');
+             sheet.getRange(i + 2, 3).setValue(isAdm ? 'admin123' : '1234');
+          }
+        }
+      }
+      sheet.getRange(1, 1, 1, 3).setFontWeight('bold');
+    }
   }
   return sheet;
 }
@@ -579,7 +599,7 @@ function obterOperadores() {
   if (sheet.getLastRow() < 2) return [{ nome: 'Administrador', nivel: 'Admin' }];
   var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues();
   return rows
-    .filter(function(r) { return String(r[0]).trim() !== ''; })
+    .filter(function(r) { return String(r[0]).trim() !== '' && String(r[0]).trim() !== 'Nome'; })
     .map(function(r) { return { nome: String(r[0]).trim(), nivel: String(r[1]).trim() || 'Operador' }; });
 }
 
