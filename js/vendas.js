@@ -470,14 +470,14 @@ async function carregarHistoricoVendas() {
                     acoes = `
                         <button class="edit-btn" style="font-size:11px;" onclick="editarRascunho(${id}, '${encodeURIComponent(itensJSON)}')">✏️ Editar</button>
                         <button class="edit-btn" style="background:#16a34a;font-size:11px;" onclick="abrirModalFinalizarPendente(${id})">✅ Finalizar</button>
-                        <button class="delete-btn" style="font-size:11px;" onclick="excluirVenda(${id})">🗑</button>
+                        <button class="delete-btn" style="font-size:11px;" data-admin-btn onclick="excluirVenda(${id})">🗑</button>
                     `;
                 } else if (status === 'Concluda' || status === '') {
                     statusBadge = `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">✅ Concluída</span>`;
                     acoes = `
                         <button title="Reimprimir cupom" style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;"
                             onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">🖨️</button>
-                        <button class="delete-btn" style="background:#f59e0b;color:#fff;font-size:11px;" onclick="confirmarEstorno(${id})">↩️ Estornar</button>
+                        <button class="delete-btn" style="background:#f59e0b;color:#fff;font-size:11px;" data-admin-btn onclick="confirmarEstorno(${id})">↩️ Estornar</button>
                     `;
                 } else if (status === 'Estornada') {
                     statusBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">↩️ Estornada</span>`;
@@ -500,8 +500,9 @@ async function carregarHistoricoVendas() {
                 `;
                 tbody.appendChild(tr);
             });
+            if (typeof Auth !== 'undefined') Auth.applyUI();
         } else {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:1rem;color:#94a3b8;">Nenhuma venda registrada.</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:1rem;">${data.mensagem || 'Nenhuma venda encontrada.'}</td></tr>`;
         }
     } catch (e) {
         console.error('Erro histórico:', e);

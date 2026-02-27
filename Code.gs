@@ -88,6 +88,9 @@ function doPost(e) {
       case 'excluirOperador':
         result = excluirOperador(data.nome);
         break;
+      case 'autenticarOperador':
+        result = autenticarOperador(data);
+        break;
       case 'baixarLancamento':
 
         result = baixarLancamento(data.id);
@@ -555,26 +558,50 @@ function excluirDadosGeral(nomePlanilha, id) {
 
 // ==================================================
 // CONFIGURAÇÕES — Operadores/Usuários Autorizados
-// Aba: "Configurações" | Coluna A: Nome
+// Aba: "Configurações" | Colunas: Nome | Nível | Senha
 // ==================================================
 function obterConfiguracoes() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('Configurações');
   if (!sheet) {
-    // Cria a aba com operadores padrão
     sheet = ss.insertSheet('Configurações');
-    sheet.appendRow(['Nome']);
-    sheet.appendRow(['Administrador']);
-    sheet.appendRow(['Operador 1']);
+    sheet.appendRow(['Nome', 'Nível', 'Senha']);
+    sheet.appendRow(['Administrador', 'Admin', 'admin123']);
+    sheet.appendRow(['Operador 1', 'Operador', '1234']);
+    sheet.getRange(1, 1, 1, 3).setFontWeight('bold');
   }
   return sheet;
 }
 
+// Retorna lista de {nome, nivel} — SEM senhas
 function obterOperadores() {
   var sheet = obterConfiguracoes();
-  if (sheet.getLastRow() < 2) return ['Administrador'];
-  var nomes = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
-  return nomes.map(function(r) { return String(r[0]).trim(); }).filter(function(n) { return n !== ''; });
+  if (sheet.getLastRow() < 2) return [{ nome: 'Administrador', nivel: 'Admin' }];
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues();
+  return rows
+    .filter(function(r) { return String(r[0]).trim() !== ''; })
+    .map(function(r) { return { nome: String(r[0]).trim(), nivel: String(r[1]).trim() || 'Operador' }; });
+}
+
+// Autentica operador com senha — responde sem expor a senha
+function autenticarOperador(dados) {
+  if (!dados || !dados.nome) return { status: 'erro', mensagem: 'Nome inválido.' };
+  var nome  = String(dados.nome).trim();
+  var senha = String(dados.senha || '');
+  var sheet = obterConfiguracoes();
+  if (sheet.getLastRow() < 2) return { status: 'erro', mensagem: 'Nenhum operador cadastrado.' };
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 3).getValues();
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i][0]).trim() === nome) {
+      var senhaCad = String(rows[i][2]);
+      if (senha === senhaCad) {
+        return { status: 'sucesso', nome: nome, nivel: String(rows[i][1]).trim() || 'Operador' };
+      } else {
+        return { status: 'erro', mensagem: 'Senha incorreta.' };
+      }
+    }
+  }
+  return { status: 'erro', mensagem: 'Operador não encontrado.' };
 }
 
 function salvarOperador(dados) {
@@ -582,13 +609,14 @@ function salvarOperador(dados) {
     return { status: 'erro', mensagem: 'Nome do operador não pode ser vazio.' };
   }
   var sheet = obterConfiguracoes();
-  var nome = String(dados.nome).trim();
-  // Verifica duplicata
+  var nome  = String(dados.nome).trim();
+  var nivel = String(dados.nivel || 'Operador').trim();
+  var senha = String(dados.senha || '1234');
   if (sheet.getLastRow() > 1) {
-    var existentes = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().flat();
+    var existentes = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().map(function(r){ return r[0]; });
     if (existentes.indexOf(nome) > -1) return { status: 'erro', mensagem: 'Operador "' + nome + '" já existe.' };
   }
-  sheet.appendRow([nome]);
+  sheet.appendRow([nome, nivel, senha]);
   return { status: 'sucesso', mensagem: 'Operador "' + nome + '" adicionado!' };
 }
 

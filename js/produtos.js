@@ -1,7 +1,7 @@
 let produtos = []; // Array global para armazenar os produtos
 
-document.addEventListener('DOMContentLoaded', function() {
-    if(SCRIPT_URL === '') {
+document.addEventListener('DOMContentLoaded', function () {
+    if (SCRIPT_URL === '') {
         exibirStatus({ status: 'error', mensagem: 'Por favor, cole a URL do Apps Script no código.' });
         return;
     }
@@ -21,7 +21,7 @@ function exibirStatus(resposta) {
         statusMessage.classList.add(resposta.status);
     }
     statusMessage.style.display = 'block';
-    setTimeout(function() {
+    setTimeout(function () {
         statusMessage.style.display = 'none';
     }, 5000);
 }
@@ -98,23 +98,23 @@ function renderizarTabela(produtosParaRenderizar) {
     const tdClasses = "table-cell align-middle"; // Define a célula como uma célula de tabela
 
     produtosParaRenderizar.forEach(produto => {
-        
+
         // CORREÇÃO 2: O erro 'toFixed'
         // Garante que 'produto.Preço' seja um número antes de formatar.
-        const precoString = String(produto.Preço || 0); 
+        const precoString = String(produto.Preço || 0);
         const precoLimpo = precoString.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
         const precoNum = parseFloat(precoLimpo);
 
         // Se 'precoNum' não for um número válido, define como 0
-        const precoFinal = isNaN(precoNum) ? 0 : precoNum; 
+        const precoFinal = isNaN(precoNum) ? 0 : precoNum;
         // --- Fim da correção do toFixed ---
 
 
         const row = document.createElement('tr');
-        
+
         // Adiciona a classe de linha do Tailwind
         row.className = trClasses;
-        
+
         // O seu CSS (style.css) vai cuidar das bordas e padding
         // Este JS cuida do layout (table-cell)
         row.innerHTML = `
@@ -127,19 +127,20 @@ function renderizarTabela(produtosParaRenderizar) {
             <td class="${tdClasses}">
                 <div class="action-buttons">
                     <button class="edit-btn" onclick="editarProduto(${produto['ID do Produto']})">Editar</button>
-                    <button class="delete-btn" onclick="excluirProduto(${produto['ID do Produto']})">Excluir</button>
+                    <button class="delete-btn" data-admin-btn onclick="excluirProduto(${produto['ID do Produto']})">Excluir</button>
                 </div>
             </td>
         `;
         listaProdutos.appendChild(row);
     });
+    if (typeof Auth !== 'undefined') Auth.applyUI();
 }
 
 function filtrarProdutos() {
     const termoPesquisa = document.getElementById('pesquisa').value.toLowerCase();
     const produtosFiltrados = produtos.filter(produto => {
         return produto.Nome.toLowerCase().includes(termoPesquisa) ||
-               produto['ID do Produto'].toString().includes(termoPesquisa);
+            produto['ID do Produto'].toString().includes(termoPesquisa);
     });
     renderizarTabela(produtosFiltrados);
 }
@@ -157,12 +158,12 @@ async function editarProduto(id) {
             document.getElementById('idProduto').value = produto['ID do Produto'];
             document.getElementById('nome').value = produto.Nome;
             document.getElementById('unidadeVenda').value = produto['Unidade de Venda'];
-            
+
             // CORREÇÃO 2 (toFixed) também aplicada aqui
             const precoString = String(produto.Preço || 0);
             const precoLimpo = precoString.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
             const precoNum = parseFloat(precoLimpo);
-            
+
             document.getElementById('preco').value = isNaN(precoNum) ? 0 : precoNum;
             document.getElementById('quantidade').value = produto.Quantidade;
             document.getElementById('descricao').value = produto.Descrição || '';

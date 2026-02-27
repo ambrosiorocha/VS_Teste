@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Fluxo Financeiro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
@@ -93,11 +94,16 @@
                 <div class="flex justify-between items-center mb-4" style="flex-wrap:wrap; gap:0.5rem;">
                     <h3>Registros Financeiros</h3>
                     <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
-                        <input type="date" id="filtroDataInicio" class="p-2 border border-gray-300 rounded text-sm" title="Data início">
+                        <input type="date" id="filtroDataInicio" class="p-2 border border-gray-300 rounded text-sm"
+                            title="Data início">
                         <span style="font-size:0.8rem; color:#64748b;">até</span>
-                        <input type="date" id="filtroDataFim" class="p-2 border border-gray-300 rounded text-sm" title="Data fim">
-                        <button onclick="aplicarFiltros()" class="p-2 border border-gray-300 rounded text-sm bg-blue-50 hover:bg-blue-100">🔍 Filtrar</button>
-                        <button onclick="limparFiltros()" class="p-2 border border-gray-300 rounded text-sm">✕ Limpar</button>
+                        <input type="date" id="filtroDataFim" class="p-2 border border-gray-300 rounded text-sm"
+                            title="Data fim">
+                        <button onclick="aplicarFiltros()"
+                            class="p-2 border border-gray-300 rounded text-sm bg-blue-50 hover:bg-blue-100">🔍
+                            Filtrar</button>
+                        <button onclick="limparFiltros()" class="p-2 border border-gray-300 rounded text-sm">✕
+                            Limpar</button>
                         <select id="filtroTipo" class="p-2 border border-gray-300 rounded text-sm">
                             <option value="">Todos os Tipos</option>
                             <option value="Pagar">A Pagar</option>
@@ -129,6 +135,8 @@
     </main>
 
     <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>Auth.requireAdmin();</script>
     <script src="js/main.js"></script>
     <script src="js/financeiro.js"></script>
 </body>

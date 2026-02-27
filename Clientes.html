@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Gerenciar Clientes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
@@ -80,8 +81,32 @@
     </main>
 
     <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
     <script src="js/clientes.js"></script>
+    <script>
+        document.getElementById('cnpjCpf').addEventListener('input', e => {
+            let v = e.target.value.replace(/\D/g, '').substring(0, 14);
+            if (v.length <= 11) { // CPF
+                v = v.replace(/(\d{3})(\d)/, '$1.$2');
+                v = v.replace(/(\d{3})(\d)/, '$1.$2');
+                v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else { // CNPJ
+                v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+                v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                v = v.replace(/(\d{4})(\d)/, '$1-$2');
+            }
+            e.target.value = v;
+        });
+        document.getElementById('telefone').addEventListener('input', e => {
+            let v = e.target.value.replace(/\D/g, '').substring(0, 11);
+            v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+            v = v.replace(/(\d{5})(\d)/, '$1-$2');
+            e.target.value = v;
+        });
+    </script>
+
 </body>
 
 </html>

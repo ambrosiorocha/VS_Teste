@@ -105,12 +105,13 @@ function renderizarTabela(dadosParaRenderizar) {
             <td class="${tdClasses}">
                 <div class="action-buttons">
                     <button class="edit-btn" onclick="editarFornecedor(${fornecedorId})">Editar</button>
-                    <button class="delete-btn" onclick="excluirFornecedor(${fornecedorId})">Excluir</button>
+                    <button class="delete-btn" data-admin-btn onclick="excluirFornecedor(${fornecedorId})">Excluir</button>
                 </div>
             </td>
         `;
         listaFornecedores.appendChild(row);
     });
+    if (typeof Auth !== 'undefined') Auth.applyUI();
 }
 
 function filtrarFornecedores() {

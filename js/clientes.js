@@ -105,12 +105,13 @@ function renderizarTabela(dadosParaRenderizar) {
             <td class="${tdClasses}">
                 <div class="action-buttons">
                     <button class="edit-btn" onclick="editarCliente(${clienteId})">Editar</button>
-                    <button class="delete-btn" onclick="excluirCliente(${clienteId})">Excluir</button>
+                    <button class="delete-btn" data-admin-btn onclick="excluirCliente(${clienteId})">Excluir</button>
                 </div>
             </td>
         `;
         listaClientes.appendChild(row);
     });
+    if (typeof Auth !== 'undefined') Auth.applyUI();
 }
 
 function filtrarClientes() {
