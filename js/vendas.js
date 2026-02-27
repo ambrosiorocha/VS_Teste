@@ -197,12 +197,23 @@ function renderizarCarrinho() {
         : '';
     document.getElementById('editandoBadge').innerHTML = editandoBadge;
 
+    const fmtBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    const setBtns = (enabled) => {
+        ['btnFinalizar', 'btnRascunho'].forEach(id => {
+            const b = document.getElementById(id);
+            if (!b) return;
+            b.disabled = !enabled;
+            b.style.cursor = enabled ? 'pointer' : 'not-allowed';
+            b.style.opacity = enabled ? '1' : '0.55';
+        });
+    };
+
     if (carrinho.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="carrinho-vazio">Nenhum item adicionado ainda.</td></tr>';
         document.getElementById('totalCarrinho').textContent = 'R$ 0,00';
         document.getElementById('qtdItensLabel').textContent = '0 item(ns)';
-        document.getElementById('btnFinalizar').disabled = true;
-        document.getElementById('btnRascunho').disabled = true;
+        setBtns(false);
         return;
     }
 
@@ -213,19 +224,19 @@ function renderizarCarrinho() {
         tr.innerHTML = `
             <td>${item.nome}</td>
             <td style="text-align:center;">${item.quantidade}</td>
-            <td>R$ ${item.preco.toFixed(2).replace('.', ',')}</td>
+            <td>${fmtBRL(item.preco)}</td>
             <td>${item.desconto > 0 ? item.desconto.toFixed(1) + '%' : '-'}</td>
-            <td><strong>R$ ${item.subtotal.toFixed(2).replace('.', ',')}</strong></td>
+            <td><strong>${fmtBRL(item.subtotal)}</strong></td>
             <td><button class="remove-item" onclick="removerItem(${idx})" title="Remover">✕</button></td>
         `;
         tbody.appendChild(tr);
     });
 
-    document.getElementById('totalCarrinho').textContent = `R$ ${totalGeral.toFixed(2).replace('.', ',')}`;
+    document.getElementById('totalCarrinho').textContent = fmtBRL(totalGeral);
     document.getElementById('qtdItensLabel').textContent = `${carrinho.length} item(ns)`;
-    document.getElementById('btnFinalizar').disabled = false;
-    document.getElementById('btnRascunho').disabled = false;
+    setBtns(true);
 }
+
 
 function removerItem(idx) { carrinho.splice(idx, 1); renderizarCarrinho(); }
 
@@ -336,11 +347,13 @@ function atualizarModalTotais() {
 // MONTAR PAYLOAD VENDA (compartilhado)
 // ================================
 function montarPayloadVenda() {
-    const subtotalItens = carrinho.reduce((s, i) => s + i.subtotal, 0);
-    const descontoGeral = parseFloat(document.getElementById('descontoGeralModal') ? document.getElementById('descontoGeralModal').value : '0') || 0;
-    const total = Math.max(0, subtotalItens - descontoGeral);
     const subtotalBruto = carrinho.reduce((s, i) => s + (i.quantidade * i.preco), 0);
-    const descontoTotal = subtotalBruto - total;
+    const subtotalItens = carrinho.reduce((s, i) => s + i.subtotal, 0);
+    const descontoItens = subtotalBruto - subtotalItens;
+    const descontoGeralEl = document.getElementById('descontoGeralModal');
+    const descontoGeral = descontoGeralEl ? (parseFloat(descontoGeralEl.value) || 0) : 0;
+    const descontoTotal = descontoItens + descontoGeral;
+    const total = Math.max(0, subtotalBruto - descontoTotal);
     const qtdTotal = carrinho.reduce((s, i) => s + i.quantidade, 0);
     const itensStr = carrinho.map(i => {
         const d = i.desconto > 0 ? ` (-${i.desconto.toFixed(1)}%)` : '';
@@ -357,9 +370,10 @@ function montarPayloadVenda() {
         descontoReal: descontoTotal,
         totalComDesconto: total,
         formaPagamento: formaPagamentoSelecionada,
-        usuario: document.getElementById('usuario').value || 'Usuário Padrão'
+        usuario: document.getElementById('usuario').value || 'Administrador'
     };
 }
+
 
 // ================================
 // CONFIRMAR VENDA (Finalizar — Concluída)
@@ -460,11 +474,17 @@ async function carregarHistoricoVendas() {
                     `;
                 } else if (status === 'Concluda' || status === '') {
                     statusBadge = `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">✅ Concluída</span>`;
-                    acoes = `<button class="delete-btn" style="background:#f59e0b;color:#fff;font-size:11px;" onclick="confirmarEstorno(${id})">↩️ Estornar</button>`;
+                    acoes = `
+                        <button title="Reimprimir cupom" style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;"
+                            onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">🖨️</button>
+                        <button class="delete-btn" style="background:#f59e0b;color:#fff;font-size:11px;" onclick="confirmarEstorno(${id})">↩️ Estornar</button>
+                    `;
                 } else if (status === 'Estornada') {
                     statusBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">↩️ Estornada</span>`;
-                    acoes = '';
+                    acoes = `<button title="Reimprimir cupom" style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;"
+                        onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">🖨️</button>`;
                 }
+
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -550,6 +570,35 @@ async function excluirVenda(id) {
     if (!confirm(`Excluir o rascunho pendente #${id}?\nNão há estoque nem financeiro associados a este rascunho.`)) return;
     exibirStatus({ status: 'error', mensagem: 'Função de exclusão de rascunho em desenvolvimento.' });
 }
+
+// Reimprimir cupom de uma venda do histórico
+function reimprimirCupom(id, itensJSONEnc, clienteEnc, operadorEnc, pgtoEnc, total, data) {
+    const cliente = decodeURIComponent(clienteEnc);
+    const operador = decodeURIComponent(operadorEnc);
+    const pgto = decodeURIComponent(pgtoEnc);
+    let itens = [];
+    try { itens = JSON.parse(decodeURIComponent(itensJSONEnc)); } catch (e) { }
+
+    const cupom = {
+        id, data, cliente, operador,
+        itens: itens.map(i => ({
+            nome: i.nome || '?',
+            preco: parseFloat(i.preco) || 0,
+            quantidade: parseFloat(i.quantidade) || 0,
+            desconto: parseFloat(i.desconto) || 0,
+            subtotal: parseFloat(i.subtotal) || 0
+        })),
+        formaPagamento: pgto,
+        vencimento: '-',
+        statusPgto: '-',
+        subtotal: itens.reduce((s, i) => s + (parseFloat(i.subtotal) || 0), 0) || total,
+        descontoGeral: 0,
+        total
+    };
+    abrirCupom(cupom);
+}
+
+
 
 function formatarData(valor) {
     if (!valor) return '-';
