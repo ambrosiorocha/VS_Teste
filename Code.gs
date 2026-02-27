@@ -20,7 +20,9 @@ function doPost(e) {
     var data = requestData.data;
     var result;
 
+    switch (action) {
       case 'lancarVenda':
+
         result = lancarVenda(data);
         break;
       case 'salvarRascunho':
