@@ -218,27 +218,30 @@
             <h2>🛒 Pedido de Venda</h2>
 
             <!-- SELEÇÃO DE CLIENTE E PRODUTO -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4" class="form-grid-container">
-                <div class="form-group">
-                    <label for="cliente">Cliente</label>
-                    <select id="cliente" class="w-full p-2 border border-gray-300 rounded">
-                        <option value="Consumidor Interno">Consumidor Interno</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="usuario">Operador</label>
-                    <select id="usuario">
-                        <option value="Administrador">Administrador</option>
-                    </select>
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
+                <h3 class="text-slate-700 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
+                    Informações da Venda</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 form-grid-container">
+                    <div class="form-group mb-0">
+                        <label for="cliente">Cliente</label>
+                        <select id="cliente" class="w-full p-2 border border-gray-300 rounded">
+                            <option value="Consumidor Interno">Consumidor Interno</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label for="usuario">Operador</label>
+                        <select id="usuario" class="w-full p-2 border border-gray-300 rounded">
+                            <option value="Administrador">Administrador</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
 
             <!-- ADICIONAR ITEM -->
-            <div
-                style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:0.75rem; padding:1rem; margin-bottom:1rem;">
-                <h4 style="margin-bottom:0.6rem; font-size:0.85rem; color:#475569; font-weight:600;">➕ Adicionar Item ao
-                    Pedido</h4>
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
+                <h3 class="text-slate-700 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
+                    Adicionar Item ao Pedido</h3>
                 <div class="grid grid-cols-1 md:grid-cols-6 gap-2 items-end">
                     <div class="form-group" style="margin:0;">
                         <label for="produto">Produto</label>
@@ -276,20 +279,11 @@
             </div>
 
             <!-- CARRINHO DE PEDIDO -->
-            <div class="table-container" style="margin-bottom:0;">
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
+                <h3 class="text-slate-700 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
+                    Carrinho de Compras</h3>
                 <!-- Badge: editando rascunho -->
                 <div id="editandoBadge"></div>
-                <div style="margin-bottom:0.5rem;">
-                    <h4 style="font-size:0.85rem; font-weight:600; color:#475569; display:flex; align-items:center;">
-                        <svg width="14" height="14" style="margin-right:0.3rem" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <path d="M16 10a4 4 0 0 1-8 0"></path>
-                        </svg>
-                        Itens do Pedido
-                    </h4>
-                </div>
 
                 <div class="overflow-x-auto w-full mb-4">
                     <table class="w-full text-left border-collapse bg-white shadow-sm overflow-hidden"
