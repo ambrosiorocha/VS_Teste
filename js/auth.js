@@ -40,6 +40,9 @@ window.Auth = (function () {
         if (!isAdmin()) {
             document.querySelectorAll('[data-admin-only]').forEach(el => { el.style.display = 'none'; });
             document.querySelectorAll('[data-admin-btn]').forEach(el => { el.style.display = 'none'; el.disabled = true; });
+        } else {
+            document.querySelectorAll('[data-admin-only]').forEach(el => { el.style.display = ''; });
+            document.querySelectorAll('[data-admin-btn]').forEach(el => { el.style.display = ''; el.disabled = false; });
         }
     }
 

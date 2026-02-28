@@ -469,7 +469,7 @@ async function carregarHistoricoVendas() {
                     statusBadge = `<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">🕐 Pendente</span>`;
                     acoes = `
                         <button class="edit-btn" style="font-size:11px;" onclick="editarRascunho(${id}, '${encodeURIComponent(itensJSON)}')">✏️ Editar</button>
-                        <button class="edit-btn" style="background:#16a34a;font-size:11px;" onclick="abrirModalFinalizarPendente(${id})">✅ Finalizar</button>
+                        <button class="edit-btn" style="background:#16a34a;font-size:11px;" onclick="abrirModalFinalizarPendente(${id}, '${encodeURIComponent(itensJSON)}')">✅ Finalizar</button>
                         <button class="delete-btn" style="font-size:11px;" data-admin-btn onclick="excluirVenda(${id})">🗑</button>
                     `;
                 } else if (status === 'Concluda' || status === '') {
@@ -545,10 +545,27 @@ function editarRascunho(id, itensJSONEncoded) {
 // ================================
 // FINALIZAR VENDA PENDENTE (via histórico)
 // ================================
-function abrirModalFinalizarPendente(id) {
-    vendaEditandoId = id;
-    // Abre o modal de finalização normalmente
-    abrirModal();
+function abrirModalFinalizarPendente(id, itensJSONEncoded) {
+    try {
+        const itensJSON = decodeURIComponent(itensJSONEncoded);
+        const itens = JSON.parse(itensJSON);
+        if (!itens || itens.length === 0) {
+            exibirStatus({ status: 'error', mensagem: 'ItensJSON vazio — não é possível finalizar este rascunho.' });
+            return;
+        }
+        carrinho = itens.map(i => ({
+            nome: i.nome, preco: parseFloat(i.preco) || 0,
+            quantidade: parseFloat(i.quantidade) || 0,
+            desconto: parseFloat(i.desconto) || 0,
+            subtotal: parseFloat(i.subtotal) || 0
+        }));
+        vendaEditandoId = id;
+        renderizarCarrinho();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        abrirModal();
+    } catch (e) {
+        exibirStatus({ status: 'error', mensagem: 'Erro ao carregar itens para finalização: ' + e.message });
+    }
 }
 
 // ================================
@@ -580,6 +597,10 @@ function reimprimirCupom(id, itensJSONEnc, clienteEnc, operadorEnc, pgtoEnc, tot
     let itens = [];
     try { itens = JSON.parse(decodeURIComponent(itensJSONEnc)); } catch (e) { }
 
+    let calcSubtotal = itens.reduce((s, i) => s + (parseFloat(i.subtotal) || 0), 0) || total;
+    let deduzGeral = calcSubtotal - total;
+    if (deduzGeral < 0) deduzGeral = 0;
+
     const cupom = {
         id, data, cliente, operador,
         itens: itens.map(i => ({
@@ -592,8 +613,8 @@ function reimprimirCupom(id, itensJSONEnc, clienteEnc, operadorEnc, pgtoEnc, tot
         formaPagamento: pgto,
         vencimento: '-',
         statusPgto: '-',
-        subtotal: itens.reduce((s, i) => s + (parseFloat(i.subtotal) || 0), 0) || total,
-        descontoGeral: 0,
+        subtotal: calcSubtotal,
+        descontoGeral: deduzGeral,
         total
     };
     abrirCupom(cupom);
@@ -640,7 +661,7 @@ function abrirCupom(cupom) {
         <div style="font-weight:bold;margin-bottom:4px;">ITENS</div>
         ${itensHtml}
         <div style="margin:6px 0;">${linha}</div>
-        <div style="display:flex;justify-content:space-between;"><span>Subtotal bruto:</span><span>R$ ${cupom.subtotal.toFixed(2).replace('.', ',')}</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Subtotal dos itens:</span><span>R$ ${cupom.subtotal.toFixed(2).replace('.', ',')}</span></div>
         ${cupom.descontoGeral > 0 ? `<div style="display:flex;justify-content:space-between;color:#ef4444;"><span>Desconto geral:</span><span>- R$ ${cupom.descontoGeral.toFixed(2).replace('.', ',')}</span></div>` : ''}
         <div style="margin:6px 0;">${linhaDupla}</div>
         <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:bold;"><span>TOTAL:</span><span>R$ ${cupom.total.toFixed(2).replace('.', ',')}</span></div>
