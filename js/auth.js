@@ -9,7 +9,10 @@ window.Auth = (function () {
 
     function getUser() { return localStorage.getItem(K.user) || ''; }
     function getNivel() { return localStorage.getItem(K.nivel) || 'Operador'; }
-    function isAdmin() { return getNivel() === 'Admin'; }
+    function isAdmin() {
+        const n = getNivel().toLowerCase();
+        return n === 'admin' || n === 'administrador';
+    }
 
     function isLoggedIn() {
         if (!getUser()) return false;

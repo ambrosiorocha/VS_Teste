@@ -79,9 +79,11 @@ async function carregarOperadores() {
         const data = await res.json();
         if (data.status === 'sucesso' && Array.isArray(data.dados) && data.dados.length > 0) {
             sel.innerHTML = '';
-            data.dados.forEach(nome => {
+            data.dados.forEach(item => {
                 const opt = document.createElement('option');
-                opt.value = nome; opt.textContent = nome;
+                const val = typeof item === 'object' ? (item.nome || item.NOME || '') : item;
+                opt.value = val;
+                opt.textContent = val;
                 sel.appendChild(opt);
             });
         }
@@ -643,10 +645,15 @@ function abrirCupom(cupom) {
     const itensHtml = cupom.itens.map(i => {
         const desc = i.desconto > 0 ? ` (-${i.desconto.toFixed(1)}%)` : '';
         const sub = i.subtotal.toFixed(2).replace('.', ',');
-        const qtd = `${i.quantidade}x`;
-        const preco = `R$ ${i.preco.toFixed(2).replace('.', ',')}`;
-        return `<div style="display:flex;justify-content:space-between;"><span>${qtd} ${i.nome}${desc}</span><span>${preco}</span></div>` +
-            `<div style="text-align:right;color:#475569;">Subtotal: R$ ${sub}</div>`;
+        const qtd = `${i.quantidade}`;
+        const preco = `${i.preco.toFixed(2).replace('.', ',')}`;
+        return `
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom: 3px;">
+            <div style="width:12%;">${qtd}</div>
+            <div style="width:48%; padding-right:4px; word-break:break-word;">${i.nome}${desc}</div>
+            <div style="width:20%; text-align:right;">${preco}</div>
+            <div style="width:20%; text-align:right;">${sub}</div>
+        </div>`;
     }).join('');
 
     const html = `
@@ -658,7 +665,12 @@ function abrirCupom(cupom) {
         <div><b>Cliente:</b> ${cupom.cliente}</div>
         <div><b>Operador:</b> ${cupom.operador}</div>
         <div style="margin:6px 0;">${linha}</div>
-        <div style="font-weight:bold;margin-bottom:4px;">ITENS</div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:bold; margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px dashed #000;">
+            <div style="width:12%;">Qtd</div>
+            <div style="width:48%;">Item</div>
+            <div style="width:20%; text-align:right;">Unit.</div>
+            <div style="width:20%; text-align:right;">Total</div>
+        </div>
         ${itensHtml}
         <div style="margin:6px 0;">${linha}</div>
         <div style="display:flex;justify-content:space-between;"><span>Subtotal dos itens:</span><span>R$ ${cupom.subtotal.toFixed(2).replace('.', ',')}</span></div>
