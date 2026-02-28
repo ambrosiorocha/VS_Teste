@@ -62,7 +62,15 @@ window.Auth = (function () {
             method: 'POST',
             body: JSON.stringify({ action: 'obterOperadores' })
         })
-            .then(r => r.json())
+            .then(async r => {
+                const txt = await r.text();
+                try {
+                    return JSON.parse(txt);
+                } catch (e) {
+                    console.error("Erro Parse JSON em obterOperadores:", txt);
+                    throw new Error("Resposta inválida do servidor");
+                }
+            })
             .then(data => {
                 sel.innerHTML = '<option value="">— Selecione —</option>';
                 const ops = (data.status === 'sucesso' && Array.isArray(data.dados)) ? data.dados : [{ nome: 'Administrador', nivel: 'Admin' }];
@@ -71,7 +79,8 @@ window.Auth = (function () {
                     sel.add(new Option(nome, nome));
                 });
             })
-            .catch(() => {
+            .catch(err => {
+                console.error("Fetch Error em obterOperadores:", err);
                 if (sel) sel.innerHTML = '<option value="Administrador">Administrador</option>';
             });
     }
@@ -93,7 +102,15 @@ window.Auth = (function () {
             method: 'POST',
             body: JSON.stringify({ action: 'autenticarOperador', data: { nome, senha } })
         })
-            .then(r => r.json())
+            .then(async r => {
+                const txt = await r.text();
+                try {
+                    return JSON.parse(txt);
+                } catch (e) {
+                    console.error("Erro de Parse JSON:", txt);
+                    throw new Error("A resposta não foi um JSON válido.");
+                }
+            })
             .then(data => {
                 if (data.status === 'sucesso') {
                     saveSession(data.nome, data.nivel);
@@ -107,8 +124,9 @@ window.Auth = (function () {
                     btn.disabled = false; btn.textContent = '🔑 Entrar';
                 }
             })
-            .catch(() => {
-                errEl.textContent = 'Erro de conexão com o servidor.';
+            .catch(err => {
+                console.error("Fetch Error:", err);
+                errEl.textContent = 'Falha na requisição. Verifique o console.';
                 errEl.style.display = 'block';
                 btn.disabled = false; btn.textContent = '🔑 Entrar';
             });
