@@ -38,7 +38,7 @@ async function salvarCliente(event) {
     };
 
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(window.SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'salvarCliente', data: cliente })
         });
@@ -61,7 +61,7 @@ async function carregarClientes() {
     listaClientes.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Carregando clientes...</td></tr>';
 
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(window.SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'obterClientes' })
         });
@@ -139,7 +139,7 @@ function editarCliente(id) {
 async function excluirCliente(id) {
     if (confirm(`Tem certeza que deseja excluir o cliente com ID ${id}?`)) {
         try {
-            const response = await fetch(SCRIPT_URL, {
+            const response = await fetch(window.SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'excluirCliente', data: { id: id } })
             });

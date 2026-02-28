@@ -38,7 +38,7 @@ async function salvarFornecedor(event) {
     };
 
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(window.SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'salvarFornecedor', data: fornecedor })
         });
@@ -61,7 +61,7 @@ async function carregarFornecedores() {
     listaFornecedores.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Carregando fornecedores...</td></tr>';
 
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(window.SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'obterFornecedores' })
         });
@@ -139,7 +139,7 @@ function editarFornecedor(id) {
 async function excluirFornecedor(id) {
     if (confirm(`Tem certeza que deseja excluir o fornecedor com ID ${id}?`)) {
         try {
-            const response = await fetch(SCRIPT_URL, {
+            const response = await fetch(window.SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'excluirFornecedor', data: { id: id } })
             });

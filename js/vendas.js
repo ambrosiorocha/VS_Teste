@@ -11,7 +11,7 @@ let vendaEditandoId = null; // ID da venda Pendente em edição
 // ================================
 document.addEventListener('DOMContentLoaded', function () {
     if (SCRIPT_URL === '') {
-        exibirStatus({ status: 'error', mensagem: 'Configure a SCRIPT_URL no config.js.' });
+        exibirStatus({ status: 'error', mensagem: 'Configure a window.SCRIPT_URL no config.js.' });
         return;
     }
     carregarProdutos();
@@ -55,7 +55,7 @@ async function carregarProdutos() {
     const sel = document.getElementById('produto');
     sel.innerHTML = '<option value="">Carregando...</option>';
     try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterProdutos' }) });
+        const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterProdutos' }) });
         const data = await res.json();
         produtos = data.dados || [];
         sel.innerHTML = '<option value="">Selecione um produto</option>';
@@ -75,7 +75,7 @@ async function carregarProdutos() {
 async function carregarOperadores() {
     const sel = document.getElementById('usuario');
     try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterOperadores' }) });
+        const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterOperadores' }) });
         const data = await res.json();
         if (data.status === 'sucesso' && Array.isArray(data.dados) && data.dados.length > 0) {
             sel.innerHTML = '';
@@ -91,7 +91,7 @@ async function carregarOperadores() {
 async function carregarClientes() {
     const sel = document.getElementById('cliente');
     try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterClientes' }) });
+        const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterClientes' }) });
         const data = await res.json();
         sel.innerHTML = '<option value="Consumidor Interno">Consumidor Interno</option>';
         if (data.status === 'sucesso' && data.dados.length > 0) {
@@ -255,7 +255,7 @@ async function salvarRascunho() {
     const payload = montarPayloadVenda();
     payload.formaPagamento = payload.formaPagamento || '-';
     try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'salvarRascunho', data: payload }) });
+        const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'salvarRascunho', data: payload }) });
         const data = await res.json();
         exibirStatus(data);
         if (data.status === 'sucesso') {
@@ -397,7 +397,7 @@ async function confirmarVenda() {
     if (vendaEditandoId) payload.id = vendaEditandoId;
 
     try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, data: payload }) });
+        const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, data: payload }) });
         const data = await res.json();
         fecharModal();
         exibirStatus(data);
@@ -437,7 +437,7 @@ async function carregarHistoricoVendas() {
     const tbody = document.getElementById('listaHistorico');
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:1rem;color:#94a3b8;">Carregando...</td></tr>';
     try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterVendas' }) });
+        const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterVendas' }) });
         const text = await res.text();
         const data = JSON.parse(text);
 
@@ -557,7 +557,7 @@ function abrirModalFinalizarPendente(id) {
 async function confirmarEstorno(id) {
     if (!confirm(`⚠️ Estornar a Venda #${id}?\n\nEsta ação irá:\n• Devolver os itens ao estoque\n• Cancelar o lançamento financeiro\n• Marcar a venda como Estornada\n\nEsta operação não pode ser desfeita.`)) return;
     try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'estornarVenda', data: { id } }) });
+        const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'estornarVenda', data: { id } }) });
         const data = await res.json();
         exibirStatus(data);
         if (data.status === 'sucesso') {

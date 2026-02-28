@@ -22,7 +22,7 @@ function exibirStatus(resposta) {
 
 async function carregarDadosDashboard() {
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(window.SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'obterVendas' })
         });

@@ -2,7 +2,7 @@ let registrosFinanceiros = [];
 
 document.addEventListener('DOMContentLoaded', function () {
     if (SCRIPT_URL === '') {
-        exibirStatus({ status: 'error', mensagem: 'Configure a SCRIPT_URL no config.js.' });
+        exibirStatus({ status: 'error', mensagem: 'Configure a window.SCRIPT_URL no config.js.' });
         return;
     }
     document.getElementById('financeiroForm').addEventListener('submit', salvarFinanceiro);
@@ -45,7 +45,7 @@ async function salvarFinanceiro(event) {
         categoria: document.getElementById('categoria').value
     };
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(window.SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'salvarFinanceiro', data: registro })
         });
@@ -66,7 +66,7 @@ async function carregarFinanceiro() {
     const listaFinanceiro = document.getElementById('listaFinanceiro');
     listaFinanceiro.innerHTML = '<tr><td colspan="8" class="table-cell p-4 text-center">Carregando...</td></tr>';
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(window.SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'obterFinanceiro' })
         });
@@ -191,7 +191,7 @@ async function baixarLancamento(id, tipo) {
     const acao = tipo === 'Receber' ? 'recebido' : 'pago';
     if (!confirm(`Confirmar que o lançamento #${id} foi ${acao}?`)) return;
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(window.SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'baixarLancamento', data: { id: id } })
         });
@@ -221,7 +221,7 @@ function editarFinanceiro(id) {
 async function excluirFinanceiro(id) {
     if (confirm(`Excluir registro ID ${id}?`)) {
         try {
-            const response = await fetch(SCRIPT_URL, {
+            const response = await fetch(window.SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'excluirFinanceiro', data: { id: id } })
             });

@@ -39,7 +39,7 @@ async function salvarProduto(event) {
     };
 
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(window.SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'salvarProduto', data: produto })
         });
@@ -64,7 +64,7 @@ async function carregarProdutos() {
     listaProdutos.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Carregando produtos...</td></tr>';
 
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(window.SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'obterProdutos' })
         });
@@ -147,7 +147,7 @@ function filtrarProdutos() {
 
 async function editarProduto(id) {
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(window.SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'obterProdutoPorId', data: { id: id } })
         });
@@ -179,7 +179,7 @@ async function editarProduto(id) {
 async function excluirProduto(id) {
     if (confirm(`Tem certeza que deseja excluir o produto com ID ${id}?`)) {
         try {
-            const response = await fetch(SCRIPT_URL, {
+            const response = await fetch(window.SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'excluirProduto', data: { id: id } })
             });
