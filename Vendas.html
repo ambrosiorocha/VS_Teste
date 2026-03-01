@@ -218,8 +218,8 @@
             <h2>🛒 Pedido de Venda</h2>
 
             <!-- SELEÇÃO DE CLIENTE E PRODUTO -->
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
-                <h3 class="text-slate-700 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-md mb-6 mx-2 md:mx-0">
+                <h3 class="text-slate-800 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
                     Informações da Venda</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 form-grid-container">
                     <div class="form-group mb-0">
@@ -239,8 +239,8 @@
 
 
             <!-- ADICIONAR ITEM -->
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
-                <h3 class="text-slate-700 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-md mb-6 mx-2 md:mx-0">
+                <h3 class="text-slate-800 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
                     Adicionar Item ao Pedido</h3>
                 <div class="grid grid-cols-1 md:grid-cols-6 gap-2 items-end">
                     <div class="form-group" style="margin:0;">
@@ -279,8 +279,8 @@
             </div>
 
             <!-- CARRINHO DE PEDIDO -->
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
-                <h3 class="text-slate-700 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-md mb-6 mx-2 md:mx-0">
+                <h3 class="text-slate-800 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
                     Carrinho de Compras</h3>
                 <!-- Badge: editando rascunho -->
                 <div id="editandoBadge"></div>
@@ -314,22 +314,22 @@
                 </div>
 
                 <!-- TOTAIS + BOTÕES -->
-                <div class="total-bar">
+                <div class="total-bar" style="background: #f8fafc; color: #0f172a; border: 1px solid #e2e8f0;">
                     <div
                         style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
                         <div>
-                            <div class="label">Total do Pedido</div>
-                            <div class="value" id="totalCarrinho">R$ 0,00</div>
+                            <div class="label" style="opacity:0.8; font-weight:600;">Total do Pedido</div>
+                            <div class="value" id="totalCarrinho" style="color:#0f172a;">R$ 0,00</div>
                             <div class="label" id="qtdItensLabel" style="margin-top:2px;">0 item(ns)</div>
                         </div>
                         <!-- Dois botões lado a lado, mesmo tamanho -->
                         <div style="display:flex; gap:0.5rem; flex-shrink:0;">
                             <button onclick="salvarRascunho()" id="btnRascunho" disabled style="flex:1; padding:0.55rem 1.1rem; border-radius:0.5rem;
-                                       border:2px solid #64748b; background:#f8fafc; color:#334155;
+                                       border:2px solid #94a3b8; background:white; color:#334155;
                                        font-weight:600; font-size:0.82rem; cursor:not-allowed;
                                        transition:all 0.15s; white-space:nowrap;"
-                                onmouseover="if(!this.disabled){this.style.background='#e2e8f0'}"
-                                onmouseout="if(!this.disabled){this.style.background='#f8fafc'}">
+                                onmouseover="if(!this.disabled){this.style.background='#f1f5f9'}"
+                                onmouseout="if(!this.disabled){this.style.background='white'}">
                                 💾 Rascunho
                             </button>
                             <button id="btnFinalizar" disabled onclick="abrirModal()" style="flex:1; padding:0.55rem 1.1rem; border-radius:0.5rem;

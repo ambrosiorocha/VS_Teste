@@ -19,73 +19,94 @@
                 <a href="index.html" class="text-blue-500 hover:underline">Voltar ao Dashboard</a>
             </div>
 
-            <form id="fornecedorForm">
-                <input type="hidden" id="idFornecedor" value="">
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-md mb-6 mx-2 md:mx-0">
+                <h3 class="text-slate-800 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">Novo
+                    Fornecedor</h3>
+                <form id="fornecedorForm">
+                    <input type="hidden" id="idFornecedor" value="">
 
-                <div class="form-group">
-                    <label for="razaoSocial">Razão Social / Nome Fantasia</label>
-                    <input type="text" id="razaoSocial" required placeholder="Ex: Fazenda Boa Esperança Ltda.">
-                </div>
-
-                <div class="form-grid-container">
                     <div class="form-group">
-                        <label for="cnpj">CNPJ / CPF</label>
-                        <input type="text" id="cnpj" placeholder="Ex: 00.000.000/0001-00" maxlength="18">
+                        <label for="razaoSocial" class="block text-sm font-medium text-gray-700 mb-1">Razão Social /
+                            Nome Fantasia</label>
+                        <input type="text" id="razaoSocial"
+                            class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                            required placeholder="Ex: Fazenda Boa Esperança Ltda.">
                     </div>
-                    <div class="form-group">
-                        <label for="telefone">Telefone / WhatsApp</label>
-                        <input type="text" id="telefone" placeholder="Ex: (00) 9 0000-0000" maxlength="16">
-                    </div>
-                    <div class="form-group">
-                        <label for="email">E-mail</label>
-                        <input type="email" id="email" placeholder="Ex: contato@empresa.com.br">
-                    </div>
-                </div>
 
-                <div class="form-group">
-                    <label for="categoria">Categoria de Produto/Serviço</label>
-                    <select id="categoria">
-                        <option value="">Selecione...</option>
-                        <option value="Matéria-prima">Matéria-prima</option>
-                        <option value="Embalagens">Embalagens</option>
-                        <option value="Serviços">Serviços</option>
-                        <option value="Equipamentos">Equipamentos</option>
-                        <option value="Limpeza">Limpeza</option>
-                        <option value="Transporte">Transporte</option>
-                        <option value="Outros">Outros</option>
-                    </select>
-                </div>
+                    <div class="form-grid-container">
+                        <div class="form-group">
+                            <label for="cnpj" class="block text-sm font-medium text-gray-700 mb-1">CNPJ / CPF</label>
+                            <input type="text" id="cnpj"
+                                class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Ex: 00.000.000/0001-00" maxlength="18">
+                        </div>
+                        <div class="form-group">
+                            <label for="telefone" class="block text-sm font-medium text-gray-700 mb-1">Telefone /
+                                WhatsApp</label>
+                            <input type="text" id="telefone"
+                                class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Ex: (00) 9 0000-0000" maxlength="16">
+                        </div>
+                        <div class="form-group">
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                            <input type="email" id="email"
+                                class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Ex: contato@empresa.com.br">
+                        </div>
+                    </div>
 
-                <button type="submit" class="btn">Salvar Fornecedor</button>
-            </form>
+                    <div class="form-group">
+                        <label for="categoria" class="block text-sm font-medium text-gray-700 mb-1">Categoria de
+                            Produto/Serviço</label>
+                        <select id="categoria"
+                            class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Selecione...</option>
+                            <option value="Matéria-prima">Matéria-prima</option>
+                            <option value="Embalagens">Embalagens</option>
+                            <option value="Serviços">Serviços</option>
+                            <option value="Equipamentos">Equipamentos</option>
+                            <option value="Limpeza">Limpeza</option>
+                            <option value="Transporte">Transporte</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn mt-2">Salvar Fornecedor</button>
+                </form>
+            </div>
 
 
             <div id="statusMessage"></div>
 
-            <div class="table-container">
-                <h3>Fornecedores Cadastrados</h3>
-                <div class="form-group">
-                    <label for="pesquisa">Pesquisar Fornecedor</label>
-                    <input type="text" id="pesquisa" placeholder="Nome ou CNPJ...">
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-md mb-6 mx-2 md:mx-0">
+                <h3 class="text-slate-800 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
+                    Fornecedores Cadastrados</h3>
+                <div class="form-group mb-4">
+                    <label for="pesquisa" class="block text-sm font-medium text-gray-700 mb-1">Pesquisar
+                        Fornecedor</label>
+                    <input type="text" id="pesquisa" placeholder="Nome ou CNPJ..."
+                        class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Razão Social</th>
-                            <th>CNPJ</th>
-                            <th>Telefone</th>
-                            <th>E-mail</th>
-                            <th>Categoria</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="listaFornecedores">
-                        <tr>
-                            <td colspan="7" style="text-align:center;">Carregando fornecedores...</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto w-full mb-4">
+                    <table class="w-full bg-white border border-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th>ID</th>
+                                <th>Razão Social</th>
+                                <th>CNPJ</th>
+                                <th>Telefone</th>
+                                <th>E-mail</th>
+                                <th>Categoria</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaFornecedores">
+                            <tr>
+                                <td colspan="7" class="table-cell p-4 text-center">Carregando fornecedores...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>

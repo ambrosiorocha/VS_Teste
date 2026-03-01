@@ -19,63 +19,79 @@
                 <a href="index.html" class="text-blue-500 hover:underline">Voltar ao Dashboard</a>
             </div>
 
-            <form id="clienteForm">
-                <input type="hidden" id="idCliente" value="">
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-md mb-6 mx-2 md:mx-0">
+                <h3 class="text-slate-800 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">Novo
+                    Cliente</h3>
+                <form id="clienteForm">
+                    <input type="hidden" id="idCliente" value="">
 
-                <div class="form-group">
-                    <label for="nome">Nome Completo / Razão Social</label>
-                    <input type="text" id="nome" required>
-                </div>
-
-                <div class="form-grid-container">
                     <div class="form-group">
-                        <label for="cpfCnpj">CPF/CNPJ</label>
-                        <input type="text" id="cpfCnpj">
+                        <label for="nome" class="block text-sm font-medium text-gray-700 mb-1">Nome Completo / Razão
+                            Social</label>
+                        <input type="text" id="nome"
+                            class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                            required>
                     </div>
-                    <div class="form-group">
-                        <label for="telefone">Telefone</label>
-                        <input type="text" id="telefone">
-                    </div>
-                    <div class="form-group">
-                        <label for="email">E-mail</label>
-                        <input type="email" id="email">
-                    </div>
-                </div>
 
-                <div class="form-group">
-                    <label for="endereco">Endereço Completo</label>
-                    <input type="text" id="endereco">
-                </div>
+                    <div class="form-grid-container">
+                        <div class="form-group">
+                            <label for="cpfCnpj" class="block text-sm font-medium text-gray-700 mb-1">CPF/CNPJ</label>
+                            <input type="text" id="cpfCnpj"
+                                class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div class="form-group">
+                            <label for="telefone" class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                            <input type="text" id="telefone"
+                                class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div class="form-group">
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                            <input type="email" id="email"
+                                class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
 
-                <button type="submit" class="btn">Salvar Cliente</button>
-            </form>
+                    <div class="form-group">
+                        <label for="endereco" class="block text-sm font-medium text-gray-700 mb-1">Endereço
+                            Completo</label>
+                        <input type="text" id="endereco"
+                            class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <button type="submit" class="btn mt-2">Salvar Cliente</button>
+                </form>
+            </div>
 
             <div id="statusMessage"></div>
 
-            <div class="table-container">
-                <h3>Clientes Cadastrados</h3>
-                <div class="form-group">
-                    <label for="pesquisa">Pesquisar Cliente</label>
-                    <input type="text" id="pesquisa" placeholder="Nome ou CPF/CNPJ...">
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-md mb-6 mx-2 md:mx-0">
+                <h3 class="text-slate-800 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
+                    Clientes Cadastrados</h3>
+                <div class="form-group mb-4">
+                    <label for="pesquisa" class="block text-sm font-medium text-gray-700 mb-1">Pesquisar Cliente</label>
+                    <input type="text" id="pesquisa" placeholder="Nome ou CPF/CNPJ..."
+                        class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nome</th>
-                            <th>CPF/CNPJ</th>
-                            <th>Telefone</th>
-                            <th>E-mail</th>
-                            <th>Endereço</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="listaClientes">
-                        <tr>
-                            <td colspan="7" style="text-align:center;">Carregando clientes...</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto w-full mb-4">
+                    <table class="w-full bg-white border border-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>CPF/CNPJ</th>
+                                <th>Telefone</th>
+                                <th>E-mail</th>
+                                <th>Endereço</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaClientes">
+                            <tr>
+                                <td colspan="7" class="table-cell p-4 text-center">Carregando clientes...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
