@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const sidebar = `
         <aside id="desktop-sidebar" class="desktop-sidebar hidden md:flex flex-col">
             <div class="sidebar-header" style="display:flex;justify-content:center;align-items:center;gap:8px;">
-                <img src="assets/logo.png" alt="Logo" style="height:24px; filter: brightness(0) invert(1);"> 
+                <img src="assets/logo.png" alt="Logo" style="height:32px; background-color:white; padding:3px; border-radius:6px; object-fit:contain;"> 
                 <span>Gestão&Controle</span>
             </div>
             <nav id="desktop-nav" class="sidebar-nav flex-1">
