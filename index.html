@@ -3,10 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Sistema de Vendas - Dashboard</title>
+    <title>Gestão&Controle - Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -14,37 +15,72 @@
 
     <main class="main-content p-4 md:p-8 overflow-y-auto">
         <div class="container">
-            <h1>Dashboard Principal</h1>
-            <div id="loading" class="text-center text-gray-500 mb-6">Carregando dados...</div>
+            <div class="container">
+                <div class="flex items-center gap-3 mb-6">
+                    <img src="assets/logo.png" alt="Logo" class="h-8 w-auto">
+                    <h1 style="margin:0; text-align:left;">Dashboard Principal</h1>
+                </div>
 
-            <div id="dashboard-content" class="hidden">
-                <div class="kpi-grid">
-                    <div class="kpi-card">
-                        <h4>Venda Total</h4>
-                        <p id="totalVendas">R$ 0,00</p>
+                <h2 id="greetingMsg" class="text-left text-xl font-medium text-slate-700 mb-6">Bem-vindo(a)!</h2>
+
+                <div id="loading" class="text-center text-gray-500 mb-6">Carregando dados...</div>
+
+                <div id="dashboard-content" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-blue-50 border border-blue-100 p-6 rounded-xl shadow-sm text-center">
+                            <h4 class="text-sm text-blue-800 font-semibold mb-2">Venda Total</h4>
+                            <p id="totalVendas" class="text-3xl font-bold text-blue-900">R$ 0,00</p>
+                        </div>
+                        <div class="bg-purple-50 border border-purple-100 p-6 rounded-xl shadow-sm text-center">
+                            <h4 class="text-sm text-purple-800 font-semibold mb-2">Total de Transações</h4>
+                            <p id="totalTransacoes" class="text-3xl font-bold text-purple-900">0</p>
+                        </div>
+                        <div class="bg-yellow-50 border border-yellow-100 p-6 rounded-xl shadow-sm text-center">
+                            <h4 class="text-sm text-yellow-800 font-semibold mb-2">Ticket Médio</h4>
+                            <p id="ticketMedio" class="text-3xl font-bold text-yellow-900">R$ 0,00</p>
+                        </div>
                     </div>
-                    <div class="kpi-card">
-                        <h4>Total de Transações</h4>
-                        <p id="totalTransacoes">0</p>
+
+                    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-md mb-8">
+                        <h3
+                            class="text-slate-800 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
+                            Acesso Rápido</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <a href="Vendas.html"
+                                class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors">
+                                <span class="text-2xl mb-2">🛒</span>
+                                <span class="text-sm font-semibold text-slate-700 text-center">Lançar Venda</span>
+                            </a>
+                            <a href="Produtos.html"
+                                class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors">
+                                <span class="text-2xl mb-2">📦</span>
+                                <span class="text-sm font-semibold text-slate-700 text-center">Produtos</span>
+                            </a>
+                            <a href="Clientes.html"
+                                class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors">
+                                <span class="text-2xl mb-2">👥</span>
+                                <span class="text-sm font-semibold text-slate-700 text-center">Clientes</span>
+                            </a>
+                            <a href="Financeiro.html"
+                                class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                                data-admin-only>
+                                <span class="text-2xl mb-2">💰</span>
+                                <span class="text-sm font-semibold text-slate-700 text-center">Financeiro</span>
+                            </a>
+                        </div>
                     </div>
-                    <div class="kpi-card">
-                        <h4>Ticket Médio</h4>
-                        <p id="ticketMedio">R$ 0,00</p>
+
+                    <!-- Gráfico de Vendas por Mês Movido para Cima no Script de Dashboard mas a estrutura original não tinha o canvas nativo. Ele foi injetado depois. Preparando container -->
+                    <div id="graficoContainer" class="bg-white p-6 rounded-xl border border-gray-100 shadow-md mb-6">
+                        <h3
+                            class="text-slate-800 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
+                            Desempenho Mensal</h3>
+                        <!-- Canvas vai ser anexado aqui pelo dashboard.js -->
                     </div>
                 </div>
 
-                <div class="nav-grid">
-                    <a href="Vendas.html" class="nav-link">Lançar Vendas</a>
-                    <a href="Produtos.html" class="nav-link">Gerenciar Produtos</a>
-                    <a href="Clientes.html" class="nav-link">Gerenciar Clientes</a>
-                    <a href="Fornecedores.html" class="nav-link">Gerenciar Fornecedores</a>
-                    <a href="Financeiro.html" class="nav-link">Fluxo Financeiro</a>
-                    <a href="Relatorios.html" class="nav-link">Visualizar Relatórios</a>
-                </div>
+                <div id="statusMessage"></div>
             </div>
-
-            <div id="statusMessage"></div>
-        </div>
     </main>
 
     <script src="js/config.js"></script>

@@ -62,8 +62,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Sidebar HTML ───────────────────────────────────────────
     const sidebar = `
         <aside id="desktop-sidebar" class="desktop-sidebar hidden md:flex flex-col">
-            <div class="sidebar-header" style="display:flex;justify-content:space-between;align-items:center;">
-                <span>Sistema de Vendas</span>
+            <div class="sidebar-header" style="display:flex;justify-content:center;align-items:center;gap:8px;">
+                <img src="assets/logo.png" alt="Logo" style="height:24px; filter: brightness(0) invert(1);"> 
+                <span>Gestão&Controle</span>
             </div>
             <nav id="desktop-nav" class="sidebar-nav flex-1">
                 <a href="index.html" class="nav-link-menu">
@@ -124,6 +125,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 opSel.value = Auth.getUser();
                 if (!Auth.isAdmin()) opSel.disabled = true; // Operador não pode trocar
+            }
+
+            // Atualiza saudação no index se existir
+            const greetEl = document.getElementById('greetingMsg');
+            if (greetEl && Auth.getUser()) {
+                greetEl.textContent = \`Bem-vindo(a) ao Gestão&Controle, \${Auth.getUser()}!\`;
             }
         });
     }
