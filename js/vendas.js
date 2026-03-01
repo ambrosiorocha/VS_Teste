@@ -670,8 +670,10 @@ function abrirCupom(cupom) {
     if (descontoTotal < 0) descontoTotal = 0;
 
     const html = `
-        <div style="text-align:center;font-weight:bold;font-size:14px;margin-bottom:4px;color:#000;">SISTEMA DE VENDAS</div>
-        <div style="text-align:center;font-size:11px;color:#000;font-weight:600;">Cupom não fiscal</div>
+        <div style="text-align:center;font-family:monospace;margin-top:20px;padding:0 10px;">
+        <div style="text-align:center;font-weight:bold;font-size:14px;margin-bottom:4px;color:#000;">GESTÃO & CONTROLE</div>
+        <div style="text-align:center;font-size:12px;margin-bottom:8px;color:#000;">Cupom não fiscal</div>
+        </div>
         <div style="margin:6px 0;color:#000;">${linhaDupla}</div>
         <div style="color:#000;font-weight:500;"><b>Venda #:</b> ${cupom.id}</div>
         <div style="color:#000;font-weight:500;"><b>Data:</b> ${cupom.data}</div>

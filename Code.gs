@@ -658,7 +658,8 @@ function excluirOperador(nome) {
 function doGet(e) {
   var template = HtmlService.createTemplateFromFile('index.html');
   var html = template.evaluate()
-      .setTitle("Sistema de Vendas")
+      .setTitle("Gestão&Controle")
+      .addMetaTag("viewport", "width=device-width, initial-scale=1")
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   return html;
 }
