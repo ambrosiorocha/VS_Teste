@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Atualiza saudação no index se existir
             const greetEl = document.getElementById('greetingMsg');
             if (greetEl && Auth.getUser()) {
-                greetEl.textContent = \`Bem-vindo(a) ao Gestão&Controle, \${Auth.getUser()}!\`;
+                greetEl.textContent = `Bem-vindo(a) ao Gestão&Controle, ${Auth.getUser()}!`;
             }
         });
     }
