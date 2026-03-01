@@ -86,6 +86,16 @@ async function carregarOperadores() {
                 opt.textContent = val;
                 sel.appendChild(opt);
             });
+            // Reaplicar permissões do Auth após carregar os operadores
+            if (typeof Auth !== 'undefined' && Auth.getUser()) {
+                let found = Array.from(sel.options).some(o => o.value === Auth.getUser());
+                if (!found) {
+                    const opt = new Option(Auth.getUser(), Auth.getUser());
+                    sel.insertBefore(opt, sel.firstChild);
+                }
+                sel.value = Auth.getUser();
+                if (!Auth.isAdmin()) sel.disabled = true; // Operador não pode trocar
+            }
         }
     } catch (e) { /* mantém opção padrão */ }
 }
