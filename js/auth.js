@@ -150,8 +150,8 @@ window.Auth = (function () {
         ov.innerHTML = `
         <div style="background:white;border-radius:1.25rem;padding:2rem 1.75rem;width:100%;max-width:360px;box-shadow:0 25px 60px rgba(0,0,0,0.5);">
             <div style="text-align:center;margin-bottom:1.5rem;">
-                <div style="font-size:2.8rem;line-height:1;">🏪</div>
-                <h2 style="font-size:1.15rem;font-weight:700;color:#1e293b;margin:0.5rem 0 0.2rem;">Sistema de Vendas</h2>
+                <img src="assets/logo.png" alt="Logo" style="height:48px; margin:0 auto 0.5rem; object-fit:contain;">
+                <h2 style="font-size:1.15rem;font-weight:700;color:#1e293b;margin:0 0 0.2rem;">Gestão&Controle</h2>
                 <p style="font-size:0.78rem;color:#64748b;">Identifique-se para continuar</p>
             </div>
             <div id="loginError" style="display:none;background:#fee2e2;color:#991b1b;border-radius:0.5rem;padding:0.6rem 0.75rem;font-size:0.82rem;margin-bottom:0.9rem;"></div>
