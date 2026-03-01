@@ -643,46 +643,45 @@ function abrirCupom(cupom) {
     const linhaDupla = '================================';
 
     const itensHtml = cupom.itens.map(i => {
-        const desc = i.desconto > 0 ? ` (-${i.desconto.toFixed(1)}%)` : '';
         const sub = i.subtotal.toFixed(2).replace('.', ',');
         const qtd = `${i.quantidade}`;
         const preco = `${i.preco.toFixed(2).replace('.', ',')}`;
         return `
-        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom: 3px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom: 3px; color:#000; font-weight:500;">
             <div style="width:12%;">${qtd}</div>
-            <div style="width:48%; padding-right:4px; word-break:break-word;">${i.nome}${desc}</div>
+            <div style="width:48%; padding-right:4px; word-break:break-word;">${i.nome}</div>
             <div style="width:20%; text-align:right;">${preco}</div>
             <div style="width:20%; text-align:right;">${sub}</div>
         </div>`;
     }).join('');
 
     const html = `
-        <div style="text-align:center;font-weight:bold;font-size:14px;margin-bottom:4px;">SISTEMA DE VENDAS</div>
-        <div style="text-align:center;font-size:11px;color:#64748b;">Cupom não fiscal</div>
-        <div style="margin:6px 0;">${linhaDupla}</div>
-        <div><b>Venda #:</b> ${cupom.id}</div>
-        <div><b>Data:</b> ${cupom.data}</div>
-        <div><b>Cliente:</b> ${cupom.cliente}</div>
-        <div><b>Operador:</b> ${cupom.operador}</div>
-        <div style="margin:6px 0;">${linha}</div>
-        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:bold; margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px dashed #000;">
+        <div style="text-align:center;font-weight:bold;font-size:14px;margin-bottom:4px;color:#000;">SISTEMA DE VENDAS</div>
+        <div style="text-align:center;font-size:11px;color:#000;font-weight:600;">Cupom não fiscal</div>
+        <div style="margin:6px 0;color:#000;">${linhaDupla}</div>
+        <div style="color:#000;font-weight:500;"><b>Venda #:</b> ${cupom.id}</div>
+        <div style="color:#000;font-weight:500;"><b>Data:</b> ${cupom.data}</div>
+        <div style="color:#000;font-weight:500;"><b>Cliente:</b> ${cupom.cliente}</div>
+        <div style="color:#000;font-weight:500;"><b>Operador:</b> ${cupom.operador}</div>
+        <div style="margin:6px 0;color:#000;">${linha}</div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:bold; margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px dashed #000; color:#000;">
             <div style="width:12%;">Qtd</div>
             <div style="width:48%;">Item</div>
             <div style="width:20%; text-align:right;">Unit.</div>
             <div style="width:20%; text-align:right;">Total</div>
         </div>
         ${itensHtml}
-        <div style="margin:6px 0;">${linha}</div>
-        <div style="display:flex;justify-content:space-between;"><span>Subtotal dos itens:</span><span>R$ ${cupom.subtotal.toFixed(2).replace('.', ',')}</span></div>
-        ${cupom.descontoGeral > 0 ? `<div style="display:flex;justify-content:space-between;color:#ef4444;"><span>Desconto geral:</span><span>- R$ ${cupom.descontoGeral.toFixed(2).replace('.', ',')}</span></div>` : ''}
-        <div style="margin:6px 0;">${linhaDupla}</div>
-        <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:bold;"><span>TOTAL:</span><span>R$ ${cupom.total.toFixed(2).replace('.', ',')}</span></div>
-        <div style="margin:6px 0;">${linha}</div>
-        <div><b>Pagamento:</b> ${cupom.formaPagamento}</div>
-        <div><b>Vencimento:</b> ${cupom.vencimento} (${cupom.statusPgto})</div>
-        <div style="margin:6px 0;">${linhaDupla}</div>
-        <div style="text-align:center;font-size:11px;color:#64748b;">Obrigado pela preferência!</div>
-        <div style="text-align:center;font-size:10px;color:#94a3b8;">${new Date().toLocaleString('pt-BR')}</div>
+        <div style="margin:6px 0;color:#000;">${linha}</div>
+        <div style="display:flex;justify-content:space-between;color:#000;font-weight:500;"><span>Subtotal:</span><span>R$ ${cupom.subtotal.toFixed(2).replace('.', ',')}</span></div>
+        ${cupom.descontoGeral > 0 ? `<div style="display:flex;justify-content:space-between;color:#000;font-weight:bold;"><span>Desconto Total:</span><span>- R$ ${cupom.descontoGeral.toFixed(2).replace('.', ',')}</span></div>` : ''}
+        <div style="margin:6px 0;color:#000;">${linhaDupla}</div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:bold;color:#000;"><span>TOTAL:</span><span>R$ ${cupom.total.toFixed(2).replace('.', ',')}</span></div>
+        <div style="margin:6px 0;color:#000;">${linha}</div>
+        <div style="color:#000;font-weight:500;"><b>Pagamento:</b> ${cupom.formaPagamento}</div>
+        <div style="color:#000;font-weight:500;"><b>Vencimento:</b> ${cupom.vencimento} (${cupom.statusPgto})</div>
+        <div style="margin:6px 0;color:#000;">${linhaDupla}</div>
+        <div style="text-align:center;font-size:11px;color:#000;font-weight:600;">Obrigado pela preferência!</div>
+        <div style="text-align:center;font-size:10px;color:#000;font-weight:500;">${new Date().toLocaleString('pt-BR')}</div>
     `;
     document.getElementById('cupomConteudo').innerHTML = html;
     document.getElementById('modalCupom').style.display = 'flex';

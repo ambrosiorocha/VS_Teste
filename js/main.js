@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 box-shadow: 4px 0 24px rgba(0,0,0,0.35);
             }
             #desktop-sidebar.sidebar-open { left: 0 !important; }
+            .desktop-sidebar { display: flex !important; }
+            .hidden.md\\:flex { display: flex !important; }
             .main-content { padding-top: 3.5rem !important; }
         }
         .user-badge-block {
