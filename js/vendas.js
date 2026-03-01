@@ -414,8 +414,8 @@ async function confirmarVenda() {
                 formaPagamento: formaPagamentoSelecionada,
                 vencimento: prazoResult.vencimento,
                 statusPgto: prazoResult.status,
-                subtotal: carrinho.reduce((s, i) => s + i.subtotal, 0),
-                descontoGeral: parseFloat(document.getElementById('descontoGeralModal').value) || 0,
+                subtotal: 0,
+                descontoGeral: 0,
                 total: payload.totalComDesconto
             };
             carrinho = [];
@@ -599,10 +599,6 @@ function reimprimirCupom(id, itensJSONEnc, clienteEnc, operadorEnc, pgtoEnc, tot
     let itens = [];
     try { itens = JSON.parse(decodeURIComponent(itensJSONEnc)); } catch (e) { }
 
-    let calcSubtotal = itens.reduce((s, i) => s + (parseFloat(i.subtotal) || 0), 0) || total;
-    let deduzGeral = calcSubtotal - total;
-    if (deduzGeral < 0) deduzGeral = 0;
-
     const cupom = {
         id, data, cliente, operador,
         itens: itens.map(i => ({
@@ -615,8 +611,8 @@ function reimprimirCupom(id, itensJSONEnc, clienteEnc, operadorEnc, pgtoEnc, tot
         formaPagamento: pgto,
         vencimento: '-',
         statusPgto: '-',
-        subtotal: calcSubtotal,
-        descontoGeral: deduzGeral,
+        subtotal: 0,
+        descontoGeral: 0,
         total
     };
     abrirCupom(cupom);
@@ -642,8 +638,13 @@ function abrirCupom(cupom) {
     const linha = '--------------------------------';
     const linhaDupla = '================================';
 
+    let subtotalBruto = 0;
+
     const itensHtml = cupom.itens.map(i => {
-        const sub = i.subtotal.toFixed(2).replace('.', ',');
+        const itemBruto = i.quantidade * i.preco;
+        subtotalBruto += itemBruto;
+
+        const sub = itemBruto.toFixed(2).replace('.', ',');
         const qtd = `${i.quantidade}`;
         const preco = `${i.preco.toFixed(2).replace('.', ',')}`;
         return `
@@ -654,6 +655,9 @@ function abrirCupom(cupom) {
             <div style="width:20%; text-align:right;">${sub}</div>
         </div>`;
     }).join('');
+
+    let descontoTotal = subtotalBruto - cupom.total;
+    if (descontoTotal < 0) descontoTotal = 0;
 
     const html = `
         <div style="text-align:center;font-weight:bold;font-size:14px;margin-bottom:4px;color:#000;">SISTEMA DE VENDAS</div>
@@ -672,8 +676,8 @@ function abrirCupom(cupom) {
         </div>
         ${itensHtml}
         <div style="margin:6px 0;color:#000;">${linha}</div>
-        <div style="display:flex;justify-content:space-between;color:#000;font-weight:500;"><span>Subtotal:</span><span>R$ ${cupom.subtotal.toFixed(2).replace('.', ',')}</span></div>
-        ${cupom.descontoGeral > 0 ? `<div style="display:flex;justify-content:space-between;color:#000;font-weight:bold;"><span>Desconto Total:</span><span>- R$ ${cupom.descontoGeral.toFixed(2).replace('.', ',')}</span></div>` : ''}
+        <div style="display:flex;justify-content:space-between;color:#000;font-weight:500;"><span>Subtotal:</span><span>R$ ${subtotalBruto.toFixed(2).replace('.', ',')}</span></div>
+        ${descontoTotal > 0.005 ? `<div style="display:flex;justify-content:space-between;color:#000;font-weight:bold;"><span>Desconto Total:</span><span>- R$ ${descontoTotal.toFixed(2).replace('.', ',')}</span></div>` : ''}
         <div style="margin:6px 0;color:#000;">${linhaDupla}</div>
         <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:bold;color:#000;"><span>TOTAL:</span><span>R$ ${cupom.total.toFixed(2).replace('.', ',')}</span></div>
         <div style="margin:6px 0;color:#000;">${linha}</div>
