@@ -5,7 +5,10 @@ document.addEventListener('DOMContentLoaded', function () {
         exibirStatus({ status: 'error', mensagem: 'Configure a window.SCRIPT_URL no config.js.' });
         return;
     }
-    document.getElementById('financeiroForm').addEventListener('submit', salvarFinanceiro);
+    document.getElementById('financeiroForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        execWithSpinner(document.querySelector('#financeiroForm button[type="submit"]'), salvarFinanceiro);
+    });
     document.getElementById('filtroTipo').addEventListener('change', aplicarFiltros);
     carregarFinanceiro();
 });
@@ -33,8 +36,7 @@ function formatarData(valor) {
 }
 
 // ==================== SALVAR ====================
-async function salvarFinanceiro(event) {
-    event.preventDefault();
+async function salvarFinanceiro() {
     const registro = {
         id: document.getElementById('idFinanceiro').value || null,
         descricao: document.getElementById('descricao').value,
@@ -71,8 +73,8 @@ async function carregarFinanceiro() {
             body: JSON.stringify({ action: 'obterFinanceiro' })
         });
         const data = await response.json();
-        if (data.status === 'sucesso' && data.dados.length > 0) {
-            registrosFinanceiros = data.dados;
+        if (data.status === 'sucesso' && data.dados) {
+            registrosFinanceiros = parseCompactData(data.dados);
             aplicarFiltros();
         } else {
             registrosFinanceiros = [];
@@ -154,7 +156,7 @@ function renderizarTabela(dados) {
         const tipoClass = r.tipo === 'Receber' ? 'text-blue-600' : 'text-orange-600';
         const btnBaixar = isPago
             ? `<span style="color:#16a34a; font-size:0.78rem;">✅ Quitado</span>`
-            : `<button class="edit-btn" style="background:#16a34a; color:white; font-size:0.75rem;" onclick="baixarLancamento(${registroId}, '${r.tipo}')">${r.tipo === 'Receber' ? '✅ Receber' : '✅ Pagar'}</button>`;
+            : `<button class="edit-btn" style="background:#16a34a; color:white; font-size:0.75rem;" onclick="execWithSpinner(this, () => baixarLancamento(${registroId}, '${r.tipo}'))">${r.tipo === 'Receber' ? '✅ Receber' : '✅ Pagar'}</button>`;
 
         row.innerHTML = `
             <td class="${tdClasses}">${registroId}</td>

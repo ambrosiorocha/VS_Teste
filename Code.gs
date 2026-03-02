@@ -20,83 +20,95 @@ function doPost(e) {
     var data = requestData.data;
     var result;
 
-    switch (action) {
-      case 'lancarVenda':
+    var isWriteAction = action.startsWith('salvar') || action.startsWith('excluir') || action.startsWith('lancar') || action.startsWith('finalizar') || action.startsWith('estornar') || action.startsWith('baixar');
+    var lock = null;
+    
+    if (isWriteAction) {
+      lock = LockService.getScriptLock();
+      lock.waitLock(30000); // Aguarda até 30 segundos
+    }
 
-        result = lancarVenda(data);
-        break;
-      case 'salvarRascunho':
-        result = salvarRascunho(data);
-        break;
-      case 'finalizarPendente':
-        result = finalizarPendente(data);
-        break;
-      case 'estornarVenda':
-        result = estornarVenda(data.id);
-        break;
-      case 'obterProdutos':
-        result = { status: 'sucesso', dados: obterProdutos() };
-        break;
-      case 'salvarProduto':
-        result = salvarProduto(data);
-        break;
-      case 'excluirProduto':
-        result = excluirProduto(data.id);
-        break;
-      case 'obterProdutoPorId':
-        result = { status: 'sucesso', dados: obterProdutoPorId(data.id) };
-        break;
-      case 'obterProdutosUnicos':
-        result = { status: 'sucesso', dados: obterProdutosUnicos() };
-        break;
-      case 'obterVendas':
-        result = { status: 'sucesso', dados: obterVendas() };
-        break;
-      case 'obterClientes':
-        result = { status: 'sucesso', dados: obterDadosGeral("Clientes") };
-        break;
-      case 'salvarCliente':
-        result = salvarDadosGeral("Clientes", data);
-        break;
-      case 'excluirCliente':
-        result = excluirDadosGeral("Clientes", data.id);
-        break;
-      case 'obterFornecedores':
-        result = { status: 'sucesso', dados: obterDadosGeral("Fornecedores") };
-        break;
-      case 'salvarFornecedor':
-        result = salvarDadosGeral("Fornecedores", data);
-        break;
-      case 'excluirFornecedor':
-        result = excluirDadosGeral("Fornecedores", data.id);
-        break;
-      case 'obterFinanceiro':
-        result = { status: 'sucesso', dados: obterDadosGeral("Financeiro") };
-        break;
-      case 'salvarFinanceiro':
-        result = salvarDadosGeral("Financeiro", data);
-        break;
-      case 'excluirFinanceiro':
-        result = excluirDadosGeral("Financeiro", data.id);
-        break;
-      case 'obterOperadores':
-        result = { status: 'sucesso', dados: obterOperadores() };
-        break;
-      case 'salvarOperador':
-        result = salvarOperador(data);
-        break;
-      case 'excluirOperador':
-        result = excluirOperador(data.nome);
-        break;
-      case 'autenticarOperador':
-        result = autenticarOperador(data);
-        break;
-      case 'baixarLancamento':
-
-        result = baixarLancamento(data.id);
-        break;
-      default:
-        result = { status: 'erro', mensagem: 'Ação não reconhecida: ' + action };
+    try {
+      switch (action) {
+        case 'lancarVenda':
+          result = lancarVenda(data);
+          break;
+        case 'salvarRascunho':
+          result = salvarRascunho(data);
+          break;
+        case 'finalizarPendente':
+          result = finalizarPendente(data);
+          break;
+        case 'estornarVenda':
+          result = estornarVenda(data.id);
+          break;
+        case 'obterProdutos':
+          result = { status: 'sucesso', dados: obterProdutos() };
+          break;
+        case 'salvarProduto':
+          result = salvarProduto(data);
+          break;
+        case 'excluirProduto':
+          result = excluirProduto(data.id);
+          break;
+        case 'obterProdutoPorId':
+          result = { status: 'sucesso', dados: obterProdutoPorId(data.id) };
+          break;
+        case 'obterProdutosUnicos':
+          result = { status: 'sucesso', dados: obterProdutosUnicos() };
+          break;
+        case 'obterVendas':
+          result = { status: 'sucesso', dados: obterVendas() };
+          break;
+        case 'obterClientes':
+          result = { status: 'sucesso', dados: obterDadosGeral("Clientes") };
+          break;
+        case 'salvarCliente':
+          result = salvarDadosGeral("Clientes", data);
+          break;
+        case 'excluirCliente':
+          result = excluirDadosGeral("Clientes", data.id);
+          break;
+        case 'obterFornecedores':
+          result = { status: 'sucesso', dados: obterDadosGeral("Fornecedores") };
+          break;
+        case 'salvarFornecedor':
+          result = salvarDadosGeral("Fornecedores", data);
+          break;
+        case 'excluirFornecedor':
+          result = excluirDadosGeral("Fornecedores", data.id);
+          break;
+        case 'obterFinanceiro':
+          result = { status: 'sucesso', dados: obterDadosGeral("Financeiro") };
+          break;
+        case 'salvarFinanceiro':
+          result = salvarDadosGeral("Financeiro", data);
+          break;
+        case 'excluirFinanceiro':
+          result = excluirDadosGeral("Financeiro", data.id);
+          break;
+        case 'obterOperadores':
+          result = { status: 'sucesso', dados: obterOperadores() };
+          break;
+        case 'salvarOperador':
+          result = salvarOperador(data);
+          break;
+        case 'excluirOperador':
+          result = excluirOperador(data.nome);
+          break;
+        case 'autenticarOperador':
+          result = autenticarOperador(data);
+          break;
+        case 'baixarLancamento':
+          result = baixarLancamento(data.id);
+          break;
+        default:
+          result = { status: 'erro', mensagem: 'Ação não reconhecida: ' + action };
+      }
+    } finally {
+      if (lock) {
+        lock.releaseLock();
+      }
     }
 
     return ContentService.createTextOutput(JSON.stringify(result))
@@ -355,18 +367,11 @@ function obterProdutos() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("Produtos");
   if (!sheet || sheet.getLastRow() < 2) {
-    return [];
+    return { compact: true, headers: [], rows: [] };
   }
-  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  var dados = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
-  var produtos = dados.map(function(row) {
-    var produto = {};
-    headers.forEach(function(header, i) {
-      produto[header] = row[i];
-    });
-    return produto;
-  });
-  return produtos;
+  var dados = sheet.getDataRange().getValues();
+  var headers = dados.shift();
+  return { compact: true, headers: headers, rows: dados };
 }
 
 function obterProdutosUnicos() {
@@ -406,7 +411,7 @@ function obterProdutoPorId(id) {
 function obterVendas() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('Vendas');
-  if (!sheet || sheet.getLastRow() < 2) return [];
+  if (!sheet || sheet.getLastRow() < 2) return { compact: true, headers: [], rows: [] };
   var dados = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
 
   function fmtDate(val) {
@@ -419,24 +424,41 @@ function obterVendas() {
     return String(val);
   }
 
-  return dados.map(function(row) {
-    return {
-      'ID da Venda'       : row[0],
-      'Data'              : fmtDate(row[1]),
-      'Cliente'           : row[2] || '',
-      'Itens'             : row[3] || '',
-      'Quantidade Vendida': row[4] || 0,
-      'Subtotal'          : row[5] || 0,
-      'Desconto (%)'      : row[6] || 0,
-      'Desconto (R$)'     : row[7] || 0,
-      'Total com Desconto': row[8] || 0,
-      'Forma de Pagamento': row[9] || '',
-      'Usuario'           : row[10] || '',
-      'Status'            : row[11] || '',
-      'Vencimento'        : fmtDate(row[12]),
-      'ItensJSON'         : row[13] || '[]'
-    };
+  // Filtrar últimos 60 dias
+  var limite = new Date();
+  limite.setDate(limite.getDate() - 60);
+
+  var dadosFiltrados = dados.filter(function(row) {
+    var val = row[1]; // Coluna Data
+    var rowDate;
+    if (val instanceof Date && !isNaN(val)) {
+        rowDate = val;
+    } else {
+        var parts = String(val).split('/');
+        if (parts.length === 3) {
+            rowDate = new Date(parts[2], parts[1] - 1, parts[0]);
+        } else {
+            return true;
+        }
+    }
+    return rowDate >= limite;
   });
+
+  var rows = dadosFiltrados.map(function(row) {
+    return [
+      row[0], fmtDate(row[1]), row[2] || '', row[3] || '',
+      row[4] || 0, row[5] || 0, row[6] || 0, row[7] || 0, row[8] || 0,
+      row[9] || '', row[10] || '', row[11] || '', fmtDate(row[12]), row[13] || '[]'
+    ];
+  });
+  
+  var headers = [
+    'ID da Venda', 'Data', 'Cliente', 'Itens', 'Quantidade Vendida', 'Subtotal',
+    'Desconto (%)', 'Desconto (R$)', 'Total com Desconto', 'Forma de Pagamento',
+    'Usuario', 'Status', 'Vencimento', 'ItensJSON'
+  ];
+
+  return { compact: true, headers: headers, rows: rows };
 }
 
 
@@ -496,17 +518,11 @@ function obterDadosGeral(nomePlanilha) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(nomePlanilha);
   if (!sheet || sheet.getLastRow() < 2) {
-    return [];
+    return { compact: true, headers: [], rows: [] };
   }
-  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  var dados = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
-  return dados.map(function(row) {
-    var obj = {};
-    headers.forEach(function(header, i) {
-      obj[header] = row[i];
-    });
-    return obj;
-  });
+  var dados = sheet.getDataRange().getValues();
+  var headers = dados.shift();
+  return { compact: true, headers: headers, rows: dados };
 }
 
 function salvarDadosGeral(nomePlanilha, dados) {

@@ -5,7 +5,10 @@ document.addEventListener('DOMContentLoaded', function () {
         exibirStatus({ status: 'error', mensagem: 'Por favor, cole a URL do Apps Script no código.' });
         return;
     }
-    document.getElementById('fornecedorForm').addEventListener('submit', salvarFornecedor);
+    document.getElementById('fornecedorForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        execWithSpinner(document.querySelector('#fornecedorForm button[type="submit"]'), salvarFornecedor);
+    });
     document.getElementById('pesquisa').addEventListener('input', filtrarFornecedores);
 
     carregarFornecedores();
@@ -24,8 +27,7 @@ function exibirStatus(resposta) {
     }, 5000);
 }
 
-async function salvarFornecedor(event) {
-    event.preventDefault();
+async function salvarFornecedor() {
 
     // Chaves alinhadas com os cabeçalhos da planilha Fornecedores
     const fornecedor = {
@@ -67,8 +69,8 @@ async function carregarFornecedores() {
         });
         const data = await response.json();
 
-        if (data.status === 'sucesso' && data.dados.length > 0) {
-            fornecedores = data.dados;
+        if (data.status === 'sucesso' && data.dados) {
+            fornecedores = parseCompactData(data.dados);
             renderizarTabela(fornecedores);
         } else {
             listaFornecedores.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Nenhum fornecedor cadastrado.</td></tr>';

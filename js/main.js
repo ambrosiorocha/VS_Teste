@@ -135,3 +135,59 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+// ==========================================
+// UTILITÁRIOS GLOBAIS DE OTIMIZAÇÃO
+// ==========================================
+
+// Parse do JSON Compacto
+function parseCompactData(data) {
+    if (data && data.compact) {
+        return data.rows.map(row => {
+            let obj = {};
+            data.headers.forEach((h, i) => obj[h] = row[i]);
+            return obj;
+        });
+    }
+    return data; // Retrocompatibilidade
+}
+
+// Gerenciador de Cache (localStorage)
+const CacheAPI = {
+    get: function (key) {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+            try { return JSON.parse(stored); } catch (e) { return null; }
+        }
+        return null;
+    },
+    set: function (key, data) {
+        localStorage.setItem(key, JSON.stringify(data));
+    },
+    clear: function (key) {
+        localStorage.removeItem(key);
+    }
+};
+
+// Prevenir Duplo Clique e Adicionar Spinner
+async function execWithSpinner(btnElement, asyncFunc) {
+    if (!btnElement) {
+        await asyncFunc();
+        return;
+    }
+    const originalText = btnElement.innerHTML;
+    btnElement.disabled = true;
+    btnElement.style.opacity = '0.7';
+    btnElement.style.cursor = 'not-allowed';
+    btnElement.innerHTML = `<svg style="animation: spin 1s linear infinite; height: 1.25rem; width: 1.25rem; margin-right: 0.5rem; display: inline-block;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Aguarde...`;
+
+    try {
+        await asyncFunc();
+    } finally {
+        btnElement.disabled = false;
+        btnElement.style.opacity = '1';
+        btnElement.style.cursor = 'pointer';
+        btnElement.innerHTML = originalText;
+    }
+}
+

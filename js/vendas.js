@@ -54,22 +54,35 @@ function exibirStatus(resposta) {
 async function carregarProdutos() {
     const sel = document.getElementById('produto');
     sel.innerHTML = '<option value="">Carregando...</option>';
+
+    const cached = CacheAPI.get('cache_produtos');
+    if (cached) {
+        produtos = cached;
+        preencherSelectProdutos(sel, produtos);
+        return;
+    }
+
     try {
         const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterProdutos' }) });
         const data = await res.json();
-        produtos = data.dados || [];
-        sel.innerHTML = '<option value="">Selecione um produto</option>';
-        produtos.forEach(p => {
-            const estoque = parseFloat(p.Quantidade) || 0;
-            const precoRaw = String(p['Preço'] || p.Preco || 0).replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
-            const opt = document.createElement('option');
-            opt.value = p.Nome;
-            opt.textContent = `${p.Nome}  (Estoque: ${estoque})`;
-            opt.dataset.preco = parseFloat(precoRaw) || 0;
-            opt.dataset.estoque = estoque;
-            sel.appendChild(opt);
-        });
+        produtos = parseCompactData(data.dados) || [];
+        CacheAPI.set('cache_produtos', produtos);
+        preencherSelectProdutos(sel, produtos);
     } catch (e) { sel.innerHTML = '<option value="">Erro ao carregar</option>'; }
+}
+
+function preencherSelectProdutos(sel, lista) {
+    sel.innerHTML = '<option value="">Selecione um produto</option>';
+    lista.forEach(p => {
+        const estoque = parseFloat(p.Quantidade) || 0;
+        const precoRaw = String(p['Preço'] || p.Preco || 0).replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+        const opt = document.createElement('option');
+        opt.value = p.Nome;
+        opt.textContent = `${p.Nome}  (Estoque: ${estoque})`;
+        opt.dataset.preco = parseFloat(precoRaw) || 0;
+        opt.dataset.estoque = estoque;
+        sel.appendChild(opt);
+    });
 }
 
 async function carregarOperadores() {
@@ -102,20 +115,34 @@ async function carregarOperadores() {
 
 async function carregarClientes() {
     const sel = document.getElementById('cliente');
+    sel.innerHTML = '<option value="Consumidor Interno">Consumidor Interno</option>';
+
+    const cached = CacheAPI.get('cache_clientes');
+    if (cached) {
+        preencherSelectClientes(sel, cached);
+        return;
+    }
+
     try {
         const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obterClientes' }) });
         const data = await res.json();
-        sel.innerHTML = '<option value="Consumidor Interno">Consumidor Interno</option>';
-        if (data.status === 'sucesso' && data.dados.length > 0) {
-            data.dados.forEach(c => {
-                const opt = document.createElement('option');
-                const nome = c.nome || c.Nome || '';
-                opt.value = nome;
-                opt.textContent = nome;
-                sel.appendChild(opt);
-            });
+        if (data.status === 'sucesso' && data.dados) {
+            const arr = parseCompactData(data.dados);
+            CacheAPI.set('cache_clientes', arr);
+            preencherSelectClientes(sel, arr);
         }
     } catch (e) { /* mantém Consumidor Interno */ }
+}
+
+function preencherSelectClientes(sel, lista) {
+    if (!lista) return;
+    lista.forEach(c => {
+        const opt = document.createElement('option');
+        const nome = c.nome || c.Nome || '';
+        opt.value = nome;
+        opt.textContent = nome;
+        sel.appendChild(opt);
+    });
 }
 
 // ================================
@@ -263,20 +290,23 @@ function cancelarEdicao() {
 // SALVAR RASCUNHO (Pendente — sem estoque, sem financeiro)
 // ================================
 async function salvarRascunho() {
-    if (carrinho.length === 0) { exibirStatus({ status: 'error', mensagem: '⚠️ Adicione itens ao pedido.' }); return; }
-    const payload = montarPayloadVenda();
-    payload.formaPagamento = payload.formaPagamento || '-';
-    try {
-        const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'salvarRascunho', data: payload }) });
-        const data = await res.json();
-        exibirStatus(data);
-        if (data.status === 'sucesso') {
-            carrinho = [];
-            vendaEditandoId = null;
-            renderizarCarrinho();
-            await carregarHistoricoVendas();
-        }
-    } catch (e) { exibirStatus({ status: 'error', mensagem: 'Erro: ' + e }); }
+    const btn = document.getElementById('btnRascunho');
+    await execWithSpinner(btn, async () => {
+        if (carrinho.length === 0) { exibirStatus({ status: 'error', mensagem: '⚠️ Adicione itens ao pedido.' }); return; }
+        const payload = montarPayloadVenda();
+        payload.formaPagamento = payload.formaPagamento || '-';
+        try {
+            const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'salvarRascunho', data: payload }) });
+            const data = await res.json();
+            exibirStatus(data);
+            if (data.status === 'sucesso') {
+                carrinho = [];
+                vendaEditandoId = null;
+                renderizarCarrinho();
+                await carregarHistoricoVendas();
+            }
+        } catch (e) { exibirStatus({ status: 'error', mensagem: 'Erro: ' + e }); }
+    });
 }
 
 // ================================
@@ -391,55 +421,52 @@ function montarPayloadVenda() {
 // CONFIRMAR VENDA (Finalizar — Concluída)
 // ================================
 async function confirmarVenda() {
-    if (!formaPagamentoSelecionada) { alert('Selecione a forma de pagamento.'); return; }
-    if (carrinho.length === 0) { fecharModal(); return; }
-
-    const prazoResult = calcularVencimentoStatus();
-    if (!prazoResult) return;
-
     const btn = document.getElementById('btnConfirmarVenda');
-    btn.disabled = true; btn.textContent = 'Registrando...';
+    await execWithSpinner(btn, async () => {
+        if (!formaPagamentoSelecionada) { alert('Selecione a forma de pagamento.'); return; }
+        if (carrinho.length === 0) { fecharModal(); return; }
 
-    const payload = montarPayloadVenda();
-    payload.vencimento = prazoResult.vencimento;
-    payload.statusFinanceiro = prazoResult.status;
+        const prazoResult = calcularVencimentoStatus();
+        if (!prazoResult) return;
 
-    // Se for edição de rascunho: finaliza o pendente existente
-    const action = vendaEditandoId ? 'finalizarPendente' : 'lancarVenda';
-    if (vendaEditandoId) payload.id = vendaEditandoId;
+        const payload = montarPayloadVenda();
+        payload.vencimento = prazoResult.vencimento;
+        payload.statusFinanceiro = prazoResult.status;
 
-    try {
-        const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, data: payload }) });
-        const data = await res.json();
-        fecharModal();
-        exibirStatus(data);
-        if (data.status === 'sucesso') {
-            // Prepara dados do cupom antes de limpar o carrinho
-            const cupomData = {
-                id: data.id || '?',
-                data: payload.data,
-                cliente: payload.cliente,
-                operador: document.getElementById('usuario').value,
-                itens: [...carrinho],
-                formaPagamento: formaPagamentoSelecionada,
-                vencimento: prazoResult.vencimento,
-                statusPgto: prazoResult.status,
-                subtotal: 0,
-                descontoGeral: 0,
-                total: payload.totalComDesconto
-            };
-            carrinho = [];
-            vendaEditandoId = null;
-            renderizarCarrinho();
-            await carregarProdutos();
-            await carregarHistoricoVendas();
-            abrirCupom(cupomData);
+        const action = vendaEditandoId ? 'finalizarPendente' : 'lancarVenda';
+        if (vendaEditandoId) payload.id = vendaEditandoId;
+
+        try {
+            const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, data: payload }) });
+            const data = await res.json();
+            fecharModal();
+            exibirStatus(data);
+            if (data.status === 'sucesso') {
+                const cupomData = {
+                    id: data.id || '?',
+                    data: payload.data,
+                    cliente: payload.cliente,
+                    operador: document.getElementById('usuario').value,
+                    itens: [...carrinho],
+                    formaPagamento: formaPagamentoSelecionada,
+                    vencimento: prazoResult.vencimento,
+                    statusPgto: prazoResult.status,
+                    subtotal: 0,
+                    descontoGeral: 0,
+                    total: payload.totalComDesconto
+                };
+                carrinho = [];
+                vendaEditandoId = null;
+                renderizarCarrinho();
+                CacheAPI.clear('cache_produtos'); // Invalida cache porque baixou estoque
+                await carregarProdutos();
+                await carregarHistoricoVendas();
+                abrirCupom(cupomData);
+            }
+        } catch (e) {
+            exibirStatus({ status: 'error', mensagem: 'Erro de comunicação: ' + e });
         }
-    } catch (e) {
-        exibirStatus({ status: 'error', mensagem: 'Erro de comunicação: ' + e });
-    } finally {
-        btn.disabled = false; btn.textContent = '✅ Confirmar Venda';
-    }
+    });
 }
 
 // ================================
@@ -453,8 +480,9 @@ async function carregarHistoricoVendas() {
         const text = await res.text();
         const data = JSON.parse(text);
 
-        if (data.status === 'sucesso' && Array.isArray(data.dados) && data.dados.length > 0) {
-            const vendas = [...data.dados].reverse().slice(0, 40);
+        if (data.status === 'sucesso' && data.dados) {
+            const arr = parseCompactData(data.dados);
+            const vendas = [...arr].reverse().slice(0, 40);
             tbody.innerHTML = '';
             vendas.forEach(v => {
                 const id = v['ID da Venda'] || '';

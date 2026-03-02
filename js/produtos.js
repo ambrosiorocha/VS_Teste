@@ -5,10 +5,19 @@ document.addEventListener('DOMContentLoaded', function () {
         exibirStatus({ status: 'error', mensagem: 'Por favor, cole a URL do Apps Script no código.' });
         return;
     }
-    document.getElementById('produtoForm').addEventListener('submit', salvarProduto);
+    document.getElementById('produtoForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        execWithSpinner(document.querySelector('#produtoForm button[type="submit"]'), salvarProduto);
+    });
 
-    // Adicionar listener para o campo de pesquisa
     document.getElementById('pesquisa').addEventListener('input', filtrarProdutos);
+
+    var btnSync = document.getElementById('btnSincronizar');
+    if (btnSync) {
+        btnSync.addEventListener('click', function (e) {
+            execWithSpinner(e.target, async () => { await carregarProdutos(true); });
+        });
+    }
 
     carregarProdutos();
 });
@@ -26,8 +35,7 @@ function exibirStatus(resposta) {
     }, 5000);
 }
 
-async function salvarProduto(event) {
-    event.preventDefault();
+async function salvarProduto() {
 
     const produto = {
         idProduto: document.getElementById('idProduto').value || null,
@@ -50,7 +58,7 @@ async function salvarProduto(event) {
         if (data.status === 'sucesso') {
             document.getElementById('produtoForm').reset();
             document.getElementById('idProduto').value = '';
-            await carregarProdutos();
+            await carregarProdutos(true);
         }
 
     } catch (error) {
@@ -58,9 +66,18 @@ async function salvarProduto(event) {
     }
 }
 
-async function carregarProdutos() {
+async function carregarProdutos(forceSync = false) {
     const listaProdutos = document.getElementById('listaProdutos');
-    // Adicionamos as classes de alinhamento e padding do Tailwind aqui
+
+    if (!forceSync) {
+        const cached = CacheAPI.get('cache_produtos');
+        if (cached) {
+            produtos = cached;
+            renderizarTabela(produtos);
+            return;
+        }
+    }
+
     listaProdutos.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Carregando produtos...</td></tr>';
 
     try {
@@ -70,14 +87,18 @@ async function carregarProdutos() {
         });
         const data = await response.json();
 
-        if (data.status === 'sucesso' && data.dados.length > 0) {
-            produtos = data.dados; // Armazena a lista completa
-            renderizarTabela(produtos); // Renderiza a tabela
+        if (data.status === 'sucesso' && data.dados) {
+            produtos = parseCompactData(data.dados);
+            CacheAPI.set('cache_produtos', produtos);
+            if (produtos.length > 0) {
+                renderizarTabela(produtos);
+            } else {
+                listaProdutos.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Nenhum produto cadastrado.</td></tr>';
+            }
         } else {
             listaProdutos.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Nenhum produto cadastrado.</td></tr>';
         }
     } catch (error) {
-        // CORREÇÃO: Mostra o erro do toFixed (se for ele)
         exibirStatus({ status: 'error', mensagem: 'Erro ao carregar lista de produtos: ' + error.message });
         listaProdutos.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Erro ao carregar produtos.</td></tr>';
     }
@@ -186,7 +207,8 @@ async function excluirProduto(id) {
             const data = await response.json();
             exibirStatus(data);
             if (data.status === 'sucesso') {
-                await carregarProdutos(); // Recarrega a lista
+                CacheAPI.clear('cache_produtos');
+                await carregarProdutos(true); // Recarrega a lista
             }
         } catch (error) {
             exibirStatus({ status: 'error', mensagem: 'Erro ao excluir o produto: ' + error.message });

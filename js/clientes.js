@@ -5,8 +5,18 @@ document.addEventListener('DOMContentLoaded', function () {
         exibirStatus({ status: 'error', mensagem: 'Por favor, cole a URL do Apps Script no código.' });
         return;
     }
-    document.getElementById('clienteForm').addEventListener('submit', salvarCliente);
+    document.getElementById('clienteForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        execWithSpinner(document.querySelector('#clienteForm button[type="submit"]'), salvarCliente);
+    });
     document.getElementById('pesquisa').addEventListener('input', filtrarClientes);
+
+    var btnSync = document.getElementById('btnSincronizar');
+    if (btnSync) {
+        btnSync.addEventListener('click', function (e) {
+            execWithSpinner(e.target, async () => { await carregarClientes(true); });
+        });
+    }
 
     carregarClientes();
 });
@@ -24,8 +34,7 @@ function exibirStatus(resposta) {
     }, 5000);
 }
 
-async function salvarCliente(event) {
-    event.preventDefault();
+async function salvarCliente() {
 
     // Chaves alinhadas com os cabeçalhos da planilha (minúsculas, sem acentos)
     const cliente = {
@@ -49,15 +58,25 @@ async function salvarCliente(event) {
         if (data.status === 'sucesso') {
             document.getElementById('clienteForm').reset();
             document.getElementById('idCliente').value = '';
-            await carregarClientes();
+            await carregarClientes(true); // Força sincronização para atualizar cache
         }
     } catch (error) {
         exibirStatus({ status: 'error', mensagem: 'Erro de comunicação: ' + error });
     }
 }
 
-async function carregarClientes() {
+async function carregarClientes(forceSync = false) {
     const listaClientes = document.getElementById('listaClientes');
+
+    if (!forceSync) {
+        const cached = CacheAPI.get('cache_clientes');
+        if (cached) {
+            clientes = cached;
+            renderizarTabela(clientes);
+            return;
+        }
+    }
+
     listaClientes.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Carregando clientes...</td></tr>';
 
     try {
@@ -67,9 +86,14 @@ async function carregarClientes() {
         });
         const data = await response.json();
 
-        if (data.status === 'sucesso' && data.dados.length > 0) {
-            clientes = data.dados;
-            renderizarTabela(clientes);
+        if (data.status === 'sucesso' && data.dados) {
+            clientes = parseCompactData(data.dados);
+            CacheAPI.set('cache_clientes', clientes);
+            if (clientes.length > 0) {
+                renderizarTabela(clientes);
+            } else {
+                listaClientes.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Nenhum cliente cadastrado.</td></tr>';
+            }
         } else {
             listaClientes.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Nenhum cliente cadastrado.</td></tr>';
         }
@@ -146,7 +170,8 @@ async function excluirCliente(id) {
             const data = await response.json();
             exibirStatus(data);
             if (data.status === 'sucesso') {
-                await carregarClientes();
+                CacheAPI.clear('cache_clientes'); // Limpa o cache após exclusão
+                await carregarClientes(true);
             }
         } catch (error) {
             exibirStatus({ status: 'error', mensagem: 'Erro ao excluir o cliente: ' + error.message });
