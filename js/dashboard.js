@@ -31,8 +31,16 @@ async function carregarDadosDashboard() {
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('dashboard-content').classList.remove('hidden');
 
-        if (data.status === 'sucesso' && data.dados.length > 0) {
-            const vendas = data.dados;
+        if (data.status === 'sucesso' && data.dados) {
+            const vendas = parseCompactData(data.dados);
+            if (vendas.length === 0) {
+                exibirStatus({ status: 'info', mensagem: 'Nenhuma venda encontrada no período.' });
+                // Zerar KPIs
+                document.getElementById('totalVendas').textContent = 'R$ 0,00';
+                document.getElementById('totalTransacoes').textContent = '0';
+                document.getElementById('ticketMedio').textContent = 'R$ 0,00';
+                return;
+            }
 
             const totalVendas = vendas.reduce((acc, venda) => acc + (parseFloat(venda['Total com Desconto']) || 0), 0);
             const totalTransacoes = vendas.length;
