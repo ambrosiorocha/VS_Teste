@@ -86,25 +86,21 @@ function renderizarTabela(dadosParaRenderizar) {
     listaFornecedores.innerHTML = '';
 
     if (dadosParaRenderizar.length === 0) {
-        listaFornecedores.innerHTML = '<tr><td colspan="7" class="table-cell p-4 text-center">Nenhum fornecedor encontrado.</td></tr>';
+        listaFornecedores.innerHTML = '<tr><td colspan="7" class="td-empty">Nenhum fornecedor encontrado.</td></tr>';
         return;
     }
-
-    const trClasses = "table-row";
-    const tdClasses = "table-cell align-middle";
 
     dadosParaRenderizar.forEach(f => {
         const fornecedorId = f.id || f.ID;
         const row = document.createElement('tr');
-        row.className = trClasses;
         row.innerHTML = `
-            <td class="${tdClasses}">${fornecedorId}</td>
-            <td class="${tdClasses}">${f.nome || ''}</td>
-            <td class="${tdClasses}">${f.observacoes || ''}</td>
-            <td class="${tdClasses}">${f.telefone || ''}</td>
-            <td class="${tdClasses}">${f.email || ''}</td>
-            <td class="${tdClasses}">${f.produto || ''}</td>
-            <td class="${tdClasses}">
+            <td style="color:#94a3b8; font-size:0.78rem;">${fornecedorId}</td>
+            <td style="font-weight:500;">${f.nome || ''}</td>
+            <td>${f.observacoes || ''}</td>
+            <td>${f.telefone || ''}</td>
+            <td>${f.email || ''}</td>
+            <td>${f.produto || ''}</td>
+            <td>
                 <div class="action-buttons">
                     <button class="edit-btn" onclick="editarFornecedor(${fornecedorId})">Editar</button>
                     <button class="delete-btn" data-admin-btn onclick="excluirFornecedor(${fornecedorId})">Excluir</button>

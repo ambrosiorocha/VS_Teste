@@ -113,11 +113,6 @@
         .hist-table {
             font-size: 0.82rem;
         }
-
-        .hist-table th {
-            background: #f8fafc;
-            font-size: 0.78rem;
-        }
     </style>
     <link rel="manifest" href="manifest_v104.json">
     <meta name="apple-mobile-web-app-title" content="Gest�o&Controle">
@@ -378,9 +373,8 @@
                             onclick="filtrarHistoricoVendas()">Buscar</button>
                     </div>
                 </div>
-                <div class="overflow-x-auto w-full">
-                    <table class="w-full text-left"
-                        style="background:white; border:1px solid #e2e8f0; border-radius:0.75rem; overflow:hidden;">
+                <div class="table-scroll-wrapper" style="max-height: 500px;">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -396,7 +390,7 @@
                         </thead>
                         <tbody id="listaHistorico">
                             <tr>
-                                <td colspan="9" style="text-align:center; padding:1rem; color:#94a3b8;">Carregando...
+                                <td colspan="9" class="td-empty">Carregando...
                                 </td>
                             </tr>
                         </tbody>

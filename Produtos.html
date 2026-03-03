@@ -61,7 +61,7 @@
                     </div>
 
                     <!-- Linha 2: Campos de Preço e Margem (bidirecional) -->
-                    <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
+                    <div id="precificacaoBlock" class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
                         <p class="text-xs text-blue-700 font-semibold mb-3">💰 Precificação — preencha Custo + qualquer
                             campo de margem ou preço</p>
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -96,6 +96,26 @@
                         </div>
                     </div>
 
+                    <!-- Plano Básico: Cadeado de Precificação -->
+                    <div id="precificacaoLock" style="display:none;" class="mb-4">
+                        <div
+                            style="background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:0.5rem; padding:1rem 1.25rem; display:flex; align-items:center; gap:0.75rem;">
+                            <span style="font-size:1.5rem;">&#128274;</span>
+                            <div>
+                                <p style="font-size:0.82rem; font-weight:600; color:#475569; margin:0;">Cálculo de lucro
+                                    disponível no Plano Pro</p>
+                                <p style="font-size:0.75rem; color:#94a3b8; margin:0.15rem 0 0;">Informe apenas o Preço
+                                    de Venda abaixo para cadastrar o produto.</p>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label for="precoBasico" class="block text-sm font-medium text-blue-700 mb-1">Preço de Venda
+                                (R$) *</label>
+                            <input type="number" id="precoBasico" step="0.01" min="0" placeholder="Ex: 14,00"
+                                class="w-full p-2 border border-blue-300 rounded focus:ring-blue-500 focus:border-blue-500 bg-white font-semibold">
+                        </div>
+                    </div>
+
                     <!-- Linha 3: Descrição -->
                     <div class="mb-4">
                         <label for="descricao" class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
@@ -117,24 +137,24 @@
                     <button id="btnSincronizar"
                         class="btn bg-blue-600 hover:bg-blue-700 m-0 w-auto">Sincronizar</button>
                 </div>
-                <div class="overflow-x-auto w-full mb-4">
-                    <table class="w-full bg-white border border-gray-200 text-sm">
-                        <thead class="bg-gray-50">
+                <div class="table-scroll-wrapper" style="max-height: 500px;">
+                    <table class="data-table">
+                        <thead>
                             <tr>
-                                <th class="table-header">ID</th>
-                                <th class="table-header">Nome</th>
-                                <th class="table-header">Unid.</th>
-                                <th class="table-header">Custo</th>
-                                <th class="table-header">Margem%</th>
-                                <th class="table-header">Preço Venda</th>
-                                <th class="table-header">Estoque</th>
-                                <th class="table-header">Descrição</th>
-                                <th class="table-header w-24">Ações</th>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Unid.</th>
+                                <th class="col-custo">Custo</th>
+                                <th class="col-margem">Margem%</th>
+                                <th>Preço Venda</th>
+                                <th>Estoque</th>
+                                <th>Descrição</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="listaProdutos">
                             <tr>
-                                <td colspan="9" class="table-cell p-4 text-center">Carregando produtos...</td>
+                                <td colspan="9" class="td-empty">Carregando produtos...</td>
                             </tr>
                         </tbody>
                     </table>

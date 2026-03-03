@@ -92,9 +92,9 @@
                     <input type="text" id="pesquisa" placeholder="Nome ou CNPJ..."
                         class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
                 </div>
-                <div class="overflow-x-auto w-full mb-4">
-                    <table class="w-full bg-white border border-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="table-scroll-wrapper">
+                    <table class="data-table">
+                        <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Razão Social</th>
@@ -107,7 +107,7 @@
                         </thead>
                         <tbody id="listaFornecedores">
                             <tr>
-                                <td colspan="7" class="table-cell p-4 text-center">Carregando fornecedores...</td>
+                                <td colspan="7" class="td-empty">Carregando fornecedores...</td>
                             </tr>
                         </tbody>
                     </table>

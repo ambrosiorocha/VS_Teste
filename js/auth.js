@@ -3,7 +3,7 @@
 // Depende de: config.js (window.SCRIPT_URL)
 // ============================================================
 window.Auth = (function () {
-    const K = { user: 'sv_user', nivel: 'sv_nivel', ts: 'sv_ts' };
+    const K = { user: 'sv_user', nivel: 'sv_nivel', ts: 'sv_ts', plano: 'sv_plano' };
     const SESSION_MS = 8 * 3600 * 1000; // 8 horas
     let _cb = null;
 
@@ -20,11 +20,16 @@ window.Auth = (function () {
         return (Date.now() - ts) < SESSION_MS;
     }
 
-    function saveSession(nome, nivel) {
+    function saveSession(nome, nivel, plano) {
         localStorage.setItem(K.user, nome);
         localStorage.setItem(K.nivel, nivel);
+        localStorage.setItem(K.plano, plano || 'Pro');
         localStorage.setItem(K.ts, Date.now().toString());
     }
+
+    // Retorna o plano do usuário logado: 'Básico', 'Pro' ou 'Premium'
+    function getPlan() { return localStorage.getItem(K.plano) || 'Pro'; }
+    function isPlanBasico() { return getPlan().toLowerCase() === 'básico' || getPlan().toLowerCase() === 'basico'; }
 
     function logout() {
         [K.user, K.nivel, K.ts].forEach(k => localStorage.removeItem(k));
@@ -119,7 +124,7 @@ window.Auth = (function () {
             })
             .then(data => {
                 if (data.status === 'sucesso') {
-                    saveSession(data.nome, data.nivel);
+                    saveSession(data.nome, data.nivel, data.plano);
                     const ov = document.getElementById('loginOverlay');
                     if (ov) ov.remove();
                     if (_cb) _cb();
@@ -190,5 +195,5 @@ window.Auth = (function () {
         }
     }
 
-    return { getUser, getNivel, isAdmin, isLoggedIn, logout, requireAdmin, applyUI, updateBadge, init, _doLogin };
+    return { getUser, getNivel, getPlan, isPlanBasico, isAdmin, isLoggedIn, logout, requireAdmin, applyUI, updateBadge, init, _doLogin };
 })();

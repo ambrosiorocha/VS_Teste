@@ -19,8 +19,37 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // === Gate de Plano: Ocultar precificação para plano Básico ===
+    if (typeof Auth !== 'undefined' && Auth.isPlanBasico()) {
+        aplicarGatePlanBasico();
+    }
+
     carregarProdutos();
 });
+
+function aplicarGatePlanBasico() {
+    // Oculta bloco de custo/margem e mostra cadeado
+    const bloco = document.getElementById('precificacaoBlock');
+    const lock = document.getElementById('precificacaoLock');
+    if (bloco) bloco.style.display = 'none';
+    if (lock) lock.style.display = 'block';
+
+    // Remove 'required' dos campos ocultos para não bloquear o form
+    ['precoCusto', 'margemPct', 'margemRS'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.removeAttribute('required');
+    });
+
+    // Sincroniza campo precoBasico ↔ preco
+    const precoBasico = document.getElementById('precoBasico');
+    const precoMain = document.getElementById('preco');
+    if (precoBasico && precoMain) {
+        precoBasico.addEventListener('input', () => { precoMain.value = precoBasico.value; });
+    }
+
+    // Oculta colunas de custo e margem no <thead>
+    document.querySelectorAll('.col-custo, .col-margem').forEach(th => th.style.display = 'none');
+}
 
 function exibirStatus(resposta) {
     var statusMessage = document.getElementById('statusMessage');
@@ -112,8 +141,10 @@ function renderizarTabela(produtosParaRenderizar) {
     const listaProdutos = document.getElementById('listaProdutos');
     listaProdutos.innerHTML = '';
 
+    const isBasico = typeof Auth !== 'undefined' && Auth.isPlanBasico();
+
     if (produtosParaRenderizar.length === 0) {
-        listaProdutos.innerHTML = '<tr><td colspan="9" class="table-cell p-4 text-center">Nenhum produto encontrado.</td></tr>';
+        listaProdutos.innerHTML = `<tr><td colspan="${isBasico ? 7 : 9}" class="td-empty">Nenhum produto encontrado.</td></tr>`;
         return;
     }
 
@@ -123,22 +154,20 @@ function renderizarTabela(produtosParaRenderizar) {
         const margemPct = parseFloat(String(produto['Margem_de_lucro(%)'] || 0).replace('%', '').replace(',', '.').trim()) || 0;
         const id = produto['ID do Produto'];
 
-        const row = document.createElement('tr');
-        row.className = idx % 2 === 0 ? '' : 'bg-gray-50';
-        row.style.cssText = 'transition: background 0.15s;';
-        row.onmouseover = () => row.style.background = '#eff6ff';
-        row.onmouseout = () => row.style.background = idx % 2 === 0 ? '' : '#f9fafb';
+        const custoCel = isBasico ? '' : `<td style="text-align:right; color:#64748b;">${precoCusto > 0 ? 'R$ ' + precoCusto.toFixed(2).replace('.', ',') : '-'}</td>`;
+        const margemCel = isBasico ? '' : `<td style="text-align:center; ${margemPct > 0 ? 'color:#15803d; font-weight:600;' : 'color:#94a3b8;'}">${margemPct > 0 ? margemPct.toFixed(1) + '%' : '-'}</td>`;
 
+        const row = document.createElement('tr');
         row.innerHTML = `
-            <td class="table-cell px-3 py-2 text-xs text-gray-500">${id}</td>
-            <td class="table-cell px-3 py-2 font-medium">${produto.Nome || ''}</td>
-            <td class="table-cell px-3 py-2 text-center">${produto['Unidade de Venda'] || ''}</td>
-            <td class="table-cell px-3 py-2 text-right text-gray-600">${precoCusto > 0 ? 'R$ ' + precoCusto.toFixed(2).replace('.', ',') : '-'}</td>
-            <td class="table-cell px-3 py-2 text-center ${margemPct > 0 ? 'text-green-700 font-semibold' : 'text-gray-400'}">${margemPct > 0 ? margemPct.toFixed(1) + '%' : '-'}</td>
-            <td class="table-cell px-3 py-2 text-right font-semibold text-blue-700">R$ ${precoVenda.toFixed(2).replace('.', ',')}</td>
-            <td class="table-cell px-3 py-2 text-center">${produto.Quantidade ?? ''}</td>
-            <td class="table-cell px-3 py-2 text-gray-500 text-xs">${produto.Descrição || ''}</td>
-            <td class="table-cell px-3 py-2">
+            <td style="color:#94a3b8; font-size:0.78rem;">${id}</td>
+            <td style="font-weight:500;">${produto.Nome || ''}</td>
+            <td style="text-align:center;">${produto['Unidade de Venda'] || ''}</td>
+            ${custoCel}
+            ${margemCel}
+            <td style="text-align:right; font-weight:600; color:#1d4ed8;">R$ ${precoVenda.toFixed(2).replace('.', ',')}</td>
+            <td style="text-align:center;">${produto.Quantidade ?? ''}</td>
+            <td style="color:#94a3b8; font-size:0.78rem;">${produto.Descrição || ''}</td>
+            <td>
                 <div class="action-buttons">
                     <button class="edit-btn" onclick="editarProduto(${id})">Editar</button>
                     <button class="delete-btn" data-admin-btn onclick="excluirProduto(${id})">Excluir</button>

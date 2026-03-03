@@ -474,7 +474,7 @@ async function confirmarVenda() {
 // ================================
 async function carregarHistoricoVendas(filtros = null, msgCarregando = 'Carregando...') {
     const tbody = document.getElementById('listaHistorico');
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:1rem;color:#94a3b8;">${msgCarregando}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" class="td-empty">${msgCarregando}</td></tr>`;
     try {
         const payload = { action: 'obterVendas' };
         if (filtros) payload.data = filtros;
@@ -505,27 +505,32 @@ async function carregarHistoricoVendas(filtros = null, msgCarregando = 'Carregan
                        <div class="items-detail">${itens.split(', ').join('<br>')}</div>`
                     : '';
 
-                // Badge de status
+                // Botão WhatsApp
+                const whatsappBtn = `<button title="Enviar pelo WhatsApp" style="background:none;border:1px solid #22c55e;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:13px;color:#16a34a;" onclick="enviarWhatsApp(${id},'${encodeURIComponent(cliente)}','${encodeURIComponent(itensJSON)}',${total},'${dataV}')">&#128121;</button>`;
+
                 let statusBadge = '';
                 let acoes = '';
                 if (status === 'Pendente') {
-                    statusBadge = `<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">🕐 Pendente</span>`;
+                    statusBadge = `<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">&#128336; Pendente</span>`;
                     acoes = `
-                        <button class="edit-btn" style="font-size:11px;" onclick="editarRascunho(${id}, '${encodeURIComponent(itensJSON)}')">✏️ Editar</button>
-                        <button class="edit-btn" style="background:#16a34a;font-size:11px;" onclick="abrirModalFinalizarPendente(${id}, '${encodeURIComponent(itensJSON)}')">✅ Finalizar</button>
-                        <button class="delete-btn" style="font-size:11px;" data-admin-btn onclick="excluirVenda(${id})">🗑</button>
+                        <button class="edit-btn" style="font-size:11px;" onclick="editarRascunho(${id}, '${encodeURIComponent(itensJSON)}')">&#9999;&#65039; Editar</button>
+                        <button class="edit-btn" style="background:#16a34a;font-size:11px;" onclick="abrirModalFinalizarPendente(${id}, '${encodeURIComponent(itensJSON)}')">&#9989; Finalizar</button>
+                        <button class="delete-btn" style="font-size:11px;" data-admin-btn onclick="excluirVenda(${id})">&#128465;</button>
                     `;
                 } else if (status === 'Concluda' || status === '') {
-                    statusBadge = `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">✅ Concluída</span>`;
+                    statusBadge = `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">&#9989; Concluída</span>`;
                     acoes = `
                         <button title="Reimprimir cupom" style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;"
-                            onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">🖨️</button>
-                        <button class="delete-btn" style="background:#f59e0b;color:#fff;font-size:11px;" data-admin-btn onclick="confirmarEstorno(${id})">↩️ Estornar</button>
+                            onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">&#128424;&#65039;</button>
+                        ${whatsappBtn}
+                        <button class="delete-btn" style="background:#f59e0b;color:#fff;font-size:11px;" data-admin-btn onclick="confirmarEstorno(${id})">&#8617;&#65039; Estornar</button>
                     `;
                 } else if (status === 'Estornada') {
-                    statusBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">↩️ Estornada</span>`;
-                    acoes = `<button title="Reimprimir cupom" style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;"
-                        onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">🖨️</button>`;
+                    statusBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">&#8617;&#65039; Estornada</span>`;
+                    acoes = `
+                        <button title="Reimprimir cupom" style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;"
+                            onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">&#128424;&#65039;</button>
+                        ${whatsappBtn}`;
                 }
 
 
@@ -545,11 +550,11 @@ async function carregarHistoricoVendas(filtros = null, msgCarregando = 'Carregan
             });
             if (typeof Auth !== 'undefined') Auth.applyUI();
         } else {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:1rem;">${data.mensagem || 'Nenhuma venda encontrada.'}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" class="td-empty">${data.mensagem || 'Nenhuma venda encontrada.'}</td></tr>`;
         }
     } catch (e) {
         console.error('Erro histórico:', e);
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#ef4444;padding:1rem;">Erro ao carregar histórico: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="td-empty" style="color:#ef4444;">Erro ao carregar histórico: ${e.message}</td></tr>`;
     }
 }
 
@@ -775,4 +780,48 @@ function imprimirCupomAgora() {
     win.document.close();
     win.focus();
     setTimeout(() => { win.print(); win.close(); }, 300);
+}
+
+// ================================
+// WHATSAPP COMPROVANTE
+// ================================
+function enviarWhatsApp(id, clienteEnc, itensJSONEnc, total, dataV) {
+    const cliente = decodeURIComponent(clienteEnc);
+    const fmtBRL = v => 'R$ ' + parseFloat(v).toFixed(2).replace('.', ',');
+    const isBasico = typeof Auth !== 'undefined' && Auth.isPlanBasico();
+
+    let msg = '';
+
+    if (isBasico) {
+        // Mensagem simples para plano Básico
+        msg = `Pedido #${id} - Total ${fmtBRL(total)}. Obrigado pela preferência!`;
+    } else {
+        // Mensagem rica para Pro/Premium
+        let itens = [];
+        try { itens = JSON.parse(decodeURIComponent(itensJSONEnc)); } catch (e) { }
+
+        const linha = '------------------------------';
+        const itensLista = itens.length > 0
+            ? itens.map(i => `  • ${i.nome} x${i.quantidade} = ${fmtBRL(i.subtotal)}`).join('\n')
+            : '  (itens não disponíveis)';
+
+        msg = [
+            `*Gestão&Controle - Comprovante de Venda*`,
+            linha,
+            `🛒 *Pedido:* #${id}`,
+            `📅 *Data:* ${dataV}`,
+            `👤 *Cliente:* ${cliente}`,
+            `✅ *Status:* Concluída`,
+            linha,
+            `🛎️ *Itens:*`,
+            itensLista,
+            linha,
+            `💰 *Total:* ${fmtBRL(total)}`,
+            linha,
+            `🙏 Obrigado pela preferência!`
+        ].join('\n');
+    }
+
+    const encoded = encodeURIComponent(msg);
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
 }
