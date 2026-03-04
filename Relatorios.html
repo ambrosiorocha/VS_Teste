@@ -3,52 +3,335 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Relatórios</title>
+    <title>Gestão&Controle - Relatórios</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="manifest" href="manifest_v104.json">
-    <meta name="apple-mobile-web-app-title" content="Gest�o&Controle">
+    <meta name="apple-mobile-web-app-title" content="Gestão&Controle">
     <meta name="theme-color" content="#16a34a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="version" content="1.0.0">
+    <style>
+        /* ===== RELATÓRIOS ESTRATÉGICO ===== */
+        .report-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 1.75rem;
+        }
+
+        .report-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .report-header-left img {
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .report-title-group h1 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin: 0;
+            text-align: left;
+        }
+
+        .report-title-group p {
+            font-size: 0.72rem;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* ===== PRIVACY TOGGLE ===== */
+        .privacy-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.45rem 0.9rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 0.6rem;
+            background: #f8fafc;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #475569;
+            transition: all 0.18s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .privacy-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+
+        .privacy-btn.active {
+            background: #1e293b;
+            border-color: #1e293b;
+            color: #f8fafc;
+        }
+
+        .privacy-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            flex-shrink: 0;
+        }
+
+        /* ===== KPI CARDS ===== */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .kpi-card-rep {
+            background: #fff;
+            padding: 1.1rem 1.25rem;
+            border-radius: 0.875rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .kpi-card-rep .kpi-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.4rem;
+        }
+
+        .kpi-card-rep .kpi-value {
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1;
+            transition: filter 0.2s ease;
+        }
+
+        .kpi-card-rep .kpi-icon {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Privacy mask */
+        .privacy-mode .kpi-value {
+            filter: blur(8px);
+            user-select: none;
+        }
+
+        /* ===== CHART CARDS ===== */
+        .chart-card {
+            background: #fff;
+            border-radius: 0.875rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .chart-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            margin-bottom: 1.1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .chart-card-header h3 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #334155;
+            margin: 0;
+        }
+
+        .chart-card-header .chart-pill {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .chart-card canvas {
+            max-height: 260px;
+        }
+
+        /* ===== PLAN BADGE ===== */
+        .plan-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 0.22rem 0.65rem;
+            border-radius: 999px;
+            letter-spacing: 0.04em;
+        }
+
+        .plan-badge.pro {
+            background: #ede9fe;
+            color: #7c3aed;
+        }
+
+        .plan-badge.premium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* ===== UPGRADE WALL ===== */
+        .upgrade-wall {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 3rem 2rem;
+            gap: 1rem;
+        }
+
+        .upgrade-wall-icon {
+            font-size: 3rem;
+            line-height: 1;
+        }
+
+        .upgrade-wall h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .upgrade-wall p {
+            font-size: 0.85rem;
+            color: #64748b;
+            max-width: 320px;
+            margin: 0;
+        }
+
+        .upgrade-wall .upgrade-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.5rem;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            border-radius: 0.625rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+            transition: transform 0.15s ease;
+        }
+
+        .upgrade-cta:hover {
+            transform: translateY(-2px);
+        }
+    </style>
 </head>
 
 <body>
 
     <main class="main-content p-4 md:p-8 overflow-y-auto">
         <div class="container">
-            <h2>Relatórios de Vendas</h2>
+
+            <!-- ── Header ─────────────────────────────────── -->
+            <div class="report-header">
+                <div class="report-header-left">
+                    <img src="assets/logo.png" alt="Logo">
+                    <div class="report-title-group">
+                        <h1>Relatórios Estratégicos</h1>
+                        <p id="planBadgeWrap">Carregando...</p>
+                    </div>
+                </div>
+                <!-- Privacy Toggle -->
+                <button class="privacy-btn" id="privacyToggle" onclick="togglePrivacy()" title="Modo Privacidade"
+                    style="display:none;">
+                    <svg id="eyeIcon" viewBox="0 0 24 24">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <span id="privacyLabel">Ocultar valores</span>
+                </button>
+            </div>
+
+            <!-- ── Upgrade Wall (Básico) ───────────────────── -->
+            <div id="upgradeWall" class="upgrade-wall">
+                <div class="upgrade-wall-icon">🔒</div>
+                <h2>Relatórios Estratégicos</h2>
+                <p>Os dashboards e gráficos de performance estão disponíveis apenas nos planos <strong>Pro</strong> e
+                    <strong>Premium</strong>.</p>
+                <a href="#" class="upgrade-cta">
+                    ⭐ Fazer Upgrade do Plano
+                </a>
+            </div>
 
             <div id="loading" class="text-center text-gray-500 mb-6">Carregando dados...</div>
 
+            <!-- ── Report Content (Pro/Premium) ────────────── -->
             <div id="report-content" class="hidden">
-                <div class="kpi-grid">
-                    <div class="kpi-card">
-                        <h4>Venda Total</h4>
-                        <p id="totalVendas">R$ 0,00</p>
+
+                <!-- KPI Row -->
+                <div class="kpi-row" id="kpiRow">
+                    <div class="kpi-card-rep">
+                        <div class="kpi-icon">💰</div>
+                        <div class="kpi-label">Receita Total</div>
+                        <div class="kpi-value" id="totalVendas">R$ 0,00</div>
                     </div>
-                    <div class="kpi-card">
-                        <h4>Total de Transações</h4>
-                        <p id="totalTransacoes">0</p>
+                    <div class="kpi-card-rep">
+                        <div class="kpi-icon">🧾</div>
+                        <div class="kpi-label">Total Transações</div>
+                        <div class="kpi-value" id="totalTransacoes">0</div>
                     </div>
-                    <div class="kpi-card">
-                        <h4>Ticket Médio</h4>
-                        <p id="ticketMedio">R$ 0,00</p>
+                    <div class="kpi-card-rep">
+                        <div class="kpi-icon">🎯</div>
+                        <div class="kpi-label">Ticket Médio</div>
+                        <div class="kpi-value" id="ticketMedio">R$ 0,00</div>
+                    </div>
+                    <div class="kpi-card-rep" id="kpiLucroWrap" style="display:none;">
+                        <div class="kpi-icon">📈</div>
+                        <div class="kpi-label">Lucro Estimado</div>
+                        <div class="kpi-value" id="lucroEstimado">R$ 0,00</div>
                     </div>
                 </div>
 
-                <div class="report-card">
-                    <h3 class="font-semibold text-lg mb-4">Vendas por Mês</h3>
+                <!-- Chart: Vendas por Mês -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h3>Vendas por Mês</h3>
+                        <span class="chart-pill">12 meses</span>
+                    </div>
                     <canvas id="vendasPorMesChart"></canvas>
                 </div>
 
-                <div class="report-card">
-                    <h3 class="font-semibold text-lg mb-4">Vendas por Produto</h3>
+                <!-- Chart: Vendas por Produto -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h3>Distribuição por Produto</h3>
+                        <span class="chart-pill">Top produtos</span>
+                    </div>
                     <canvas id="vendasPorProdutoChart"></canvas>
                 </div>
+
             </div>
 
             <div id="statusMessage"></div>
@@ -57,9 +340,9 @@
 
     <script src="js/config.js?v=1772539452270"></script>
     <script src="js/auth.js?v=1772539452270"></script>
-    <script>Auth.requireAdmin();</script>
     <script src="js/main.js?v=1772539452270"></script>
     <script src="js/relatorios.js?v=1772539452270"></script>
+
 </body>
 
 </html>

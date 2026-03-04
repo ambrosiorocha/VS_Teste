@@ -662,32 +662,42 @@ function excluirDadosGeral(nomePlanilha, id) {
 
 // ==================================================
 // CONFIGURAÇÕES — Operadores/Usuários Autorizados
-// Aba: "Configurações" | Colunas: Nome | Nível | Senha
+// Aba: "Configurações" | Colunas: Nome | Nível | Senha | Plano
 // ==================================================
 function obterConfiguracoes() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('Configurações');
   if (!sheet) {
     sheet = ss.insertSheet('Configurações');
-    sheet.appendRow(['Nome', 'Nível', 'Senha']);
-    sheet.appendRow(['Administrador', 'Admin', 'admin123']);
-    sheet.appendRow(['Operador 1', 'Operador', '1234']);
-    sheet.getRange(1, 1, 1, 3).setFontWeight('bold');
+    sheet.appendRow(['Nome', 'Nível', 'Senha', 'Plano']);
+    sheet.appendRow(['Administrador', 'Admin', 'admin123', 'Premium']);
+    sheet.appendRow(['Operador 1', 'Operador', '1234', 'Pro']);
+    sheet.getRange(1, 1, 1, 4).setFontWeight('bold');
   } else {
-    // Corrige planilha antiga que só tinha a coluna 'Nome'
     var lr = sheet.getLastRow();
     var lc = sheet.getLastColumn();
+    // Garante coluna Plano (D) se não existir
+    if (lc < 4) {
+      sheet.getRange(1, 4).setValue('Plano').setFontWeight('bold');
+      if (lr > 1) {
+        for (var i = 2; i <= lr; i++) {
+          if (!sheet.getRange(i, 4).getValue()) {
+            sheet.getRange(i, 4).setValue('Pro');
+          }
+        }
+      }
+    }
+    // Garante colunas Nível e Senha (retrocompatibilidade)
     if (lc < 3) {
       if (lc === 1) {
-        sheet.getRange("B1").setValue("Nível");
-        sheet.getRange("C1").setValue("Senha");
+        sheet.getRange('B1').setValue('Nível');
+        sheet.getRange('C1').setValue('Senha');
         if (lr > 1) {
-          // Preenche os níveis/senhas faltantes
           var nomes = sheet.getRange(2, 1, lr - 1, 1).getValues();
-          for (var i = 0; i < nomes.length; i++) {
-             var isAdm = (String(nomes[i][0]).toLowerCase() === 'administrador');
-             sheet.getRange(i + 2, 2).setValue(isAdm ? 'Admin' : 'Operador');
-             sheet.getRange(i + 2, 3).setValue(isAdm ? 'admin123' : '1234');
+          for (var j = 0; j < nomes.length; j++) {
+            var isAdm = (String(nomes[j][0]).toLowerCase() === 'administrador');
+            sheet.getRange(j + 2, 2).setValue(isAdm ? 'Admin' : 'Operador');
+            sheet.getRange(j + 2, 3).setValue(isAdm ? 'admin123' : '1234');
           }
         }
       }
@@ -697,29 +707,42 @@ function obterConfiguracoes() {
   return sheet;
 }
 
-// Retorna lista de {nome, nivel} — SEM senhas
+// Retorna lista de {nome, nivel, plano} — SEM senhas
 function obterOperadores() {
   var sheet = obterConfiguracoes();
-  if (sheet.getLastRow() < 2) return [{ nome: 'Administrador', nivel: 'Admin' }];
-  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues();
+  if (sheet.getLastRow() < 2) return [{ nome: 'Administrador', nivel: 'Admin', plano: 'Pro' }];
+  var cols = Math.min(sheet.getLastColumn(), 4);
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, cols).getValues();
   return rows
     .filter(function(r) { return String(r[0]).trim() !== '' && String(r[0]).trim() !== 'Nome'; })
-    .map(function(r) { return { nome: String(r[0]).trim(), nivel: String(r[1]).trim() || 'Operador' }; });
+    .map(function(r) {
+      return {
+        nome:  String(r[0]).trim(),
+        nivel: String(r[1] || 'Operador').trim(),
+        plano: String(r[3] || 'Pro').trim()
+      };
+    });
 }
 
-// Autentica operador com senha — responde sem expor a senha
+// Autentica operador com senha — retorna nome, nivel e plano (sem senha)
 function autenticarOperador(dados) {
   if (!dados || !dados.nome) return { status: 'erro', mensagem: 'Nome inválido.' };
   var nome  = String(dados.nome).trim();
   var senha = String(dados.senha || '');
   var sheet = obterConfiguracoes();
   if (sheet.getLastRow() < 2) return { status: 'erro', mensagem: 'Nenhum operador cadastrado.' };
-  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 3).getValues();
+  var cols = Math.min(sheet.getLastColumn(), 4);
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, cols).getValues();
   for (var i = 0; i < rows.length; i++) {
     if (String(rows[i][0]).trim() === nome) {
       var senhaCad = String(rows[i][2]);
       if (senha === senhaCad) {
-        return { status: 'sucesso', nome: nome, nivel: String(rows[i][1]).trim() || 'Operador' };
+        return {
+          status: 'sucesso',
+          nome:   nome,
+          nivel:  String(rows[i][1] || 'Operador').trim(),
+          plano:  String(rows[i][3] || 'Pro').trim()
+        };
       } else {
         return { status: 'erro', mensagem: 'Senha incorreta.' };
       }
@@ -736,11 +759,12 @@ function salvarOperador(dados) {
   var nome  = String(dados.nome).trim();
   var nivel = String(dados.nivel || 'Operador').trim();
   var senha = String(dados.senha || '1234');
+  var plano = String(dados.plano || 'Pro').trim();
   if (sheet.getLastRow() > 1) {
     var existentes = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().map(function(r){ return r[0]; });
     if (existentes.indexOf(nome) > -1) return { status: 'erro', mensagem: 'Operador "' + nome + '" já existe.' };
   }
-  sheet.appendRow([nome, nivel, senha]);
+  sheet.appendRow([nome, nivel, senha, plano]);
   return { status: 'sucesso', mensagem: 'Operador "' + nome + '" adicionado!' };
 }
 

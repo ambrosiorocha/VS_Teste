@@ -420,3 +420,35 @@ input[type="number"] {
 .items-detail.open {
     display: block;
 }
+
+/* ===== PLAN BADGES (Relatórios) ===== */
+.plan-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.22rem 0.65rem;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    font-family: 'Poppins', sans-serif;
+}
+
+.plan-badge.pro {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.plan-badge.premium {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* ===== STATUS BADGE (inline text) ===== */
+.badge-status {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}

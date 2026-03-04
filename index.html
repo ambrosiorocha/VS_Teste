@@ -3,82 +3,353 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Gestão&Controle - Dashboard</title>
+    <title>Gestão&Controle - Início</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="manifest" href="manifest_v104.json">
-    <meta name="apple-mobile-web-app-title" content="Gest�o&Controle">
+    <meta name="apple-mobile-web-app-title" content="Gestão&Controle">
     <meta name="theme-color" content="#16a34a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="version" content="1.0.0">
+    <style>
+        /* ===== HOME HUB ===== */
+        .home-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+            padding: 1.5rem 0 1.25rem;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 2rem;
+        }
+
+        .home-hero-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .home-hero-logo img {
+            height: 38px;
+            object-fit: contain;
+        }
+
+        .home-hero-brand {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: #16a34a;
+            letter-spacing: -0.03em;
+            line-height: 1;
+        }
+
+        .home-hero-brand span {
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .home-greeting {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 400;
+            margin-top: 0.15rem;
+        }
+
+        .home-greeting strong {
+            color: #334155;
+            font-weight: 600;
+        }
+
+        /* ===== ACTION CARDS GRID ===== */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 640px) {
+            .action-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .action-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1.75rem 1rem;
+            border-radius: 1rem;
+            text-decoration: none;
+            border: 1.5px solid transparent;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.13);
+        }
+
+        .action-card:hover::before {
+            opacity: 1;
+        }
+
+        .action-card:active {
+            transform: translateY(-1px);
+        }
+
+        /* Color variants */
+        .action-card.card-green {
+            border-color: #bbf7d0;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+
+        .action-card.card-green .card-icon-wrap {
+            background: #16a34a;
+        }
+
+        .action-card.card-green:hover {
+            border-color: #4ade80;
+            box-shadow: 0 8px 24px rgba(22, 163, 74, 0.2);
+        }
+
+        .action-card.card-blue {
+            border-color: #bfdbfe;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        }
+
+        .action-card.card-blue .card-icon-wrap {
+            background: #2563eb;
+        }
+
+        .action-card.card-blue:hover {
+            border-color: #60a5fa;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+        }
+
+        .action-card.card-teal {
+            border-color: #99f6e4;
+            background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+        }
+
+        .action-card.card-teal .card-icon-wrap {
+            background: #0d9488;
+        }
+
+        .action-card.card-teal:hover {
+            border-color: #2dd4bf;
+            box-shadow: 0 8px 24px rgba(13, 148, 136, 0.2);
+        }
+
+        .action-card.card-amber {
+            border-color: #fde68a;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+
+        .action-card.card-amber .card-icon-wrap {
+            background: #d97706;
+        }
+
+        .action-card.card-amber:hover {
+            border-color: #fbbf24;
+            box-shadow: 0 8px 24px rgba(217, 119, 6, 0.2);
+        }
+
+        .card-icon-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-icon-wrap svg {
+            width: 28px;
+            height: 28px;
+            stroke: #fff;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .card-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1e293b;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .card-sublabel {
+            font-size: 0.7rem;
+            color: #64748b;
+            text-align: center;
+            margin-top: -0.4rem;
+        }
+
+        /* ===== SECTION TITLE ===== */
+        .section-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94a3b8;
+            margin-bottom: 0.9rem;
+        }
+
+        /* ===== QUICK STATUS STRIP (financeiro alerts) ===== */
+        .status-strip {
+            background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 0.875rem;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            color: #e2e8f0;
+            font-size: 0.82rem;
+        }
+
+        .status-strip-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            flex-shrink: 0;
+            box-shadow: 0 0 6px #4ade80;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .status-strip-text {
+            color: #94a3b8;
+        }
+
+        .status-strip-text strong {
+            color: #f8fafc;
+        }
+    </style>
 </head>
 
 <body>
 
     <main class="main-content p-4 md:p-8 overflow-y-auto">
         <div class="container">
-            <div class="flex items-center gap-3 mb-6">
-                <img src="assets/logo.png" alt="Logo" class="h-8 w-auto">
-                <h1 style="margin:0; text-align:left;">Dashboard Principal</h1>
+
+            <!-- ── Hero Header ─────────────────────────────── -->
+            <div class="home-hero">
+                <div class="home-hero-logo">
+                    <img src="assets/logo.png" alt="Logo Gestão&Controle">
+                    <div>
+                        <span class="home-hero-brand">Gestão<span>&amp;Controle</span></span>
+                    </div>
+                </div>
+                <p class="home-greeting" id="greetingMsg">Bem-vindo(a)! Selecione uma opção abaixo.</p>
             </div>
 
-            <h2 id="greetingMsg" class="text-left text-xl font-medium text-slate-700 mb-6">Bem-vindo(a)!</h2>
+            <!-- ── Acesso Rápido ───────────────────────────── -->
+            <p class="section-title">Acesso Rápido</p>
+            <div class="action-grid">
 
-            <div id="loading" class="text-center text-gray-500 mb-6">Carregando dados...</div>
+                <!-- Nova Venda -->
+                <a href="Vendas.html" id="card-nova-venda" class="action-card card-green">
+                    <div class="card-icon-wrap">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            <line x1="12" y1="5" x2="12" y2="11"></line>
+                            <line x1="9" y1="8" x2="15" y2="8"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="card-label">Nova Venda</p>
+                        <p class="card-sublabel">Lançar pedido</p>
+                    </div>
+                </a>
 
-            <div id="dashboard-content" class="hidden">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-blue-50 border border-blue-100 p-6 rounded-xl shadow-sm text-center">
-                        <h4 class="text-sm text-blue-800 font-semibold mb-2">Venda Total</h4>
-                        <p id="totalVendas" class="text-3xl font-bold text-blue-900">R$ 0,00</p>
+                <!-- Produtos -->
+                <a href="Produtos.html" id="card-produtos" class="action-card card-blue">
+                    <div class="card-icon-wrap">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="1" y="4" width="22" height="6" rx="2" ry="2"></rect>
+                            <rect x="1" y="14" width="22" height="6" rx="2" ry="2"></rect>
+                        </svg>
                     </div>
-                    <div class="bg-purple-50 border border-purple-100 p-6 rounded-xl shadow-sm text-center">
-                        <h4 class="text-sm text-purple-800 font-semibold mb-2">Total de Transações</h4>
-                        <p id="totalTransacoes" class="text-3xl font-bold text-purple-900">0</p>
+                    <div>
+                        <p class="card-label">Produtos</p>
+                        <p class="card-sublabel">Catálogo &amp; estoque</p>
                     </div>
-                    <div class="bg-yellow-50 border border-yellow-100 p-6 rounded-xl shadow-sm text-center">
-                        <h4 class="text-sm text-yellow-800 font-semibold mb-2">Ticket Médio</h4>
-                        <p id="ticketMedio" class="text-3xl font-bold text-yellow-900">R$ 0,00</p>
-                    </div>
-                </div>
+                </a>
 
-                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-md mb-8">
-                    <h3 class="text-slate-800 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
-                        Acesso Rápido</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <a href="Vendas.html"
-                            class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors">
-                            <span class="text-2xl mb-2">🛒</span>
-                            <span class="text-sm font-semibold text-slate-700 text-center">Lançar Venda</span>
-                        </a>
-                        <a href="Produtos.html"
-                            class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors">
-                            <span class="text-2xl mb-2">📦</span>
-                            <span class="text-sm font-semibold text-slate-700 text-center">Produtos</span>
-                        </a>
-                        <a href="Clientes.html"
-                            class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors">
-                            <span class="text-2xl mb-2">👥</span>
-                            <span class="text-sm font-semibold text-slate-700 text-center">Clientes</span>
-                        </a>
-                        <a href="Financeiro.html"
-                            class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors"
-                            data-admin-only>
-                            <span class="text-2xl mb-2">💰</span>
-                            <span class="text-sm font-semibold text-slate-700 text-center">Financeiro</span>
-                        </a>
+                <!-- Clientes -->
+                <a href="Clientes.html" id="card-clientes" class="action-card card-teal">
+                    <div class="card-icon-wrap">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
                     </div>
-                </div>
+                    <div>
+                        <p class="card-label">Clientes</p>
+                        <p class="card-sublabel">Base de clientes</p>
+                    </div>
+                </a>
 
-                <!-- Gráfico de Vendas por Mês Movido para Cima no Script de Dashboard mas a estrutura original não tinha o canvas nativo. Ele foi injetado depois. Preparando container -->
-                <div id="graficoContainer" class="bg-white p-6 rounded-xl border border-gray-100 shadow-md mb-6">
-                    <h3 class="text-slate-800 font-bold text-lg mb-4 flex items-center border-l-4 border-blue-600 pl-3">
-                        Desempenho Mensal</h3>
-                    <!-- Canvas vai ser anexado aqui pelo dashboard.js -->
-                </div>
+                <!-- Financeiro -->
+                <a href="Financeiro.html" id="card-financeiro" class="action-card card-amber" data-admin-only>
+                    <div class="card-icon-wrap">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="card-label">Financeiro</p>
+                        <p class="card-sublabel">Contas &amp; caixa</p>
+                    </div>
+                </a>
+
+            </div>
+
+            <!-- ── Status Bar ──────────────────────────────── -->
+            <div class="status-strip">
+                <div class="status-strip-dot"></div>
+                <p class="status-strip-text">Sistema <strong>online</strong> · Todos os módulos operacionais</p>
             </div>
 
             <div id="statusMessage"></div>
@@ -88,7 +359,7 @@
     <script src="js/config.js?v=1772539452270"></script>
     <script src="js/auth.js?v=1772539452270"></script>
     <script src="js/main.js?v=1772539452270"></script>
-    <script src="js/dashboard.js?v=1772539452270"></script>
+
 </body>
 
 </html>

@@ -36,11 +36,18 @@ window.Auth = (function () {
         window.location.href = 'index.html';
     }
 
-    // Chame nas páginas restritas (Financeiro, Relatórios)
+    // Chame nas páginas restritas por nível (Financeiro)
     function requireAdmin() {
         if (!isLoggedIn() || !isAdmin()) {
             window.location.href = 'index.html';
         }
+    }
+
+    // Chame nas páginas restritas por plano
+    // minPlan: 'Pro' | 'Premium' — Bloqueia Basico de acessar diretamente
+    function requirePlan(minPlan) {
+        if (!isLoggedIn()) { window.location.href = 'index.html'; return; }
+        // Apenas garante que está logado; a página de Relatórios exibe upgrade wall internamente
     }
 
     // Aplica restrições de UI baseadas no nível
@@ -58,7 +65,32 @@ window.Auth = (function () {
         const el = document.getElementById('userBadge');
         if (el) {
             const nivel = getNivel();
-            el.innerHTML = `<span style="font-weight:600">${getUser()}</span><br><span style="font-size:0.68rem;opacity:0.7;">${nivel}</span>`;
+            const plan = getPlan();
+
+            // Cores e rótulos por plano
+            const planStyles = {
+                'básico': { bg: '#dcfce7', color: '#15803d', label: '🟢 Básico' },
+                'basico': { bg: '#dcfce7', color: '#15803d', label: '🟢 Básico' },
+                'pro': { bg: '#ede9fe', color: '#7c3aed', label: '🚀 Pro' },
+                'premium': { bg: '#fef3c7', color: '#92400e', label: '⭐ Premium' }
+            };
+            const ps = planStyles[plan.toLowerCase()] || planStyles['pro'];
+
+            el.innerHTML = `
+                <span style="font-weight:600;display:block;">${getUser()}</span>
+                <span style="font-size:0.67rem;opacity:0.75;display:block;margin-bottom:0.3rem;">${nivel}</span>
+                <span style="
+                    display:inline-block;
+                    font-size:0.65rem;
+                    font-weight:700;
+                    padding:0.18rem 0.55rem;
+                    border-radius:999px;
+                    background:${ps.bg};
+                    color:${ps.color};
+                    letter-spacing:0.03em;
+                    line-height:1.4;
+                ">${ps.label}</span>
+            `;
         }
     }
 
@@ -195,5 +227,5 @@ window.Auth = (function () {
         }
     }
 
-    return { getUser, getNivel, getPlan, isPlanBasico, isAdmin, isLoggedIn, logout, requireAdmin, applyUI, updateBadge, init, _doLogin };
+    return { getUser, getNivel, getPlan, isPlanBasico, isAdmin, isLoggedIn, logout, requireAdmin, requirePlan, applyUI, updateBadge, init, _doLogin };
 })();

@@ -93,9 +93,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                     <span>Financeiro</span>
                 </a>
-                <a href="Relatorios.html" class="nav-link-menu" data-admin-only>
+                <a href="Relatorios.html" class="nav-link-menu" id="navRelatorios">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v9H3z"></path><path d="M14 3h7v5h-7z"></path><path d="M14 12h7v9h-7z"></path><path d="M3 16h7v5h-7z"></path></svg>
-                    <span>Relatórios</span>
+                    <span>Relatórios <span id="navRelatPlanBadge" style="font-size:0.6rem;padding:1px 5px;border-radius:999px;background:rgba(255,255,255,0.15);margin-left:2px;"></span></span>
                 </a>
             </nav>
             <!-- Badge do usuário logado -->
@@ -191,7 +191,25 @@ document.addEventListener('DOMContentLoaded', function () {
             // Atualiza saudação no index se existir
             const greetEl = document.getElementById('greetingMsg');
             if (greetEl && Auth.getUser()) {
-                greetEl.textContent = `Bem-vindo(a) ao Gestão&Controle, ${Auth.getUser()}!`;
+                const hora = new Date().getHours();
+                const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+                greetEl.innerHTML = `${saudacao}, <strong>${Auth.getUser()}</strong>! Selecione uma opção abaixo.`;
+            }
+
+            // Atualiza badge do link Relatórios com o plano
+            const planBadge = document.getElementById('navRelatPlanBadge');
+            if (planBadge) {
+                const plan = Auth.getPlan();
+                if (plan.toLowerCase() === 'premium') {
+                    planBadge.textContent = '⭐';
+                    planBadge.title = 'Premium';
+                } else if (!Auth.isPlanBasico()) {
+                    planBadge.textContent = 'Pro';
+                    planBadge.title = 'Plano Pro';
+                } else {
+                    planBadge.textContent = '🔒';
+                    planBadge.title = 'Requer plano Pro ou Premium';
+                }
             }
         });
     }

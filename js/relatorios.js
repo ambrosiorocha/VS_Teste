@@ -1,12 +1,71 @@
+// relatorios.js — Dashboard Estratégico (Pro/Premium)
+// Requer: config.js, auth.js, main.js (parseCompactData)
+
+let _privacyOn = false;
+
 document.addEventListener('DOMContentLoaded', function () {
+    // Aguarda Auth.init (disparado pelo main.js)
+    // A chamada a carregarRelatorios é feita via Auth callback no main.js
+    // Mas para páginas que carregam o script diretamente, ouvimos aqui também.
     if (SCRIPT_URL === '') {
         exibirStatus({ status: 'error', mensagem: 'Por favor, cole a URL do Apps Script no código.' });
         document.getElementById('loading').classList.add('hidden');
         return;
     }
-    carregarRelatorios();
+
+    // Checa plano após Auth estar pronto
+    _verificarAcessoECarregar();
 });
 
+// ── Verificação de Plano ────────────────────────────────────────
+let _authCheckAttempts = 0;
+function _verificarAcessoECarregar() {
+    _authCheckAttempts++;
+    // Aguarda o Auth estar inicializado (pode já estar se main.js rodou antes)
+    // Após 10s sem login, redireciona para home
+    if (typeof Auth === 'undefined' || !Auth.isLoggedIn()) {
+        if (_authCheckAttempts > 100) { window.location.href = 'index.html'; return; }
+        setTimeout(_verificarAcessoECarregar, 100);
+        return;
+    }
+
+
+    const isBasico = Auth.isPlanBasico();
+    const plan = Auth.getPlan();
+
+    // Atualiza badge de plano
+    const badgeWrap = document.getElementById('planBadgeWrap');
+    if (badgeWrap) {
+        if (plan.toLowerCase() === 'premium') {
+            badgeWrap.innerHTML = '<span class="plan-badge premium">⭐ Premium</span>';
+        } else if (!isBasico) {
+            badgeWrap.innerHTML = '<span class="plan-badge pro">🚀 Pro</span>';
+        } else {
+            badgeWrap.innerHTML = '<span style="font-size:0.72rem;color:#64748b;">Plano Básico</span>';
+        }
+    }
+
+    if (isBasico) {
+        // Exibe parede de upgrade
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('upgradeWall').style.display = 'flex';
+        return;
+    }
+
+    // Pro ou Premium — exibe botão de privacidade e carrega dados
+    const privBtn = document.getElementById('privacyToggle');
+    if (privBtn) privBtn.style.display = 'flex';
+
+    // Premium: exibe card de lucro
+    if (plan.toLowerCase() === 'premium') {
+        const kpiLucro = document.getElementById('kpiLucroWrap');
+        if (kpiLucro) kpiLucro.style.display = '';
+    }
+
+    carregarRelatorios();
+}
+
+// ── Status Message ──────────────────────────────────────────────
 function exibirStatus(resposta) {
     var statusMessage = document.getElementById('statusMessage');
     statusMessage.textContent = resposta.mensagem;
@@ -20,6 +79,7 @@ function exibirStatus(resposta) {
     }, 5000);
 }
 
+// ── Carregar Dados ──────────────────────────────────────────────
 async function carregarRelatorios() {
     try {
         const response = await fetch(window.SCRIPT_URL, {
@@ -45,60 +105,59 @@ async function carregarRelatorios() {
     }
 }
 
+// ── KPIs ────────────────────────────────────────────────────────
 function renderizarKPIs(vendas) {
-    const totalVendas = vendas.reduce((acc, venda) => acc + (parseFloat(venda['Total com Desconto']) || 0), 0);
+    const totalVendas = vendas.reduce((acc, venda) => {
+        let val = venda['Total com Desconto'];
+        if (typeof val === 'string') val = val.replace(/[R$\s\.]/g, '').replace(',', '.');
+        return acc + (parseFloat(val) || 0);
+    }, 0);
     const totalTransacoes = vendas.length;
     const ticketMedio = totalTransacoes > 0 ? totalVendas / totalTransacoes : 0;
 
     document.getElementById('totalVendas').textContent = `R$ ${totalVendas.toFixed(2).replace('.', ',')}`;
     document.getElementById('totalTransacoes').textContent = totalTransacoes;
     document.getElementById('ticketMedio').textContent = `R$ ${ticketMedio.toFixed(2).replace('.', ',')}`;
+
+    // Lucro estimado (Premium apenas — usa campo Custo se disponível)
+    const lucroEl = document.getElementById('lucroEstimado');
+    if (lucroEl) {
+        const totalCusto = vendas.reduce((acc, v) => {
+            let c = v['Custo Total'] || v['Custo'] || 0;
+            if (typeof c === 'string') c = c.replace(/[R$\s\.]/g, '').replace(',', '.');
+            return acc + (parseFloat(c) || 0);
+        }, 0);
+        const lucro = totalVendas - totalCusto;
+        lucroEl.textContent = `R$ ${lucro.toFixed(2).replace('.', ',')}`;
+    }
 }
 
-/**
- * Extrai "MM/AAAA" de qualquer valor de data (string dd/mm/yyyy, timestamp, Date object).
- * Retorna null se não conseguir interpretar.
- */
+// ── Extrai "MM/AAAA" de qualquer formato de data ────────────────
 function extrairMesAno(valorData) {
     if (!valorData) return null;
-
-    // Se já for um objeto Date (ex: vindo do Google Sheets como Date)
     if (valorData instanceof Date && !isNaN(valorData)) {
         const mes = String(valorData.getMonth() + 1).padStart(2, '0');
-        const ano = valorData.getFullYear();
-        return `${mes}/${ano}`;
+        return `${mes}/${valorData.getFullYear()}`;
     }
-
     const str = String(valorData).trim();
-
-    // Formato dd/mm/yyyy ou dd/mm/yyyy hh:mm:ss
     const matchBr = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if (matchBr) {
-        const mes = matchBr[2].padStart(2, '0');
-        const ano = matchBr[3];
-        return `${mes}/${ano}`;
-    }
-
-    // Tenta parsear como Date genérico (ISO, etc.)
+    if (matchBr) return `${matchBr[2].padStart(2, '0')}/${matchBr[3]}`;
     const d = new Date(str);
-    if (!isNaN(d)) {
-        const mes = String(d.getMonth() + 1).padStart(2, '0');
-        const ano = d.getFullYear();
-        return `${mes}/${ano}`;
-    }
-
+    if (!isNaN(d)) return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
     return null;
 }
 
+// ── Gráfico: Vendas por Mês ─────────────────────────────────────
 function renderizarGraficoVendasPorMes(vendas) {
     const vendasPorMes = vendas.reduce((acc, venda) => {
         const mesAno = extrairMesAno(venda.Data || venda['Data']);
         if (!mesAno) return acc;
-        acc[mesAno] = (acc[mesAno] || 0) + (parseFloat(venda['Total com Desconto']) || 0);
+        let val = venda['Total com Desconto'];
+        if (typeof val === 'string') val = val.replace(/[R$\s\.]/g, '').replace(',', '.');
+        acc[mesAno] = (acc[mesAno] || 0) + (parseFloat(val) || 0);
         return acc;
     }, {});
 
-    // Ordena cronologicamente (MM/AAAA → AAAA/MM para sort correto)
     const labels = Object.keys(vendasPorMes).sort((a, b) => {
         const [ma, ya] = a.split('/');
         const [mb, yb] = b.split('/');
@@ -110,52 +169,94 @@ function renderizarGraficoVendasPorMes(vendas) {
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: labels,
+            labels,
             datasets: [{
-                label: 'Vendas Totais (R$)',
+                label: 'Receita (R$)',
                 data: dados,
-                backgroundColor: 'rgba(52, 152, 219, 0.6)',
-                borderColor: 'rgba(52, 152, 219, 1)',
-                borderWidth: 1
+                backgroundColor: 'rgba(22, 163, 74, 0.7)',
+                borderColor: 'rgba(21, 128, 61, 1)',
+                borderWidth: 1,
+                borderRadius: 5
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    ticks: {
+                        callback: v => 'R$ ' + v.toLocaleString('pt-BR')
+                    },
+                    grid: { color: '#f1f5f9' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+// ── Gráfico: Vendas por Produto ─────────────────────────────────
+function renderizarGraficoVendasPorProduto(vendas) {
+    const vendasPorProduto = vendas.reduce((acc, venda) => {
+        const produto = venda.Itens || venda.itens || venda['Produto'] || 'Outros';
+        let val = venda['Total com Desconto'];
+        if (typeof val === 'string') val = val.replace(/[R$\s\.]/g, '').replace(',', '.');
+        acc[produto] = (acc[produto] || 0) + (parseFloat(val) || 0);
+        return acc;
+    }, {});
+
+    // Top 7 produtos para legibilidade
+    const sorted = Object.entries(vendasPorProduto).sort((a, b) => b[1] - a[1]).slice(0, 7);
+    const labels = sorted.map(e => e[0]);
+    const dados = sorted.map(e => e[1]);
+
+    const COLORS = ['#16a34a', '#2563eb', '#0d9488', '#d97706', '#9333ea', '#e11d48', '#0ea5e9'];
+
+    const ctx = document.getElementById('vendasPorProdutoChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data: dados,
+                backgroundColor: COLORS,
+                hoverOffset: 8,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { font: { size: 11 }, padding: 14 }
                 }
             }
         }
     });
 }
 
-function renderizarGraficoVendasPorProduto(vendas) {
-    const vendasPorProduto = vendas.reduce((acc, venda) => {
-        const produto = venda.Itens || venda.itens || 'Desconhecido';
-        acc[produto] = (acc[produto] || 0) + (parseFloat(venda['Total com Desconto']) || 0);
-        return acc;
-    }, {});
+// ── Privacy Toggle ──────────────────────────────────────────────
+window.togglePrivacy = function () {
+    _privacyOn = !_privacyOn;
+    const btn = document.getElementById('privacyToggle');
+    const label = document.getElementById('privacyLabel');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const kpiRow = document.getElementById('kpiRow');
 
-    const labels = Object.keys(vendasPorProduto);
-    const dados = labels.map(produto => vendasPorProduto[produto]);
-
-    const ctx = document.getElementById('vendasPorProdutoChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Vendas por Produto (R$)',
-                data: dados,
-                backgroundColor: [
-                    '#3498db', '#9b59b6', '#e74c3c', '#2ecc71', '#f1c40f', '#1abc9c', '#95a5a6'
-                ],
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-        }
-    });
-}
+    if (_privacyOn) {
+        kpiRow.classList.add('privacy-mode');
+        btn.classList.add('active');
+        label.textContent = 'Exibir valores';
+        eyeIcon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>`;
+    } else {
+        kpiRow.classList.remove('privacy-mode');
+        btn.classList.remove('active');
+        label.textContent = 'Ocultar valores';
+        eyeIcon.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>`;
+    }
+};
