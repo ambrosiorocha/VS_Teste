@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sisvendas-v104';
+const CACHE_NAME = 'Gestão&Controle-v104';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
