@@ -367,8 +367,9 @@ window.Auth = (function () {
         });
         document.getElementById('firstAccessLink').addEventListener('click', e => {
             e.preventDefault();
-            ov.remove();
+            // Não remove o overlay ainda — mantém cobrindo o body durante o fetch
             _verificarPrimeiroAcesso(isPrimeiro => {
+                ov.remove(); // só remove APÓS a resposta chegar
                 if (isPrimeiro) {
                     showFirstAccessModal();
                 } else {
