@@ -394,8 +394,9 @@ window.Auth = (function () {
 
     // ── Revelar o body (anti-flicker) ────────────────────────────
     function _revealBody() {
+        // visibility:snap — sem transição de opacidade para evitar que o
+        // dashboard "vaze" por baixo do overlay durante frames intermediários.
         document.body.style.visibility = 'visible';
-        document.body.style.opacity = '1';
     }
 
     // ── Ponto de entrada ──────────────────────────────────────────
