@@ -1,5 +1,5 @@
 // main.js — Sidebar responsiva + Auth
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '2.6.0';
 
 document.addEventListener('DOMContentLoaded', function () {
 

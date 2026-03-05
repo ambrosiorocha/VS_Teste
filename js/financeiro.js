@@ -10,6 +10,10 @@ document.addEventListener('DOMContentLoaded', function () {
         execWithSpinner(document.querySelector('#financeiroForm button[type="submit"]'), salvarFinanceiro);
     });
     document.getElementById('filtroTipo').addEventListener('change', aplicarFiltros);
+    if (Auth.isPlanBasico()) {
+        const kpiGrid = document.getElementById('kpiGridFinanceiro');
+        if (kpiGrid) kpiGrid.style.display = 'none';
+    }
     carregarFinanceiro();
 });
 
