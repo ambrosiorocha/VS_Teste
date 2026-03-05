@@ -382,7 +382,7 @@ function aplicarPrazo(btn) {
     }
 }
 
-function calcularVencimentoStatus() {
+async function calcularVencimentoStatus() {
     const btn = document.querySelector('.pgto-btn.active');
     if (!btn) return { vencimento: new Date().toLocaleDateString('pt-BR'), status: 'Pendente' };
     const prazo = btn.dataset.prazo;
@@ -394,7 +394,7 @@ function calcularVencimentoStatus() {
         return { vencimento: v.toLocaleDateString('pt-BR'), status: 'Pendente' };
     } else {
         const raw = document.getElementById('vencimentoCustom').value;
-        if (!raw) { alert('Informe a data de vencimento.'); return null; }
+        if (!raw) { await CustomModal.alert('Informe a data de vencimento.', 'OK'); return null; }
         const [y, m, d] = raw.split('-');
         return { vencimento: `${d}/${m}/${y}`, status: 'Pendente' };
     }
@@ -457,10 +457,10 @@ function montarPayloadVenda() {
 async function confirmarVenda() {
     const btn = document.getElementById('btnConfirmarVenda');
     await execWithSpinner(btn, async () => {
-        if (!formaPagamentoSelecionada) { alert('Selecione a forma de pagamento.'); return; }
+        if (!formaPagamentoSelecionada) { await CustomModal.alert('Selecione a forma de pagamento.', 'OK'); return; }
         if (carrinho.length === 0) { fecharModal(); return; }
 
-        const prazoResult = calcularVencimentoStatus();
+        const prazoResult = await calcularVencimentoStatus();
         if (!prazoResult) return;
 
         const payload = montarPayloadVenda();
@@ -674,7 +674,7 @@ function abrirModalFinalizarPendente(id, itensJSONEncoded) {
 // ESTORNAR VENDA CONCLUÍDA
 // ================================
 async function confirmarEstorno(id) {
-    if (!confirm(`⚠️ Estornar a Venda #${id}?\n\nEsta ação irá:\n• Devolver os itens ao estoque\n• Cancelar o lançamento financeiro\n• Marcar a venda como Estornada\n\nEsta operação não pode ser desfeita.`)) return;
+    if (!(await CustomModal.confirm(`⚠️ Estornar a Venda #${id}?\n\nEsta ação irá:\n• Devolver os itens ao estoque\n• Cancelar o lançamento financeiro\n• Marcar a venda como Estornada\n\nEsta operação não pode ser desfeita.`, 'Estornar', 'Cancelar'))) return;
     try {
         const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'estornarVenda', data: { id } }) });
         const data = await res.json();
@@ -687,7 +687,7 @@ async function confirmarEstorno(id) {
 }
 
 async function excluirVenda(id) {
-    if (!confirm(`Excluir o rascunho pendente #${id}?\nNão há estoque nem financeiro associados a este rascunho.`)) return;
+    if (!(await CustomModal.confirm(`Excluir o rascunho pendente #${id}?\nNão há estoque nem financeiro associados a este rascunho.`, 'Excluir', 'Cancelar'))) return;
     exibirStatus({ status: 'error', mensagem: 'Função de exclusão de rascunho em desenvolvimento.' });
 }
 

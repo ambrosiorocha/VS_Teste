@@ -42,6 +42,38 @@ document.addEventListener('DOMContentLoaded', function () {
             transition: background 0.15s;
         }
         .logout-btn:hover { background: rgba(239,68,68,0.4); }
+        
+        /* Modal Customizado */
+        #custom-modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65);
+            z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+        }
+        #custom-modal-box {
+            background: #1e293b; border-radius: 1rem; border: 1px solid #16a34a;
+            padding: 1.5rem; width: 90%; max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center;
+            opacity: 0; transform: translateY(-20px); transition: all 0.3s ease;
+        }
+        #custom-modal-overlay.show { display: flex; }
+        #custom-modal-overlay.show #custom-modal-box { opacity: 1; transform: translateY(0); }
+        #custom-modal-title {
+            color: white; font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; line-height: 1.4;
+        }
+        .custom-modal-actions {
+            display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;
+        }
+        .custom-modal-btn {
+            padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem;
+            cursor: pointer; border: none; flex: 1; min-width: 120px; transition: opacity 0.2s;
+        }
+        .custom-modal-btn:hover { opacity: 0.9; }
+        .custom-modal-btn-cancel {
+            background: rgba(255, 255, 255, 0.1); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .custom-modal-btn-confirm {
+            background: #2ecc71; color: white; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            box-shadow: 0 4px 14px rgba(46, 204, 113, 0.3);
+        }
     `;
     document.head.appendChild(style);
 
@@ -61,7 +93,9 @@ document.addEventListener('DOMContentLoaded', function () {
     hamBtn.addEventListener('click', openSidebar);
     overlay.addEventListener('click', closeSidebar);
 
-    // ── Sidebar HTML ───────────────────────────────────────────
+    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+    const hideInicio = currentPath === 'index.html' ? 'style="display:none;"' : '';
+
     const sidebar = `
         <aside id="desktop-sidebar" class="desktop-sidebar hidden md:flex flex-col">
             <div class="sidebar-header" style="display:flex;justify-content:center;align-items:center;gap:8px;">
@@ -69,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <span>Gestão&Controle</span>
             </div>
             <nav id="desktop-nav" class="sidebar-nav flex-1">
-                <a href="index.html" class="nav-link-menu">
+                <a href="index.html" class="nav-link-menu" ${hideInicio}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                     <span>Início</span>
                 </a>
@@ -97,9 +131,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v9H3z"></path><path d="M14 3h7v5h-7z"></path><path d="M14 12h7v9h-7z"></path><path d="M3 16h7v5h-7z"></path></svg>
                     <span>Relatórios <span id="navRelatPlanBadge" style="font-size:0.6rem;padding:1px 5px;border-radius:999px;background:rgba(255,255,255,0.15);margin-left:2px;"></span></span>
                 </a>
-                <a href="Equipe.html" class="nav-link-menu" data-admin-only>
+                <a href="Equipe.html" class="nav-link-menu" data-admin-only id="navEquipe">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span>Gerenciar Equipe</span>
+                    <span>Gerenciar Equipe <span id="navEquipeLock" style="display:none; font-size:0.8rem; margin-left:4px;">🔒</span></span>
                 </a>
             </nav>
 
@@ -171,8 +205,25 @@ document.addEventListener('DOMContentLoaded', function () {
     `;
     document.body.insertAdjacentHTML('afterbegin', sidebar);
 
+    // ── Custom Modal HTML ──────────────────────────────────────
+    const customModalHtml = `
+        <div id="custom-modal-overlay">
+            <div id="custom-modal-box">
+                <div id="custom-modal-title">Substitua esta mensagem...</div>
+                <div class="custom-modal-actions" id="custom-modal-actions-container">
+                    <button class="custom-modal-btn custom-modal-btn-cancel" id="custom-modal-btn-cancel">Cancelar</button>
+                    <button class="custom-modal-btn custom-modal-btn-confirm" id="custom-modal-btn-confirm">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                        <span id="custom-modal-confirm-text">Confirmar</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', customModalHtml);
+
     // ── Link ativo ─────────────────────────────────────────────
-    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+    // currentPath was declared above
     document.querySelectorAll('.nav-link-menu').forEach(link => {
         if (link.getAttribute('href') === currentPath) link.classList.add('active');
     });
@@ -201,24 +252,95 @@ document.addEventListener('DOMContentLoaded', function () {
                 greetEl.innerHTML = `${saudacao}, <strong>${Auth.getUser()}</strong>! Selecione uma opção abaixo.`;
             }
 
-            // Atualiza badge do link Relatórios com o plano
+            // Atualiza badge do link Relatórios e Equipe com o plano
             const planBadge = document.getElementById('navRelatPlanBadge');
-            if (planBadge) {
-                const plan = Auth.getPlan();
-                if (plan.toLowerCase() === 'premium') {
-                    planBadge.textContent = '⭐';
-                    planBadge.title = 'Premium';
-                } else if (!Auth.isPlanBasico()) {
-                    planBadge.textContent = 'Pro';
-                    planBadge.title = 'Plano Pro';
-                } else {
+            const navEquipeLock = document.getElementById('navEquipeLock');
+            if (Auth.isPlanBasico()) {
+                if (planBadge) {
                     planBadge.textContent = '🔒';
                     planBadge.title = 'Requer plano Pro ou Premium';
+                }
+                if (navEquipeLock) {
+                    navEquipeLock.style.display = 'inline';
+                }
+            } else {
+                if (planBadge) {
+                    const plan = Auth.getPlan();
+                    if (plan.toLowerCase() === 'premium') {
+                        planBadge.textContent = '⭐';
+                        planBadge.title = 'Premium';
+                    } else {
+                        planBadge.textContent = 'Pro';
+                        planBadge.title = 'Plano Pro';
+                    }
                 }
             }
         });
     }
 });
+
+// ==========================================
+// CUSTOM MODAL (PROMISES)
+// ==========================================
+window.CustomModal = {
+    _resolver: null,
+
+    _show: function (msg, isAlert, optConfirmText, optCancelText) {
+        return new Promise(resolve => {
+            this._resolver = resolve;
+
+            document.getElementById('custom-modal-title').innerHTML = msg;
+
+            const btnCancel = document.getElementById('custom-modal-btn-cancel');
+            const btnConfirmTextEl = document.getElementById('custom-modal-confirm-text');
+
+            btnConfirmTextEl.textContent = optConfirmText || 'OK';
+
+            if (isAlert) {
+                btnCancel.style.display = 'none';
+            } else {
+                btnCancel.style.display = 'block';
+                btnCancel.textContent = optCancelText || 'Cancelar';
+            }
+
+            const overlay = document.getElementById('custom-modal-overlay');
+            overlay.classList.add('show');
+
+            // Foca o botão automaticamente p/ enter funcionar
+            setTimeout(() => {
+                document.getElementById('custom-modal-btn-confirm').focus();
+            }, 100);
+        });
+    },
+
+    confirm: function (msg, confirmText = 'Confirmar', cancelText = 'Cancelar') {
+        return this._show(msg, false, confirmText, cancelText);
+    },
+
+    alert: function (msg, okText = 'OK') {
+        return this._show(msg, true, okText);
+    },
+
+    _close: function (result) {
+        document.getElementById('custom-modal-overlay').classList.remove('show');
+        if (this._resolver) {
+            this._resolver(result);
+            this._resolver = null;
+        }
+    }
+};
+
+// Eventos do Custom Modal
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.addEventListener('click', (e) => {
+        if (e.target.closest('#custom-modal-btn-confirm')) {
+            window.CustomModal._close(true);
+        } else if (e.target.closest('#custom-modal-btn-cancel')) {
+            window.CustomModal._close(false);
+        }
+    });
+});
+
 
 // ── Funções Globais da Central de Ajuda ───────────────────────
 window.openHelpModal = function () {

@@ -194,8 +194,13 @@ function atualizarResumo(dados) {
 
 // ==================== BAIXAR LANÇAMENTO ====================
 async function baixarLancamento(id, tipo) {
-    const acao = tipo === 'Receber' ? 'recebido' : 'pago';
-    if (!confirm(`Confirmar que o lançamento #${id} foi ${acao}?`)) return;
+    const acao = tipo === 'Receber' ? 'receber' : 'pagar';
+    const r = registrosFinanceiros.find(item => (item.id || item.ID) == id);
+    const valor = r ? parseFloat(r.valor || 0) : 0;
+    const valorStr = valor.toFixed(2).replace('.', ',');
+    const msg = tipo === 'Receber' ? `Confirmar recebimento de R$ ${valorStr}?` : `Confirmar pagamento de R$ ${valorStr}?`;
+
+    if (!(await CustomModal.confirm(msg, 'Confirmar', 'Cancelar'))) return;
     try {
         const response = await fetch(window.SCRIPT_URL, {
             method: 'POST',
@@ -225,7 +230,7 @@ function editarFinanceiro(id) {
 }
 
 async function excluirFinanceiro(id) {
-    if (confirm(`Excluir registro ID ${id}?`)) {
+    if (await CustomModal.confirm(`Excluir registro ID ${id}?`, 'Excluir', 'Cancelar')) {
         try {
             const response = await fetch(window.SCRIPT_URL, {
                 method: 'POST',

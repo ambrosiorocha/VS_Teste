@@ -161,7 +161,7 @@ function editarCliente(id) {
 }
 
 async function excluirCliente(id) {
-    if (confirm(`Tem certeza que deseja excluir o cliente com ID ${id}?`)) {
+    if (await CustomModal.confirm(`Tem certeza que deseja excluir o cliente com ID ${id}?`, 'Excluir', 'Cancelar')) {
         try {
             const response = await fetch(window.SCRIPT_URL, {
                 method: 'POST',
