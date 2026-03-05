@@ -213,9 +213,13 @@ async function editarProduto(id) {
             document.getElementById('margemPct').value = margemPct || '';
             document.getElementById('margemRS').value = margemRS || '';
             document.getElementById('preco').value = preco || '';
+            // Bug fix: sincroniza campo visível no plano Básico
+            const precoBasicoEl = document.getElementById('precoBasico');
+            if (precoBasicoEl) precoBasicoEl.value = preco || '';
             document.getElementById('quantidade').value = parseNum(produto.Quantidade);
             document.getElementById('descricao').value = produto.Descrição || '';
             exibirStatus({ status: 'success', mensagem: 'Campos preenchidos. Agora você pode editar.' });
+
         } else {
             exibirStatus({ status: 'error', mensagem: 'Produto não encontrado para edição.' });
         }

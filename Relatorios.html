@@ -10,12 +10,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="manifest" href="manifest_v104.json">
+    <link rel="manifest" href="manifest_v106.json">
     <meta name="apple-mobile-web-app-title" content="Gestão&Controle">
     <meta name="theme-color" content="#16a34a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="version" content="1.0.0">
     <style>
+        /* ===== ANTI-FLICKER ===== */
+        body {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
         /* ===== RELATÓRIOS ESTRATÉGICO ===== */
         .report-header {
             display: flex;
@@ -279,7 +286,8 @@
                 <div class="upgrade-wall-icon">🔒</div>
                 <h2>Relatórios Estratégicos</h2>
                 <p>Os dashboards e gráficos de performance estão disponíveis apenas nos planos <strong>Pro</strong> e
-                    <strong>Premium</strong>.</p>
+                    <strong>Premium</strong>.
+                </p>
                 <a href="#" class="upgrade-cta">
                     ⭐ Fazer Upgrade do Plano
                 </a>

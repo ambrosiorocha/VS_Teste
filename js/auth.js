@@ -3,8 +3,8 @@
 // Depende de: config.js (window.SCRIPT_URL)
 // ============================================================
 window.Auth = (function () {
-    const K = { user: 'sv_user', nivel: 'sv_nivel', ts: 'sv_ts', plano: 'sv_plano' };
-    const SESSION_MS = 8 * 3600 * 1000; // 8 horas
+    const K = { user: 'sv_user', nivel: 'sv_nivel', ts: 'sv_ts', plano: 'sv_plano', perm: 'sv_permissoes' };
+    const SESSION_MS = 8 * 3600 * 1000;
     let _cb = null;
 
     function getUser() { return localStorage.getItem(K.user) || ''; }
@@ -18,10 +18,11 @@ window.Auth = (function () {
         const ts = parseInt(localStorage.getItem(K.ts) || '0');
         return (Date.now() - ts) < SESSION_MS;
     }
-    function saveSession(nome, nivel, plano) {
+    function saveSession(nome, nivel, plano, permissoes) {
         localStorage.setItem(K.user, nome);
         localStorage.setItem(K.nivel, nivel);
         localStorage.setItem(K.plano, plano || 'Básico');
+        localStorage.setItem(K.perm, JSON.stringify(permissoes || {}));
         localStorage.setItem(K.ts, Date.now().toString());
     }
 
@@ -31,8 +32,17 @@ window.Auth = (function () {
         return p === 'básico' || p === 'basico';
     }
 
+    // Permissões de operador
+    function getPermissoes() {
+        if (isAdmin()) return { relatorios: true, fiado: true, visaoDono: true };
+        try { return JSON.parse(localStorage.getItem(K.perm) || '{}'); } catch (e) { return {}; }
+    }
+    function podeVerRelatorios() { return isAdmin() || getPermissoes().relatorios !== false; }
+    function podeVenderFiado() { return !isPlanBasico() && (isAdmin() || getPermissoes().fiado !== false); }
+    function podeVerCusto() { return !isPlanBasico() && (isAdmin() || getPermissoes().visaoDono === true); }
+
     function logout() {
-        [K.user, K.nivel, K.ts, K.plano].forEach(k => localStorage.removeItem(k));
+        [K.user, K.nivel, K.ts, K.plano, K.perm].forEach(k => localStorage.removeItem(k));
         window.location.href = 'index.html';
     }
 
@@ -115,7 +125,7 @@ window.Auth = (function () {
             })
             .then(data => {
                 if (data.status === 'sucesso') {
-                    saveSession(data.nome, data.nivel, data.plano);
+                    saveSession(data.nome, data.nivel, data.plano, data.permissoes);
                     const ov = document.getElementById('loginOverlay');
                     if (ov) ov.remove();
                     if (_cb) _cb();
@@ -298,12 +308,12 @@ window.Auth = (function () {
         if (callback !== null) _cb = callback; // null = chamada interna do primeiro acesso
         const ov = document.createElement('div');
         ov.id = 'loginOverlay';
-        ov.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);';
+        ov.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);';
         ov.innerHTML = `
         <style>@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}</style>
         <div style="background:white;border-radius:1.5rem;padding:2rem 1.75rem;width:100%;max-width:360px;
-            box-shadow:0 25px 60px rgba(0,0,0,0.5);animation:fadeInUp 0.3s ease;">
+            box-shadow:0 25px 60px rgba(0,0,0,0.5);animation:fadeInUp 0.3s ease;margin:auto;">
 
             <!-- Logo + Brand -->
             <div style="display:flex;justify-content:center;align-items:center;gap:0.75rem;margin-bottom:0.4rem;">
@@ -341,9 +351,10 @@ window.Auth = (function () {
             </button>
 
             <!-- Primeiro acesso -->
-            <p style="text-align:center;font-size:0.74rem;color:#94a3b8;margin-top:1rem;margin-bottom:0;">
+            <p style="text-align:center;font-size:0.74rem;color:#94a3b8;margin-top:1rem;margin-bottom:0;position:relative;z-index:10000;">
                 Primeiro acesso?
-                <a href="#" id="firstAccessLink" style="color:#16a34a;font-weight:700;text-decoration:none;">
+                <a href="#" id="firstAccessLink"
+                    style="color:#16a34a;font-weight:700;text-decoration:none;display:inline-block;padding:0.2rem 0.4rem;">
                     Clique aqui
                 </a>
             </p>
@@ -380,19 +391,28 @@ window.Auth = (function () {
         });
     }
 
+    // ── Revelar o body (anti-flicker) ────────────────────────────
+    function _revealBody() {
+        document.body.style.visibility = 'visible';
+        document.body.style.opacity = '1';
+    }
+
     // ── Ponto de entrada ──────────────────────────────────────────
     function init(callback) {
         if (isLoggedIn()) {
             applyUI();
             updateBadge();
+            _revealBody();
             if (callback) callback();
         } else {
             showModal(callback);
+            _revealBody();
         }
     }
 
     return {
         getUser, getNivel, getPlan, isPlanBasico, isAdmin, isLoggedIn,
+        getPermissoes, podeVerRelatorios, podeVenderFiado, podeVerCusto,
         logout, requireAdmin, requirePlan, applyUI, updateBadge,
         init, showModal, _doLogin, _doFirstAccess
     };

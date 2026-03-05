@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('.pgto-btn').forEach(btn => {
         btn.addEventListener('click', function () {
+            if (this.dataset.planBlock) return; // Bloqueado por plano
             document.querySelectorAll('.pgto-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             formaPagamentoSelecionada = this.dataset.pgto;
@@ -34,7 +35,40 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
     document.getElementById('descontoGeralModal').addEventListener('input', atualizarModalTotais);
+
+    // Aplica restrições de plano após Auth estar pronto
+    let _gateTries = 0;
+    function tryApplyGate() {
+        if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+            aplicarGatePlanVendas();
+        } else if (++_gateTries < 30) {
+            setTimeout(tryApplyGate, 200);
+        }
+    }
+    tryApplyGate();
 });
+
+// ================================
+// GATING DE PLANO — VENDAS
+// ================================
+function aplicarGatePlanVendas() {
+    const isBasico = typeof Auth !== 'undefined' && Auth.isPlanBasico();
+    if (!isBasico) return;
+    const pgtosBloqueados = ['fiado', 'parcelado', 'boleto', 'crédito', 'credito'];
+    document.querySelectorAll('.pgto-btn').forEach(btn => {
+        const pgto = (btn.dataset.pgto || btn.textContent).trim().toLowerCase();
+        if (pgtosBloqueados.some(b => pgto.includes(b))) {
+            btn.dataset.planBlock = 'true';
+            btn.style.opacity = '0.4';
+            btn.style.cursor = 'not-allowed';
+            btn.style.filter = 'grayscale(1)';
+            btn.title = '🔒 Disponível no Plano Pro';
+        }
+    });
+    document.querySelectorAll('[data-print-btn], .btn-imprimir, #btnImprimirCupom').forEach(el => {
+        el.style.display = 'none';
+    });
+}
 
 // ================================
 // STATUS MESSAGE
@@ -505,8 +539,9 @@ async function carregarHistoricoVendas(filtros = null, msgCarregando = 'Carregan
                        <div class="items-detail">${itens.split(', ').join('<br>')}</div>`
                     : '';
 
-                // Botão WhatsApp
-                const whatsappBtn = `<button title="Enviar pelo WhatsApp" style="background:none;border:1px solid #22c55e;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:13px;color:#16a34a;" onclick="enviarWhatsApp(${id},'${encodeURIComponent(cliente)}','${encodeURIComponent(itensJSON)}',${total},'${dataV}')">&#128121;</button>`;
+                // Ícone WhatsApp oficial (SVG)
+                const _waSvg = `<svg width="13" height="13" fill="#16a34a" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967c-.273-.099-.471-.148-.67.15c-.197.297-.767.966-.94 1.164c-.173.199-.347.223-.644.075c-.297-.15-1.255-.463-2.39-1.475c-.883-.788-1.48-1.761-1.653-2.059c-.173-.297-.018-.458.13-.606c.134-.133.298-.347.446-.52c.149-.174.198-.298.298-.497c.099-.198.05-.371-.025-.52c-.075-.149-.669-1.612-.916-2.207c-.242-.579-.487-.5-.669-.51c-.173-.008-.371-.01-.57-.01c-.198 0-.52.074-.792.372c-.272.297-1.04 1.016-1.04 2.479c0 1.462 1.065 2.875 1.213 3.074c.149.198 2.096 3.2 5.077 4.487c.709.306 1.262.489 1.694.625c.712.227 1.36.195 1.871.118c.571-.085 1.758-.719 2.006-1.413c.248-.694.248-1.289.173-1.413c-.074-.124-.272-.198-.57-.347zm-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214l-3.741.982l.998-3.648l-.235-.374A9.86 9.86 0 012.166 11.892C2.167 6.442 6.602 2.008 12.054 2.008c2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884zm8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`;
+                const whatsappBtn = `<button title="Enviar comprovante via WhatsApp" style="background:none;border:1px solid #22c55e;border-radius:4px;padding:3px 6px;cursor:pointer;display:inline-flex;align-items:center;" onclick="enviarWhatsApp(${id},'${encodeURIComponent(cliente)}','${encodeURIComponent(itensJSON)}',${total},'${dataV}')">${_waSvg}</button>`;
 
                 let statusBadge = '';
                 let acoes = '';
@@ -519,18 +554,14 @@ async function carregarHistoricoVendas(filtros = null, msgCarregando = 'Carregan
                     `;
                 } else if (status === 'Concluda' || status === '') {
                     statusBadge = `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">&#9989; Concluída</span>`;
-                    acoes = `
-                        <button title="Reimprimir cupom" style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;"
-                            onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">&#128424;&#65039;</button>
-                        ${whatsappBtn}
-                        <button class="delete-btn" style="background:#f59e0b;color:#fff;font-size:11px;" data-admin-btn onclick="confirmarEstorno(${id})">&#8617;&#65039; Estornar</button>
-                    `;
+                    const _bscCon = typeof Auth !== 'undefined' && Auth.isPlanBasico();
+                    const _printCon = _bscCon ? '' : `<button title="Reimprimir cupom" data-print-btn style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;" onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">&#128424;&#65039;</button>`;
+                    acoes = `${_printCon}${whatsappBtn}<button class="delete-btn" style="background:#f59e0b;color:#fff;font-size:11px;" data-admin-btn onclick="confirmarEstorno(${id})">&#8617;&#65039; Estornar</button>`;
                 } else if (status === 'Estornada') {
                     statusBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">&#8617;&#65039; Estornada</span>`;
-                    acoes = `
-                        <button title="Reimprimir cupom" style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;"
-                            onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">&#128424;&#65039;</button>
-                        ${whatsappBtn}`;
+                    const _basico2 = typeof Auth !== 'undefined' && Auth.isPlanBasico();
+                    const _printBtn2 = _basico2 ? '' : `<button title="Reimprimir cupom" data-print-btn style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;" onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">&#128424;&#65039;</button>`;
+                    acoes = `${_printBtn2}${whatsappBtn}`;
                 }
 
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Gestão&Controle-v104';
+const CACHE_NAME = 'Gestão&Controle-v106';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -19,10 +19,10 @@ const ASSETS_TO_CACHE = [
     './Fornecedores.html',
     './Financeiro.html',
     './Relatorios.html',
-    './manifest_v104.json',
+    './manifest_v106.json',
     './assets/logo.png',
-    './icons/icon-192-v3.png',
-    './icons/icon-512-v3.png'
+    './icons/icon-192-v4.png',
+    './icons/icon-512-v4.png'
 ];
 
 // Instalação do Service Worker e cache dos recursos

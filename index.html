@@ -9,13 +9,19 @@
         rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="manifest" href="manifest_v104.json">
+    <link rel="manifest" href="manifest_v106.json">
     <meta name="apple-mobile-web-app-title" content="Gestão&Controle">
     <meta name="theme-color" content="#16a34a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="version" content="1.0.0">
     <style>
-        /* ===== HOME HUB ===== */
+        /* ===== ANTI-FLICKER: body oculto até auth.js decidir onde ir ===== */
+        body {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        /* ===== HOME HUB =====*/
         .home-hero {
             display: flex;
             flex-direction: column;
