@@ -109,7 +109,7 @@ function preencherSelectProdutos(sel, lista) {
     sel.innerHTML = '<option value="">Selecione um produto</option>';
     lista.forEach(p => {
         const estoque = parseFloat(p.Quantidade) || 0;
-        const precoRaw = String(p['Preço'] || p.Preco || 0).replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+        const precoRaw = String(p['Preço_de_venda'] || p['Preço'] || p.Preco || 0).replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
         const opt = document.createElement('option');
         opt.value = p.Nome;
         opt.textContent = `${p.Nome}  (Estoque: ${estoque})`;
@@ -190,9 +190,9 @@ function getPrecoUnitario() {
 
 function atualizarPrecoUnitario() {
     const preco = getPrecoUnitario();
-    document.getElementById('precoUnitario').value = preco > 0 ? preco.toFixed(2) : '';
+    document.getElementById('precoUnitario').value = preco > 0 ? formatCurrencyBRL(preco) : 'R$ 0,00';
     document.getElementById('descontoItemPct').value = '0';
-    document.getElementById('descontoItemReais').value = '0';
+    document.getElementById('descontoItemReais').value = '0,00';
     atualizarSubtotalItem();
 }
 
