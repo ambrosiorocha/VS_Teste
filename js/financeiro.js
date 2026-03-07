@@ -14,16 +14,31 @@ document.addEventListener('DOMContentLoaded', function () {
         const kpiGrid = document.getElementById('kpiGridFinanceiro');
         if (kpiGrid) kpiGrid.style.display = 'none';
 
-        // Ocultar opções de Criação Restritas ao Plano PRO
-        const selectTipo = document.getElementById('tipo');
-        if (selectTipo) {
-            for (let i = 0; i < selectTipo.options.length; i++) {
-                if (selectTipo.options[i].value === 'Receber') selectTipo.options[i].style.display = 'none';
+        // Removemos o bloqueio do tipo (agora Básico pode Lançar A Receber Pago)
+        // Apenas o Status "Pendente" (Contas a prazo) fica oculto.
+        const selectStatus = document.getElementById('status');
+        if (selectStatus) {
+            for (let i = 0; i < selectStatus.options.length; i++) {
+                if (selectStatus.options[i].value === 'Pendente') selectStatus.options[i].style.display = 'none';
             }
-            selectTipo.value = 'Pagar';
+            selectStatus.value = 'Pago';
         }
 
-        const selectStatus = document.getElementById('status');
+        // Injeta aviso visual informando o usuário Básico sobre a limitação do fiado/contas a receber futuras
+        const formFin = document.getElementById('financeiroForm');
+        if (formFin) {
+            const aviso = document.createElement('div');
+            aviso.innerHTML = `
+                <div style="background:#fff7ed; border-left:4px solid #f97316; padding:0.8rem; margin-top:1rem; border-radius:0 0.5rem 0.5rem 0; font-size:0.85rem; color:#9a3412; display:flex; align-items:center; gap:0.5rem;">
+                    <span style="font-size:1.2rem;">⭐</span>
+                    <div>
+                        <strong>Controle de Inadimplência VIP</strong><br>
+                        Sua versão atual registra entradas e saídas <b>à vista (Quitado)</b>. Para gerenciar clientes pendentes (Fiado), programar despesas futuras e receber alertas de vencimento diários, faça o upgrade para o plano <strong>PRO</strong> ou <strong>Premium</strong>.
+                    </div>
+                </div>
+            `;
+            formFin.appendChild(aviso);
+        }
         if (selectStatus) {
             for (let i = 0; i < selectStatus.options.length; i++) {
                 if (selectStatus.options[i].value === 'Pendente') selectStatus.options[i].style.display = 'none';
@@ -122,10 +137,7 @@ function aplicarFiltros() {
     // Ocultar sempre registros financeiros de vendas Estornadas da UI limpa
     filtrados = filtrados.filter(r => r.status && r.status !== 'Estornado' && r.status !== 'Estornada');
 
-    // Regra de Gating de Plano: Básico não enxerga "A Receber" no Financeiro (não tem Fiado)
-    if (typeof Auth !== 'undefined' && Auth.isPlanBasico()) {
-        filtrados = filtrados.filter(r => r.tipo === 'Pagar');
-    }
+    // Removemos os filtros rígidos do Básico. Agora eles podem ver as próprias Receitas lançadas à vista.
 
     if (filtroTipo && !(typeof Auth !== 'undefined' && Auth.isPlanBasico())) {
         filtrados = filtrados.filter(r => r.tipo === filtroTipo);
@@ -254,8 +266,27 @@ function editarFinanceiro(id) {
         document.getElementById('vencimento').value = r.vencimento || '';
 
         const isBsc = typeof Auth !== 'undefined' && Auth.isPlanBasico();
-        document.getElementById('tipo').value = isBsc ? 'Pagar' : (r.tipo || '');
+        document.getElementById('tipo').value = (r.tipo || '');
         document.getElementById('status').value = isBsc ? 'Pago' : (r.status || '');
+
+        // Visual warning for 'Pendente' status on basic plans
+        const warningElement = document.getElementById('pendenteWarning');
+        if (isBsc && r.status === 'Pendente') {
+            if (warningElement) {
+                warningElement.style.display = 'block';
+            } else {
+                const form = document.getElementById('financeiroForm');
+                const newWarning = document.createElement('p');
+                newWarning.id = 'pendenteWarning';
+                newWarning.className = 'text-red-500 text-sm mt-2';
+                newWarning.textContent = 'O plano Básico não permite agendar contas Pendentes. Por favor, selecione "Pago" ou faça upgrade para o plano PRO/Premium.';
+                form.parentNode.insertBefore(newWarning, form.nextSibling);
+            }
+        } else {
+            if (warningElement) {
+                warningElement.style.display = 'none';
+            }
+        }
 
         exibirStatus({ status: 'success', mensagem: 'Registro carregado para edição.' });
         window.scrollTo({ top: 0, behavior: 'smooth' });
