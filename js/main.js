@@ -355,14 +355,21 @@ window.parseCurrencyBRL = function (value) {
     if (typeof value === 'number') return value;
     if (!value) return 0;
 
-    // Remove "R$" spaces, non-digits (excluding dot and comma)
-    let str = String(value).replace(/[^\d,\.-]/g, '');
+    let str = String(value).trim();
 
-    // If we have standard BR format "1.234,56" or "1234,56"
-    // Remove thousand separators (dots)
-    str = str.replace(/\./g, '');
-    // Replace decimal separator (comma) with dot
-    str = str.replace(',', '.');
+    // Se já for um formato numérico float/int válido (ex: "67.5" ou "675") vindo do Banco de Dados
+    if (/^-?\d+(\.\d+)?$/.test(str)) {
+        return parseFloat(str) || 0;
+    }
+
+    // Se for formato mascarado/texto (ex: "R$ 1.500,00" ou "5,00")
+    str = str.replace(/[^\d,\.-]/g, '');
+
+    // Se possui vírgula, tratamos como formato PT-BR
+    if (str.includes(',')) {
+        str = str.replace(/\./g, '');
+        str = str.replace(',', '.');
+    }
 
     const num = parseFloat(str);
     return isNaN(num) ? 0 : num;

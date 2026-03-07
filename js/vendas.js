@@ -20,9 +20,9 @@ document.addEventListener('DOMContentLoaded', function () {
     carregarHistoricoVendas();
 
     document.getElementById('produto').addEventListener('change', atualizarPrecoUnitario);
-    document.getElementById('quantidade').addEventListener('input', atualizarSubtotalItem);
-    document.getElementById('descontoItemPct').addEventListener('input', () => sincronizarDesconto('pct'));
-    document.getElementById('descontoItemReais').addEventListener('input', () => sincronizarDesconto('reais'));
+    document.getElementById('quantidade').addEventListener('input', () => setTimeout(atualizarSubtotalItem, 10));
+    document.getElementById('descontoItemPct').addEventListener('input', () => setTimeout(() => sincronizarDesconto('pct'), 10));
+    document.getElementById('descontoItemReais').addEventListener('input', () => setTimeout(() => sincronizarDesconto('reais'), 10));
 
     document.querySelectorAll('.pgto-btn').forEach(btn => {
         btn.addEventListener('click', function () {
