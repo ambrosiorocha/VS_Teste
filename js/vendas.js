@@ -790,6 +790,36 @@ function abrirCupom(cupom) {
         <div style="text-align:center;font-size:10px;color:#000;font-weight:500;">${new Date().toLocaleString('pt-BR')}</div>
     `;
     document.getElementById('cupomConteudo').innerHTML = html;
+
+    // Injeção de Botões Baseados no Plano
+    const isBasico = typeof Auth !== 'undefined' && Auth.isPlanBasico();
+    const btnContainer = document.getElementById('botoesCupomContainer');
+    const msgData = `'${cupom.id}', '${encodeURIComponent(cupom.cliente)}', '${encodeURIComponent(JSON.stringify(cupom.itens))}', ${cupom.total}, '${cupom.data}'`;
+
+    if (isBasico) {
+        btnContainer.innerHTML = `
+            <button onclick="fecharCupom()"
+                style="flex:1; padding:0.6rem; border:2px solid #e2e8f0; border-radius:0.5rem; background:white; cursor:pointer; font-size:0.85rem;">Fechar</button>
+            <button onclick="enviarWhatsApp(${msgData})"
+                style="flex:2; padding:0.6rem; background:#25D366; color:white; border:none; border-radius:0.5rem; font-weight:600; cursor:pointer; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                Enviar no WhatsApp
+            </button>
+        `;
+    } else {
+        btnContainer.innerHTML = `
+            <button onclick="fecharCupom()"
+                style="flex:1; padding:0.6rem; border:2px solid #e2e8f0; border-radius:0.5rem; background:white; cursor:pointer; font-size:0.85rem;">Fechar</button>
+            <button onclick="imprimirCupomAgora()"
+                style="flex:1; padding:0.6rem; background:#16a34a; color:white; border:none; border-radius:0.5rem; font-weight:600; cursor:pointer; font-size:0.85rem;">🖨️
+                Imprimir</button>
+            <button onclick="enviarWhatsApp(${msgData})"
+                style="flex:1; padding:0.6rem; background:#25D366; color:white; border:none; border-radius:0.5rem; font-weight:600; cursor:pointer; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                Zap</button>
+        `;
+    }
+
     document.getElementById('modalCupom').style.display = 'flex';
 }
 
