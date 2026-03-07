@@ -562,7 +562,7 @@ async function carregarHistoricoVendas(filtros = null, msgCarregando = 'Carregan
                     const _basico2 = typeof Auth !== 'undefined' && Auth.isPlanBasico();
                     const _printBtn2 = _basico2 ? '' : `<button title="Reimprimir cupom" data-print-btn style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;" onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">&#128424;&#65039;</button>`;
                     const btnReaproveitarX = `<button title="Copiar itens para nova venda (Reaproveitar)" class="edit-btn" style="background:none; border:1px solid #3b82f6; padding:3px 6px; font-size:13px; margin-right:2px; border-radius:4px; cursor:pointer;" onclick="reaproveitarVenda('${encodeURIComponent(itensJSON)}')">&#128260;</button>`;
-                    acoes = `${btnReaproveitarX}${_printBtn2}${whatsappBtn}`;
+                    acoes = `${btnReaproveitarX}${_printBtn2}`;
                 }
 
 
