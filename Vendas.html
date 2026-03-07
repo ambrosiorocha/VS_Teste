@@ -203,7 +203,7 @@
             </div>
 
             <div style="margin-bottom:1rem;">
-                <label style="font-size:0.85rem; font-weight:600;">Desconto Geral (R$)</label>
+                <label style="font-size:0.85rem; font-weight:600;">Adicionar Desconto Extra (R$)</label>
                 <input type="text" id="descontoGeralModal" value="0,00" class="moeda-input" onfocus="this.select()"
                     style="width:100%; margin-top:0.35rem; border: 1px solid #ccc; padding: 6px; border-radius: 4px;">
             </div>
@@ -274,7 +274,7 @@
                     </div>
                     <div class="form-group" style="margin:0;">
                         <label for="quantidade">Qtd</label>
-                        <input type="number" id="quantidade" step="any" min="0.01" placeholder="0">
+                        <input type="number" id="quantidade" step="1" min="0.01" placeholder="1">
                     </div>
                     <button class="btn-add" onclick="adicionarItemCarrinho()" style="white-space:nowrap;">+
                         Adicionar</button>
