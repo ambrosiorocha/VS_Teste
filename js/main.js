@@ -380,16 +380,20 @@ window.limparMoeda = function (valor) {
 // Aliasing para dar suporte imediato a todo o sistema que usar parseCurrencyBRL
 window.parseCurrencyBRL = window.limparMoeda;
 
-// Aplica a máscara em inputs com a classe "moeda-input" dinamicamente
+// Limita a digitação em inputs "moeda-input" a apenas números, pontos e vírgulas.
 document.addEventListener('input', function (e) {
     if (e.target && e.target.classList.contains('moeda-input')) {
-        let val = e.target.value.replace(/\D/g, ''); // só números
-        if (val === '') val = '0';
-        const num = parseInt(val, 10) / 100;
-        // Evita formatar se for 0 e o user acabou de deletar tudo (deixa vazio ou "0,00")
-        if (val === '0' && e.target.value === '') return;
+        let val = e.target.value;
+        // Permite apenas números, vírgulas e pontos
+        val = val.replace(/[^\d,\.]/g, '');
 
-        e.target.value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        // Impede que o usuário coloque mais de uma vírgula
+        let parts = val.split(',');
+        if (parts.length > 2) {
+            val = parts[0] + ',' + parts.slice(1).join('').replace(/,/g, '');
+        }
+
+        e.target.value = val;
     }
 });
 
