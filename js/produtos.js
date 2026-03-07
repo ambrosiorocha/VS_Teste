@@ -202,12 +202,10 @@ async function editarProduto(id) {
             document.getElementById('nome').value = produto.Nome || '';
             document.getElementById('unidadeVenda').value = produto['Unidade de Venda'] || 'Un';
 
-            const parseNum = (v) => { const s = String(v || 0).replace('R$', '').replace(/\./g, '').replace(',', '.').trim(); const n = parseFloat(s); return isNaN(n) ? 0 : n; };
-
-            const custo = parseNum(produto['Preço_de_custo']);
-            const margemPct = parseNum(produto['Margem_de_lucro(%)']);
-            const margemRS = parseNum(produto['Margem_de_lucro(R$)']);
-            const preco = parseNum(produto['Preço_de_venda'] || produto['Preço']);
+            const custo = parseCurrencyBRL(produto['Preço_de_custo']);
+            const margemPct = parseCurrencyBRL(produto['Margem_de_lucro(%)']);
+            const margemRS = parseCurrencyBRL(produto['Margem_de_lucro(R$)']);
+            const preco = parseCurrencyBRL(produto['Preço_de_venda'] || produto['Preço']);
 
             const formatMoneyInput = (val) => val > 0 ? val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
 
@@ -218,7 +216,7 @@ async function editarProduto(id) {
             // Bug fix: sincroniza campo visível no plano Básico
             const precoBasicoEl = document.getElementById('precoBasico');
             if (precoBasicoEl) precoBasicoEl.value = formatMoneyInput(preco);
-            document.getElementById('quantidade').value = parseNum(produto.Quantidade);
+            document.getElementById('quantidade').value = parseFloat(produto.Quantidade) || 0;
             document.getElementById('descricao').value = produto.Descrição || '';
             exibirStatus({ status: 'success', mensagem: 'Campos preenchidos. Agora você pode editar.' });
 
