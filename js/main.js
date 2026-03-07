@@ -346,34 +346,39 @@ document.addEventListener('DOMContentLoaded', () => {
 // FUNÇÕES GLOBAIS DE FORMATAÇÃO E MÁSCARA MONETÁRIA
 // ==========================================
 window.formatCurrencyBRL = function (value) {
-    const num = parseFloat(value);
-    if (isNaN(num)) return 'R$ 0,00';
-    return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    let num = parseFloat(value);
+    if (isNaN(num)) num = 0;
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(num);
 };
 
-window.parseCurrencyBRL = function (value) {
-    if (typeof value === 'number') return value;
-    if (!value) return 0;
+// Função de higienização definitiva de moeda conforme regra de negócio solicitada
+window.limparMoeda = function (valor) {
+    if (typeof valor === 'number') return valor;
+    if (!valor) return 0;
 
-    let str = String(value).trim();
+    let str = String(valor).trim();
 
-    // Se já for um formato numérico float/int válido (ex: "67.5" ou "675") vindo do Banco de Dados
-    if (/^-?\d+(\.\d+)?$/.test(str)) {
+    // Se a string já é numericamente sã do banco, como "67.5", ou de inputs nativos, sem vírgula
+    if (/^-?\d+(\.\d+)?$/.test(str) && !str.includes(',')) {
         return parseFloat(str) || 0;
     }
 
-    // Se for formato mascarado/texto (ex: "R$ 1.500,00" ou "5,00")
+    // 1. Remover o 'R$' (e símbolos ou espaços aleatórios)
     str = str.replace(/[^\d,\.-]/g, '');
 
-    // Se possui vírgula, tratamos como formato PT-BR
-    if (str.includes(',')) {
-        str = str.replace(/\./g, '');
-        str = str.replace(',', '.');
-    }
+    // 2. Remover pontos de milhar
+    str = str.replace(/\./g, '');
 
+    // 3. Substituir a vírgula decimal por ponto
+    str = str.replace(',', '.');
+
+    // 4. Retornar um Number (float) puro
     const num = parseFloat(str);
     return isNaN(num) ? 0 : num;
 };
+
+// Aliasing para dar suporte imediato a todo o sistema que usar parseCurrencyBRL
+window.parseCurrencyBRL = window.limparMoeda;
 
 // Aplica a máscara em inputs com a classe "moeda-input" dinamicamente
 document.addEventListener('input', function (e) {
