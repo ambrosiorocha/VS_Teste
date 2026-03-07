@@ -109,11 +109,11 @@ function preencherSelectProdutos(sel, lista) {
     sel.innerHTML = '<option value="">Selecione um produto</option>';
     lista.forEach(p => {
         const estoque = parseFloat(p.Quantidade) || 0;
-        const precoRaw = String(p['Preço_de_venda'] || p['Preço'] || p.Preco || 0).replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+        const precoVal = parseCurrencyBRL(p['Preço_de_venda'] || p['Preço'] || p.Preco || 0);
         const opt = document.createElement('option');
         opt.value = p.Nome;
         opt.textContent = `${p.Nome}  (Estoque: ${estoque})`;
-        opt.dataset.preco = parseFloat(precoRaw) || 0;
+        opt.dataset.preco = precoVal;
         opt.dataset.estoque = estoque;
         sel.appendChild(opt);
     });

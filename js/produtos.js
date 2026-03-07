@@ -149,9 +149,9 @@ function renderizarTabela(produtosParaRenderizar) {
     }
 
     produtosParaRenderizar.forEach((produto, idx) => {
-        const precoVenda = parseFloat(String(produto['Preço_de_venda'] || produto['Preço'] || 0).replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
-        const precoCusto = parseFloat(String(produto['Preço_de_custo'] || 0).replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
-        const margemPct = parseFloat(String(produto['Margem_de_lucro(%)'] || 0).replace('%', '').replace(',', '.').trim()) || 0;
+        const precoVenda = parseCurrencyBRL(produto['Preço_de_venda'] || produto['Preço'] || 0);
+        const precoCusto = parseCurrencyBRL(produto['Preço_de_custo'] || 0);
+        const margemPct = parseCurrencyBRL(String(produto['Margem_de_lucro(%)'] || 0).replace('%', ''));
         const id = produto['ID do Produto'];
 
         const custoCel = isBasico ? '' : `<td style="text-align:right; color:#64748b;">${precoCusto > 0 ? formatCurrencyBRL(precoCusto) : '-'}</td>`;
