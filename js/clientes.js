@@ -157,6 +157,7 @@ function editarCliente(id) {
         document.getElementById('email').value = cliente.email || '';
         document.getElementById('endereco').value = cliente.endereco || '';
         exibirStatus({ status: 'success', mensagem: 'Campos preenchidos para edição.' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 }
 

@@ -131,6 +131,7 @@ function editarFornecedor(id) {
         document.getElementById('email').value = f.email || '';
         document.getElementById('categoria').value = f.produto || '';
         exibirStatus({ status: 'success', mensagem: 'Campos preenchidos para edição.' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 }
 

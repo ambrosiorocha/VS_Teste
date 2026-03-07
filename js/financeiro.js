@@ -226,6 +226,7 @@ function editarFinanceiro(id) {
         document.getElementById('status').value = r.status || '';
         document.getElementById('categoria').value = r.categoria || '';
         exibirStatus({ status: 'success', mensagem: 'Registro carregado para edição.' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 }
 

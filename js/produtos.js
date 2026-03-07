@@ -219,6 +219,7 @@ async function editarProduto(id) {
             document.getElementById('quantidade').value = parseFloat(produto.Quantidade) || 0;
             document.getElementById('descricao').value = produto.Descrição || '';
             exibirStatus({ status: 'success', mensagem: 'Campos preenchidos. Agora você pode editar.' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
 
         } else {
             exibirStatus({ status: 'error', mensagem: 'Produto não encontrado para edição.' });
