@@ -198,6 +198,7 @@ function renderizarTabela(dados) {
         row.className = trClasses;
         const isEstornado = r.status === 'Estornado' || r.status === 'Estornada';
         const isVenda = String(r.descricao).toLowerCase().includes('venda #') || (r.categoria && String(r.categoria).toLowerCase() === 'venda');
+        const isPago = r.status === 'Pago' || r.status === 'Quitado';
 
         let statusClass = 'font-bold ';
         if (isEstornado) statusClass += 'text-gray-500 line-through';
