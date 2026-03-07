@@ -552,17 +552,16 @@ async function carregarHistoricoVendas(filtros = null, msgCarregando = 'Carregan
                         <button class="edit-btn" style="background:#16a34a;font-size:11px;" onclick="abrirModalFinalizarPendente(${id}, '${encodeURIComponent(itensJSON)}')">&#9989; Finalizar</button>
                         <button class="delete-btn" style="font-size:11px;" data-admin-btn onclick="excluirVenda(${id})">&#128465;</button>
                     `;
-                } else if (status === 'Concluda' || status === '') {
+                } else if (status === 'Concluída' || status === 'Concluda' || status === '') {
                     statusBadge = `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">&#9989; Concluída</span>`;
                     const _bscCon = typeof Auth !== 'undefined' && Auth.isPlanBasico();
                     const _printCon = _bscCon ? '' : `<button title="Reimprimir cupom" data-print-btn style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;" onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">&#128424;&#65039;</button>`;
-                    const btnReaproveitar = `<button title="Copiar itens para nova venda (Reaproveitar)" style="background:none;border:1px solid #3b82f6;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;" onclick="reaproveitarVenda('${encodeURIComponent(itensJSON)}')">&#128260;</button>`;
-                    acoes = `${btnReaproveitar}${_printCon}${whatsappBtn}<button class="delete-btn" style="background:#f59e0b;color:#fff;font-size:11px;" data-admin-btn onclick="confirmarEstorno(${id})">&#8617;&#65039; Estornar</button>`;
+                    acoes = `${_printCon}${whatsappBtn}<button class="delete-btn" style="background:#f59e0b;color:#fff;font-size:11px;" data-admin-btn onclick="confirmarEstorno(${id})">&#8617;&#65039; Estornar</button>`;
                 } else if (status === 'Estornada') {
                     statusBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">&#8617;&#65039; Estornada</span>`;
                     const _basico2 = typeof Auth !== 'undefined' && Auth.isPlanBasico();
                     const _printBtn2 = _basico2 ? '' : `<button title="Reimprimir cupom" data-print-btn style="background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:13px;" onclick="reimprimirCupom(${id},'${encodeURIComponent(itensJSON)}','${encodeURIComponent(cliente)}','${encodeURIComponent(operador)}','${encodeURIComponent(pgto)}',${total},'${dataV}')">&#128424;&#65039;</button>`;
-                    const btnReaproveitarX = `<button class="edit-btn" style="background:#3b82f6;color:#fff;font-size:11px;margin-right:2px;" onclick="reaproveitarVenda('${encodeURIComponent(itensJSON)}')">&#128260; Reaproveitar Itens</button>`;
+                    const btnReaproveitarX = `<button title="Copiar itens para nova venda (Reaproveitar)" class="edit-btn" style="background:none; border:1px solid #3b82f6; padding:3px 6px; font-size:13px; margin-right:2px; border-radius:4px; cursor:pointer;" onclick="reaproveitarVenda('${encodeURIComponent(itensJSON)}')">&#128260;</button>`;
                     acoes = `${btnReaproveitarX}${_printBtn2}${whatsappBtn}`;
                 }
 
@@ -881,15 +880,18 @@ function enviarWhatsApp(id, clienteEnc, itensJSONEnc, total, dataV) {
     const isBasico = typeof Auth !== 'undefined' && Auth.isPlanBasico();
 
     let msg = '';
+    let itens = [];
+    try { itens = JSON.parse(decodeURIComponent(itensJSONEnc)); } catch (e) { }
 
     if (isBasico) {
-        // Mensagem simples para plano Básico
-        msg = `Pedido #${id} - Total ${fmtBRL(total)}. Obrigado pela preferência!`;
+        // Mensagem otimizada para plano Básico (com itens e quantidades resumidas)
+        const itensListaSimples = itens.length > 0
+            ? itens.map(i => `${i.quantidade}x ${i.nome}`).join(', ')
+            : 'itens não disponíveis';
+
+        msg = `*Pedido #${id}*\nItens: ${itensListaSimples}\n*Total: ${fmtBRL(total)}*\nObrigado pela preferência!`;
     } else {
         // Mensagem rica para Pro/Premium
-        let itens = [];
-        try { itens = JSON.parse(decodeURIComponent(itensJSONEnc)); } catch (e) { }
-
         const linha = '------------------------------';
         const itensLista = itens.length > 0
             ? itens.map(i => `  • ${i.nome} x${i.quantidade} = ${fmtBRL(i.subtotal)}`).join('\n')
