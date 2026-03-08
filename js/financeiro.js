@@ -494,6 +494,8 @@ window.renderizarExtratosCaixa = function () {
 
     const kpiGrid = document.getElementById('kpiGridCaixas');
     const selectFiltro = document.getElementById('filtroExtratoCaixa');
+    const dtInicioStr = document.getElementById('filtroExtratoInicio')?.value;
+    const dtFimStr = document.getElementById('filtroExtratoFim')?.value;
 
     kpiGrid.innerHTML = '';
 
@@ -505,9 +507,26 @@ window.renderizarExtratosCaixa = function () {
         });
     }
 
+    // Filtrar base para calcular saldos parciais nos Cards
+    let baseParaCaixas = [...registrosFinanceiros];
+    if (dtInicioStr) {
+        const inicio = new Date(dtInicioStr + 'T00:00:00');
+        baseParaCaixas = baseParaCaixas.filter(r => {
+            const d = typeof parseDataVencimento === 'function' ? parseDataVencimento(r.vencimento) : new Date(r.vencimento);
+            return d && d >= inicio;
+        });
+    }
+    if (dtFimStr) {
+        const fim = new Date(dtFimStr + 'T23:59:59');
+        baseParaCaixas = baseParaCaixas.filter(r => {
+            const d = typeof parseDataVencimento === 'function' ? parseDataVencimento(r.vencimento) : new Date(r.vencimento);
+            return d && d <= fim;
+        });
+    }
+
     // Calcula saldo para cada caixa e gera os cards
     caixasAtivos.forEach(nomeCaixa => {
-        const registrosDesteCaixa = registrosFinanceiros.filter(r => (r.caixa || 'Dinheiro') === nomeCaixa);
+        const registrosDesteCaixa = baseParaCaixas.filter(r => (r.caixa || 'Dinheiro') === nomeCaixa);
 
         let entradas = 0;
         let saidas = 0;
@@ -547,8 +566,24 @@ window.renderizarExtratosCaixa = function () {
 }
 
 window.renderizarTabelaExtrato = function () {
+    const isBsc = typeof Auth !== 'undefined' && Auth.isPlanBasico();
+    const tableWrapper = document.getElementById('historicoTableWrapper');
+    const upgradeWall = document.getElementById('historicoUpgradeWall');
+
+    if (isBsc) {
+        if (tableWrapper) tableWrapper.style.display = 'none';
+        if (upgradeWall) upgradeWall.style.display = 'block';
+        return; // Basic users stop here, they only see the KPIs
+    } else {
+        if (tableWrapper) tableWrapper.style.display = 'block';
+        if (upgradeWall) upgradeWall.style.display = 'none';
+    }
+
     const selectFiltro = document.getElementById('filtroExtratoCaixa');
+    const dtInicioStr = document.getElementById('filtroExtratoInicio')?.value;
+    const dtFimStr = document.getElementById('filtroExtratoFim')?.value;
     const caixaFiltro = selectFiltro.value;
+
     const tbody = document.getElementById('listaExtratoCaixa');
     tbody.innerHTML = '';
 
@@ -558,15 +593,27 @@ window.renderizarTabelaExtrato = function () {
         return !(isEstornado && isVenda);
     });
 
+    if (dtInicioStr) {
+        const inicio = new Date(dtInicioStr + 'T00:00:00');
+        filtrados = filtrados.filter(r => {
+            const d = typeof parseDataVencimento === 'function' ? parseDataVencimento(r.vencimento) : new Date(r.vencimento);
+            return d && d >= inicio;
+        });
+    }
+    if (dtFimStr) {
+        const fim = new Date(dtFimStr + 'T23:59:59');
+        filtrados = filtrados.filter(r => {
+            const d = typeof parseDataVencimento === 'function' ? parseDataVencimento(r.vencimento) : new Date(r.vencimento);
+            return d && d <= fim;
+        });
+    }
+
     if (caixaFiltro !== 'TODOS') {
         filtrados = filtrados.filter(r => (r.caixa || 'Dinheiro') === caixaFiltro);
     }
 
-    // Ocultar transações que não sejam "Pagas/Recebidas" do Extrato?
-    // Exibiremos todos do caixa, mas evidenciando O Pendente para clareza
-
     if (filtrados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:1.5rem; color:#64748b;">Nenhuma movimentação neste caixa.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:1.5rem; color:#64748b;">Nenhuma movimentação neste período ou caixa.</td></tr>';
         return;
     }
 
@@ -585,7 +632,6 @@ window.renderizarTabelaExtrato = function () {
             colorType = '#94a3b8';
             spanValue = `<span style="text-decoration:line-through;">${spanValue}</span>`;
         } else if (isPendente) {
-            // O Pendente fica alaranjado na lista de extrato para avisar que ainda não mexeu no saldo
             colorType = '#d97706';
         }
 
