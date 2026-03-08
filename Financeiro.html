@@ -24,88 +24,186 @@
 
     <main class="main-content p-4 md:p-8 overflow-y-auto">
         <div class="container">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex justify-between items-center mb-6" style="flex-wrap: wrap; gap: 1rem;">
                 <h2>Fluxo Financeiro (Contas a Pagar/Receber)</h2>
-            </div>
 
-            <div id="kpiGridFinanceiro" class="kpi-grid mb-8">
-                <div class="kpi-card bg-red-50">
-                    <h4 class="text-red-700">A Pagar (Pendente)</h4>
-                    <p id="totalPagar" class="text-red-600 font-bold">R$ 0,00</p>
-                </div>
-                <div class="kpi-card bg-green-50">
-                    <h4 class="text-green-700">A Receber (Pendente)</h4>
-                    <p id="totalReceber" class="text-green-600 font-bold">R$ 0,00</p>
-                </div>
-                <div class="kpi-card bg-blue-50">
-                    <h4 class="text-blue-700">Saldo Pendente</h4>
-                    <p id="saldoPendencias" class="text-blue-600 font-bold">R$ 0,00</p>
+                <!-- Navegação de Abas -->
+                <div style="display:flex; gap:0.5rem; background:#f1f5f9; padding:0.25rem; border-radius:1rem;">
+                    <button id="btnTabLancamentos" onclick="alternarAbaFinanceiro('lancamentos')"
+                        style="padding:0.5rem 1rem; border-radius:0.75rem; border:none; font-weight:600; cursor:pointer; background:white; color:#334155; box-shadow:0 1px 3px rgba(0,0,0,0.1); transition:all 0.2s;">
+                        📝 Lançamentos Gerais
+                    </button>
+                    <button id="btnTabExtratos" onclick="alternarAbaFinanceiro('extratos')"
+                        style="padding:0.5rem 1rem; border-radius:0.75rem; border:none; font-weight:600; cursor:pointer; background:transparent; color:#64748b; transition:all 0.2s;">
+                        🏦 Meu Caixa (Extratos)
+                    </button>
                 </div>
             </div>
 
-            <form id="financeiroForm" class="mb-10">
-                <input type="hidden" id="idFinanceiro" value="">
-
-                <div class="form-group">
-                    <label for="descricao">Descrição da Conta</label>
-                    <input type="text" id="descricao" placeholder="Ex: Pagamento aluguel, Recebimento venda #12"
-                        required>
-                </div>
-
-                <div class="form-grid-container">
-                    <div class="form-group">
-                        <label for="valor">Valor (R$)</label>
-                        <input type="text" id="valor" required
-                            class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 moeda-input">
+            <!-- ABA 1: LANÇAMENTOS GERAIS (Ativa por padrão) -->
+            <div id="tabLancamentos" style="display:block;">
+                <div id="kpiGridFinanceiro" class="kpi-grid mb-8">
+                    <div class="kpi-card bg-red-50">
+                        <h4 class="text-red-700">A Pagar (Pendente)</h4>
+                        <p id="totalPagar" class="text-red-600 font-bold">R$ 0,00</p>
                     </div>
-                    <div class="form-group">
-                        <label for="tipo">Tipo</label>
-                        <select id="tipo" required class="w-full p-2 border border-gray-300 rounded">
-                            <option value="Pagar">A Pagar (Despesa)</option>
-                            <option value="Receber">A Receber (Receita)</option>
-                        </select>
+                    <div class="kpi-card bg-green-50">
+                        <h4 class="text-green-700">A Receber (Pendente)</h4>
+                        <p id="totalReceber" class="text-green-600 font-bold">R$ 0,00</p>
                     </div>
-                    <div class="form-group">
-                        <label for="vencimento">Data de Vencimento</label>
-                        <input type="date" id="vencimento" required>
+                    <div class="kpi-card bg-blue-50">
+                        <h4 class="text-blue-700">Saldo Pendente</h4>
+                        <p id="saldoPendencias" class="text-blue-600 font-bold">R$ 0,00</p>
                     </div>
                 </div>
 
-                <div class="form-grid-container">
+                <form id="financeiroForm" class="mb-10">
+                    <input type="hidden" id="idFinanceiro" value="">
+
                     <div class="form-group">
-                        <label for="status">Status</label>
-                        <select id="status" required class="w-full p-2 border border-gray-300 rounded">
-                            <option value="Pendente">Pendente</option>
-                            <option value="Pago">Quitado (Pago/Recebido)</option>
-                        </select>
+                        <label for="descricao">Descrição da Conta</label>
+                        <input type="text" id="descricao" placeholder="Ex: Pagamento aluguel, Recebimento venda #12"
+                            required>
                     </div>
-                    <div class="form-group">
-                        <label for="categoria">Categoria</label>
-                        <select id="categoria" required class="w-full p-2 border border-gray-300 rounded">
-                            <option value="">Selecione...</option>
-                            <option value="Venda">Venda</option>
-                            <option value="Compra">Compra</option>
-                            <option value="Operacional">Operacional</option>
-                            <option value="Fornecedor">Fornecedor</option>
-                            <option value="Salário">Salário</option>
-                            <option value="Aluguel">Aluguel</option>
-                            <option value="Impostos">Impostos</option>
-                            <option value="Outros">Outros</option>
-                        </select>
+
+                    <div class="form-grid-container">
+                        <div class="form-group">
+                            <label for="valor">Valor (R$)</label>
+                            <input type="text" id="valor" required
+                                class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 moeda-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="tipo">Tipo</label>
+                            <select id="tipo" required class="w-full p-2 border border-gray-300 rounded">
+                                <option value="Pagar">A Pagar (Despesa)</option>
+                                <option value="Receber">A Receber (Receita)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="vencimento">Data de Vencimento</label>
+                            <input type="date" id="vencimento" required>
+                        </div>
                     </div>
+
+                    <div class="form-grid-container">
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status" required class="w-full p-2 border border-gray-300 rounded">
+                                <option value="Pendente">Pendente</option>
+                                <option value="Pago">Quitado (Pago/Recebido)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="categoria">Categoria</label>
+                            <select id="categoria" required class="w-full p-2 border border-gray-300 rounded">
+                                <option value="">Selecione...</option>
+                                <option value="Venda">Venda</option>
+                                <option value="Compra">Compra</option>
+                                <option value="Operacional">Operacional</option>
+                                <option value="Fornecedor">Fornecedor</option>
+                                <option value="Salário">Salário</option>
+                                <option value="Aluguel">Aluguel</option>
+                                <option value="Impostos">Impostos</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid-container" style="grid-template-columns: 1fr;">
+                        <div class="form-group">
+                            <label for="caixa">Caixa / Banco</label>
+                            <select id="caixa" required class="w-full p-2 border border-gray-300 rounded">
+                                <!-- Serão preenchidos pelo JS de acordo com o plano -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnPréSalvar" class="btn">Revisar e Registrar</button>
+                </form>
+
+                <div id="statusMessage"></div>
+
+                <div class="table-container">
+                    <div class="flex justify-between items-center mb-4" style="flex-wrap:wrap; gap:0.5rem;">
+                        <h3>Registros Financeiros</h3>
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                            <input type="date" id="filtroDataInicio" class="p-2 border border-gray-300 rounded text-sm"
+                                title="Data início">
+                            <span style="font-size:0.8rem; color:#64748b;">até</span>
+                            <input type="date" id="filtroDataFim" class="p-2 border border-gray-300 rounded text-sm"
+                                title="Data fim">
+                            <button onclick="aplicarFiltros()"
+                                class="p-2 border border-gray-300 rounded text-sm bg-blue-50 hover:bg-blue-100">🔍
+                                Filtrar</button>
+                            <button onclick="limparFiltros()" class="p-2 border border-gray-300 rounded text-sm">✕
+                                Limpar</button>
+                            <select id="filtroTipo" class="p-2 border border-gray-300 rounded text-sm">
+                                <option value="">Todos os Tipos</option>
+                                <option value="Pagar">A Pagar</option>
+                                <option value="Receber">A Receber</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Descrição</th>
+                                <th style="text-align:right;">Valor</th>
+                                <th>Tipo</th>
+                                <th>Vencimento</th>
+                                <th>Status</th>
+                                <th>Categoria</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaFinanceiro">
+                            <tr>
+                                <td colspan="8" style="text-align:center;">Carregando dados...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div><!-- FIM DA ABA LANÇAMENTOS -->
+
+            <!-- ABA 2: MEU CAIXA (EXTRATOS) (Oculta por padrão) -->
+            <div id="tabExtratos" style="display:none;">
+                <h3 style="margin-bottom: 1.5rem; color:#1e293b;">Extratos de Caixas e Bancos</h3>
+
+                <!-- Cards de Saldo dos Caixas -->
+                <div id="kpiGridCaixas" class="kpi-grid mb-8">
+                    <!-- Gerado pelo JS -->
                 </div>
 
-                <div class="form-grid-container" style="grid-template-columns: 1fr;">
-                    <div class="form-group">
-                        <label for="caixa">Caixa / Banco</label>
-                        <select id="caixa" required class="w-full p-2 border border-gray-300 rounded">
-                            <!-- Serão preenchidos pelo JS de acordo com o plano -->
-                        </select>
+                <!-- Filtro e Tabela de Extrato -->
+                <div class="table-container">
+                    <div class="flex justify-between items-center mb-4" style="flex-wrap:wrap; gap:0.5rem;">
+                        <h3>Histórico de Transações</h3>
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                            <select id="filtroExtratoCaixa" class="p-2 border border-gray-300 rounded text-sm"
+                                onchange="renderizarTabelaExtrato()">
+                                <!-- Gerado pelo JS -->
+                            </select>
+                        </div>
                     </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th>Tipo</th>
+                                <th style="text-align:right;">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaExtratoCaixa">
+                            <tr>
+                                <td colspan="5" style="text-align:center;">Carregando extrato...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <button type="button" id="btnPréSalvar" class="btn">Revisar e Registrar</button>
-            </form>
+            </div><!-- FIM DA ABA EXTRATOS -->
 
             <!-- Modal de Resumo do Financeiro -->
             <div id="modalResumoFinanceiro"
