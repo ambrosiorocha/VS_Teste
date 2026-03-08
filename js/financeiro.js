@@ -7,19 +7,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     const caixaSelect = document.getElementById('caixa');
     // Injeção de dependência dos Caixas baseada no Plano
+    // Injeção de dependência dos Caixas baseada no Plano
     if (Auth.isPlanBasico()) {
-        caixaSelect.innerHTML = '<option value="Dinheiro">💵 Dinheiro Mão</option>';
+        caixaSelect.innerHTML = '<option value="Dinheiro">💵 Dinheiro</option>';
         caixaSelect.value = 'Dinheiro';
         caixaSelect.disabled = true; // Trava para o plano Básico
     } else {
         caixaSelect.innerHTML = `
-            <option value="Dinheiro">💵 Dinheiro (Balcão)</option>
+            <option value="Dinheiro">💵 Dinheiro</option>
             <option value="Conta Banco do Brasil">🏦 Conta Banco do Brasil</option>
             <option value="Conta Itaú">🏦 Conta Itaú</option>
             <option value="Conta Caixa">🏦 Conta Bradesco</option>
             <option value="Conta Nubank">🟣 Nubank Empresa</option>
         `;
     }
+
+    // Default Vencimento to today
+    document.getElementById('vencimento').value = new Date().toISOString().split('T')[0];
 
     // Interceptação do Formulário para o Modal de Resumo
     document.getElementById('btnPréSalvar').addEventListener('click', function () {
@@ -154,6 +158,7 @@ async function salvarFinanceiro() {
         if (data.status === 'sucesso') {
             document.getElementById('financeiroForm').reset();
             document.getElementById('idFinanceiro').value = '';
+            document.getElementById('vencimento').value = new Date().toISOString().split('T')[0];
 
             // Re-trava o Caixa se for Básico
             if (Auth.isPlanBasico()) {

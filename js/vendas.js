@@ -295,7 +295,7 @@ function renderizarCarrinho() {
         totalGeral += item.subtotal;
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${item.nome}</td>
+            <td><a href="#" onclick="editarItemCarrinho(${idx}); return false;" style="color:#2563eb; text-decoration:underline;" title="Clique para editar esse item">${item.nome}</a></td>
             <td style="text-align:center;">${item.quantidade}</td>
             <td>${fmtBRL(item.preco)}</td>
             <td>${item.desconto > 0 ? item.desconto.toFixed(1) + '%' : '-'}</td>
@@ -313,6 +313,17 @@ function renderizarCarrinho() {
 
 function removerItem(idx) { carrinho.splice(idx, 1); renderizarCarrinho(); }
 
+function editarItemCarrinho(idx) {
+    const item = carrinho[idx];
+    document.getElementById('produto').value = item.nome;
+    document.getElementById('quantidade').value = item.quantidade;
+    document.getElementById('descontoItemPct').value = item.desconto;
+    carrinho.splice(idx, 1);
+    atualizarPrecoUnitario();
+    sincronizarDesconto('pct');
+    renderizarCarrinho();
+}
+
 function cancelarEdicao() {
     vendaEditandoId = null;
     carrinho = [];
@@ -329,8 +340,13 @@ async function salvarRascunho() {
         if (carrinho.length === 0) { exibirStatus({ status: 'error', mensagem: '⚠️ Adicione itens ao pedido.' }); return; }
         const payload = montarPayloadVenda();
         payload.formaPagamento = payload.formaPagamento || '-';
+        payload.statusFinanceiro = 'Pendente';
+
+        const action = vendaEditandoId ? 'finalizarPendente' : 'salvarRascunho';
+        if (vendaEditandoId) payload.id = vendaEditandoId;
+
         try {
-            const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'salvarRascunho', data: payload }) });
+            const res = await fetch(window.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: action, data: payload }) });
             const data = await res.json();
             exibirStatus(data);
             if (data.status === 'sucesso') {
@@ -353,6 +369,25 @@ function abrirModal() {
     document.getElementById('prazoContainer').style.display = 'none';
     document.getElementById('prazoCustom').style.display = 'none';
     document.getElementById('vencimentoCustom').value = '';
+
+    const caixaSelect = document.getElementById('caixaVenda');
+    if (caixaSelect) {
+        if (typeof Auth !== 'undefined' && Auth.isPlanBasico()) {
+            caixaSelect.innerHTML = '<option value="Dinheiro">💵 Dinheiro</option>';
+            caixaSelect.value = 'Dinheiro';
+            caixaSelect.disabled = true;
+        } else {
+            caixaSelect.innerHTML = `
+                <option value="Dinheiro">💵 Dinheiro</option>
+                <option value="Conta Banco do Brasil">🏦 Conta Banco do Brasil</option>
+                <option value="Conta Itaú">🏦 Conta Itaú</option>
+                <option value="Conta Caixa">🏦 Conta Bradesco</option>
+                <option value="Conta Nubank">🟣 Nubank Empresa</option>
+            `;
+            caixaSelect.disabled = false;
+        }
+    }
+
     atualizarModalTotais();
     document.getElementById('modalFinalizar').style.display = 'flex';
 }
@@ -435,6 +470,8 @@ function montarPayloadVenda() {
         const d = i.desconto > 0 ? ` (-${i.desconto.toFixed(1)}%)` : '';
         return `${i.nome} (${i.quantidade}${d})`;
     }).join(', ');
+    const caixaVal = document.getElementById('caixaVenda') ? document.getElementById('caixaVenda').value : 'Dinheiro';
+
     return {
         data: new Date().toLocaleDateString('pt-BR'),
         cliente: document.getElementById('cliente').value || 'Consumidor Interno',
@@ -446,6 +483,7 @@ function montarPayloadVenda() {
         descontoReal: descontoTotal,
         totalComDesconto: total,
         formaPagamento: formaPagamentoSelecionada,
+        caixa: caixaVal,
         usuario: document.getElementById('usuario').value || 'Administrador'
     };
 }
@@ -550,7 +588,6 @@ async function carregarHistoricoVendas(filtros = null, msgCarregando = 'Carregan
                     acoes = `
                         <button class="edit-btn" style="font-size:11px;" onclick="editarRascunho(${id}, '${encodeURIComponent(itensJSON)}')">&#9999;&#65039; Editar</button>
                         <button class="edit-btn" style="background:#16a34a;font-size:11px;" onclick="abrirModalFinalizarPendente(${id}, '${encodeURIComponent(itensJSON)}')">&#9989; Finalizar</button>
-                        <button class="delete-btn" style="font-size:11px;" data-admin-btn onclick="excluirVenda(${id})">&#128465;</button>
                     `;
                 } else if (status === 'Concluída' || status === 'Concluda' || status === '') {
                     statusBadge = `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;">&#9989; Concluída</span>`;
