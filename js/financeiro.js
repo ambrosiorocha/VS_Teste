@@ -135,8 +135,11 @@ function aplicarFiltros() {
     let filtrados = [...registrosFinanceiros];
 
     // Ocultar sempre registros financeiros de vendas Estornadas da UI limpa
-    filtrados = filtrados.filter(r => r.status && r.status !== 'Estornado' && r.status !== 'Estornada');
-
+    filtrados = filtrados.filter(r => {
+        const isEstornado = r.status === 'Estornado' || r.status === 'Estornada';
+        const isVenda = String(r.descricao).toLowerCase().includes('venda #') || (r.categoria && String(r.categoria).toLowerCase() === 'venda');
+        return !(isEstornado && isVenda);
+    });
     // Removemos os filtros rígidos do Básico. Agora eles podem ver as próprias Receitas lançadas à vista.
 
     if (filtroTipo && !(typeof Auth !== 'undefined' && Auth.isPlanBasico())) {
