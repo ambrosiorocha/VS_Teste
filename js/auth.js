@@ -182,7 +182,7 @@ window.Auth = (function () {
 
         if (!nomeCompleto) { errEl.textContent = 'Informe seu nome completo.'; errEl.style.display = 'block'; return; }
         if (!empresa) { errEl.textContent = 'Informe o nome da empresa.'; errEl.style.display = 'block'; return; }
-        if (!telefone) { errEl.textContent = 'Informe seu WhatsApp (obrigatório).'; errEl.style.display = 'block'; return; }
+        if (!telefone || telefone.length < 10) { errEl.textContent = 'Informe um WhatsApp válido (apenas os 10 ou 11 números, com DDD).'; errEl.style.display = 'block'; return; }
         if (!login) { errEl.textContent = 'Defina um login de acesso.'; errEl.style.display = 'block'; return; }
         if (!senha || senha.length < 4) { errEl.textContent = 'A senha deve ter ao menos 4 caracteres.'; errEl.style.display = 'block'; return; }
 
@@ -271,8 +271,8 @@ window.Auth = (function () {
                         style="${_sharedInputStyle}margin-bottom:0;">
                 </div>
                 <div>
-                    <label style="${_sharedLabelStyle}">📱 WhatsApp (Contato Mestre)</label>
-                    <input id="faTelefone" type="text" placeholder="Ex: 81999999999"
+                    <label style="${_sharedLabelStyle}">📱 WhatsApp</label>
+                    <input id="faTelefone" type="text" placeholder="Ex: 81999999999" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                         style="${_sharedInputStyle}margin-bottom:0;">
                 </div>
                 <div>
