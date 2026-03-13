@@ -144,12 +144,15 @@ function onEdit(e) {
   var colId = headers.indexOf("Spreadsheet ID") + 1;
   var colAtiv = headers.indexOf("Ativação") + 1;
   
-  // Detetando alteração na Coluna Plano ou Expiração (dinâmico)
-  if (col === colPlano || col === colExp) {
+  // Detetando alteração na Coluna Plano, Expiração ou Nome (dinâmico)
+  var colEmpresa = headers.indexOf("Nome da Empresa / App") + 1;
+  
+  if (col === colPlano || col === colExp || (colEmpresa > 0 && col === colEmpresa)) {
     var ss = e.source;
     var spreadsheetId = sheet.getRange(row, colId).getValue();
     var plano = sheet.getRange(row, colPlano).getValue();
     var expiracao = sheet.getRange(row, colExp).getValue();
+    var empresaNome = colEmpresa > 0 ? sheet.getRange(row, colEmpresa).getValue() : "";
     
     if (!spreadsheetId) return;
     
@@ -169,6 +172,7 @@ function onEdit(e) {
          var dados = configSheet.getDataRange().getValues();
          var atualizouPlano = false;
          var atualizouExp = false;
+         var atualizouEmp = false;
          for (var i = 1; i < dados.length; i++) {
            if (dados[i][0] === "Plano") {
              configSheet.getRange(i + 1, 2).setValue(plano);
@@ -178,9 +182,14 @@ function onEdit(e) {
              configSheet.getRange(i + 1, 2).setValue(expiracao);
              atualizouExp = true;
            }
+           if (dados[i][0] === "Empresa") {
+             configSheet.getRange(i + 1, 2).setValue(empresaNome);
+             atualizouEmp = true;
+           }
          }
          if(!atualizouPlano) configSheet.appendRow(["Plano", plano]);
          if(!atualizouExp) configSheet.appendRow(["Expiração", expiracao]);
+         if(!atualizouEmp && empresaNome) configSheet.appendRow(["Empresa", empresaNome]);
       }
       
       // Se a aba Configurações antiga existir (Lista de Operadores), também força a atualização visual de quem tem admin

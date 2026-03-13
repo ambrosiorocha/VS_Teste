@@ -99,8 +99,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const sidebar = `
         <aside id="desktop-sidebar" class="desktop-sidebar hidden md:flex flex-col">
             <div class="sidebar-header" style="display:flex;justify-content:center;align-items:center;gap:8px;">
-                <img src="assets/logo.png" alt="Logo" style="height:28px; object-fit:contain; filter: brightness(0) invert(1);"> 
-                <span id="sidebarEmpresaName">Gestão&Controle</span>
+                <img src="assets/logo.png" alt="Logo" id="sidebarBrandIcon" style="height:28px; object-fit:contain; filter: brightness(0) invert(1);"> 
+                <span id="sidebarEmpresaName">Gestão&amp;Controle</span>
             </div>
             <nav id="desktop-nav" class="sidebar-nav flex-1">
                 <a href="index.html" class="nav-link-menu" ${hideInicio}>
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             <!-- Footer Version & Help -->
             <div style="padding: 0.75rem 1rem; border-top: 1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
-                <span class="text-xs text-gray-400 font-semibold" style="color:#94a3b8;">Gestor v${APP_VERSION}</span>
+                <span class="text-xs text-gray-400 font-semibold" style="color:#94a3b8;" id="sidebarFooterText">Gestor v${APP_VERSION}</span>
                 <button onclick="openHelpModal()" class="w-6 h-6 rounded-full bg-slate-700 hover:bg-slate-600 text-gray-300 text-xs font-bold flex items-center justify-center transition-colors" title="Ajuda">?</button>
             </div>
         </aside>
@@ -252,10 +252,37 @@ document.addEventListener('DOMContentLoaded', function () {
                 greetEl.innerHTML = `${saudacao}, <strong>${Auth.getUser()}</strong>! Selecione uma opção abaixo.`;
             }
 
-            // Atualiza Nome da Empresa na Sidebar
+            // Atualiza Nome da Empresa na Sidebar & Trata White-Label Total
             const empName = document.getElementById('sidebarEmpresaName');
-            if (empName && typeof Auth.getEmpresa === 'function') {
-                empName.textContent = Auth.getEmpresa();
+            const empIcon = document.getElementById('sidebarBrandIcon');
+            const sbFooter = document.getElementById('sidebarFooterText');
+
+            const isProOrPremium = (Auth.getPlan() === 'Pro' || Auth.getPlan() === 'Premium');
+            const nomeLoja = typeof Auth.getEmpresa === 'function' && Auth.getEmpresa() ? Auth.getEmpresa() : 'Gestão&Controle';
+
+            if (empName && empIcon && sbFooter) {
+                if (isProOrPremium) {
+                    empName.textContent = nomeLoja;
+                    empIcon.style.display = 'none'; // Esconde logo Gestão&Controle
+                    sbFooter.textContent = 'Gestão&Controle v' + APP_VERSION;
+                } else {
+                    empName.innerHTML = 'Gestão&amp;Controle';
+                    empIcon.style.display = 'block';
+                    sbFooter.textContent = 'v' + APP_VERSION;
+                }
+            }
+
+            // Atualiza Hero Banner da Home (Gestão&Controle gigante)
+            const heroLogo = document.getElementById('heroLogoIcon');
+            const heroBrand = document.getElementById('heroBrandText');
+            if (heroLogo && heroBrand) {
+                if (isProOrPremium) {
+                    heroLogo.style.display = 'none';
+                    heroBrand.innerHTML = nomeLoja;
+                } else {
+                    heroLogo.style.display = 'block';
+                    heroBrand.innerHTML = `Gestão<span>&amp;Controle</span>`;
+                }
             }
 
             // Atualiza badge do link Relatórios e Equipe com o plano

@@ -750,10 +750,13 @@ function autenticarOperador(dados) {
       if (senha === senhaCad) {
         var perm = {};
         try { perm = JSON.parse(String(rows[i][4] || '{}')); } catch(e) {}
-        var emp = 'Gestão&Controle';
-        try { emp = PropertiesService.getScriptProperties().getProperty('empresaNome') || emp; } catch(e){}
         
         var licenca = verificarEObterLicenca();
+        
+        var emp = licenca.empresa;
+        if (!emp) {
+            try { emp = PropertiesService.getScriptProperties().getProperty('empresaNome') || 'Gestão&Controle'; } catch(e){}
+        }
         var nivelUser = String(rows[i][1] || 'Operador').trim();
         var planoUser = String(rows[i][3] || 'Pro').trim();
         var planoFinal = planoUser;
@@ -955,11 +958,12 @@ function verificarEObterLicenca() {
     sheet.getRange(1, 1, 1, 2).setFontWeight('bold');
   }
   
-  var licenca = { plano: 'Básico', expiracao: '' };
+  var licenca = { plano: 'Básico', expiracao: '', empresa: '' };
   var dados = sheet.getDataRange().getValues();
   for (var i = 1; i < dados.length; i++) {
     if (dados[i][0] === 'Plano') licenca.plano = dados[i][1];
     if (dados[i][0] === 'Expiração') licenca.expiracao = dados[i][1];
+    if (dados[i][0] === 'Empresa') licenca.empresa = dados[i][1];
   }
   
   // Trava de expiração
