@@ -835,6 +835,7 @@ function realizarPrimeiroAcesso(dados) {
   var senha  = String(dados.senha);
   var nome   = String(dados.nomeCompleto || login).trim();
   var empresa = String(dados.empresa || '').trim();
+  var telefone = String(dados.telefone || '').trim();
   // Verificar login duplicado
   if (sheet.getLastRow() > 1) {
     var existentes = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().map(function(r){ return String(r[0]).trim(); });
@@ -844,8 +845,16 @@ function realizarPrimeiroAcesso(dados) {
   // Auto-Setup de licença inicial (cria aba Licença com Básico por padrão)
   verificarEObterLicenca();
 
+  // Verifica se a tabela de configurações tem a coluna Telefone
+  var lc = sheet.getLastColumn();
+  if (lc < 6 || sheet.getRange(1, 6).getValue() !== 'Telefone') {
+      sheet.getRange(1, 6).setValue('Telefone').setFontWeight('bold');
+  }
+
   // Grava o admin inicial com plano Básico
-  sheet.appendRow([login, 'Admin', senha, 'Básico']);
+  var permissoesIniciais = JSON.stringify({relatorios:true,fiado:true,visaoDono:true});
+  sheet.appendRow([login, 'Admin', senha, 'Básico', permissoesIniciais, telefone]);
+
   // Grava nome da empresa em uma aba de configurações gerais (opção: propriedade da planilha)
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -878,6 +887,26 @@ function registrarMestra(data) {
   var props = PropertiesService.getScriptProperties();
   if (props.getProperty('registrado_mestra') === 'sim') return {status: 'ok'};
   
+  // Resgata o Telefone do Admin na aba Configurações se não veio explicitamente (caso de retrocompatibilidade)
+  var telefone = data.telefone || data.whatsapp || "";
+  if (!telefone) {
+      try {
+          var ss = SpreadsheetApp.getActiveSpreadsheet();
+          var confSheet = ss.getSheetByName("Configurações");
+          if(confSheet) {
+              var td = confSheet.getDataRange().getValues();
+              var telIdx = td[0].indexOf("Telefone");
+              if (telIdx === -1) telIdx = 5; // fallback
+              for(var i = 1; i < td.length; i++) {
+                  if(td[i][1] === "Admin") {
+                      telefone = String(td[i][telIdx] || "");
+                      if(telefone) break;
+                  }
+              }
+          }
+      } catch(e){}
+  }
+
   // Link gerado da Master Planilha - A ser preenchido:
   var urlMestra = "https://script.google.com/macros/s/AKfycbxVGnPtuxvOLxDVduIzJq4a1-xfBzV9krP93aM_SW3X13tRmrKcszm3vTCjlLk4WBo/exec";
   
@@ -888,6 +917,7 @@ function registrarMestra(data) {
   var payload = {
     nome: data.empresa || "Sem Nome",
     usuario: data.nome,
+    whatsapp: telefone,
     spreadsheetUrl: ss.getUrl(),
     spreadsheetId: ss.getId(),
     scriptUrl: scriptUrl

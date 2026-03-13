@@ -26,7 +26,7 @@ function doPost(e) {
     // Auto-setup da aba Clientes na Mestra se não existir
     if (!sheet) {
       sheet = ss.insertSheet("Clientes");
-      var headers = ["Nome da Empresa / App", "Usuário Admin", "Link da Planilha", "ScriptURL", "Spreadsheet ID", "Link de Acesso", "Status", "Plano", "Ativação", "Expiração", "Observações"];
+      var headers = ["Nome da Empresa / App", "Usuário Admin", "WhatsApp", "Link da Planilha", "ScriptURL", "Spreadsheet ID", "Link de Acesso", "Status", "Plano", "Ativação", "Expiração", "Observações"];
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight("bold").setBackground("#dcfce7");
       sheet.setFrozenRows(1);
     }
@@ -38,6 +38,7 @@ function doPost(e) {
     
     var empresa = reqData.nome || "Novo Cliente";
     var usuario = reqData.usuario || "N/A";
+    var whatsapp = reqData.whatsapp || reqData.telefone || "";
     var spreadsheetUrl = reqData.spreadsheetUrl || "";
     var scriptUrl = reqData.scriptUrl || "";
     var spreadsheetId = reqData.spreadsheetId || "";
@@ -47,32 +48,44 @@ function doPost(e) {
     }
     
     var dados = sheet.getDataRange().getValues();
-    var rowToUpdate = -1;
+    var headersCurrent = dados[0];
+    var colId = headersCurrent.indexOf("Spreadsheet ID");
+    if(colId === -1) colId = 5; // fallback se o cabeçalho mudou (5 era o antigo ID ou 4 era o mais antigo)
     
-    // Procura se o cliente já existe pela coluna E (índice 4: Spreadsheet ID)
+    var rowToUpdate = -1;
+    // Procura se o cliente já existe pela coluna de ID
     for (var i = 1; i < dados.length; i++) {
-      if (dados[i][4] === spreadsheetId) {
-        rowToUpdate = i + 1;
-        break;
-      }
+        // Checando na coluna encontrada, mas com fallback de leniência em algumas colunas
+        if (dados[i][colId] === spreadsheetId || dados[i][4] === spreadsheetId || dados[i][5] === spreadsheetId) {
+            rowToUpdate = i + 1;
+            break;
+        }
     }
     
+    var colEmp = headersCurrent.indexOf("Nome da Empresa / App");
+    var colUser = headersCurrent.indexOf("Usuário Admin");
+    var colZap = headersCurrent.indexOf("WhatsApp");
+    var colSpread = headersCurrent.indexOf("Link da Planilha");
+    var colScript = headersCurrent.indexOf("ScriptURL");
+    var colLink = headersCurrent.indexOf("Link de Acesso");
+
     if (rowToUpdate > -1) {
       // Atualiza os dados de link caso tenham mudado
-      sheet.getRange(rowToUpdate, 1).setValue(empresa);
-      sheet.getRange(rowToUpdate, 2).setValue(usuario);
-      sheet.getRange(rowToUpdate, 3).setValue(spreadsheetUrl);
-      sheet.getRange(rowToUpdate, 4).setValue(scriptUrl);
-      // Gera Link Mágico na Coluna F (Índice 6)
-      if (scriptUrl) {
+      if(colEmp > -1) sheet.getRange(rowToUpdate, colEmp + 1).setValue(empresa);
+      if(colUser > -1) sheet.getRange(rowToUpdate, colUser + 1).setValue(usuario);
+      if(colZap > -1) sheet.getRange(rowToUpdate, colZap + 1).setValue(whatsapp);
+      if(colSpread > -1) sheet.getRange(rowToUpdate, colSpread + 1).setValue(spreadsheetUrl);
+      if(colScript > -1) sheet.getRange(rowToUpdate, colScript + 1).setValue(scriptUrl);
+
+      // Gera Link Mágico
+      if (scriptUrl && colLink > -1) {
         var scriptIdMatch = scriptUrl.match(/\/s\/([^\/]+)\/exec/);
         if (scriptIdMatch && scriptIdMatch[1]) {
           var magicLink = "https://ambrosiorocha.github.io/VS_Teste/?id=" + scriptIdMatch[1];
-          sheet.getRange(rowToUpdate, 6).setValue(magicLink);
+          sheet.getRange(rowToUpdate, colLink + 1).setValue(magicLink);
         }
       }
     } else {
-      // Cria nova linha com Plano Padrão = Básico
       // Extrai o ID do scriptUrl se houver para formar o Link Mágico
       var linkMagico = "";
       if (scriptUrl) {
@@ -82,19 +95,28 @@ function doPost(e) {
           }
       }
 
-      var novaLinha = [
-        empresa,
-        usuario,
-        spreadsheetUrl,
-        scriptUrl,
-        spreadsheetId,
-        linkMagico,  // Coluna F: Link de Acesso
-        "Ativo",     // Coluna G: Status
-        "Básico",    // Coluna H: Plano Padrão
-        "",          // Coluna I: Ativação
-        "",          // Coluna J: Expiração
-        "Registro automático via Login" // Coluna K: Obs
-      ];
+      var novaLinha = [];
+      for(var c=0; c<headersCurrent.length; c++) novaLinha.push("");
+      
+      if(colEmp > -1) novaLinha[colEmp] = empresa;
+      if(colUser > -1) novaLinha[colUser] = usuario;
+      if(colZap > -1) novaLinha[colZap] = whatsapp;
+      if(colSpread > -1) novaLinha[colSpread] = spreadsheetUrl;
+      if(colScript > -1) novaLinha[colScript] = scriptUrl;
+      if(colId > -1) novaLinha[colId] = spreadsheetId;
+      if(colLink > -1) novaLinha[colLink] = linkMagico;
+      
+      var colStatus = headersCurrent.indexOf("Status");
+      if(colStatus > -1) novaLinha[colStatus] = "Ativo";
+      var colPlano = headersCurrent.indexOf("Plano");
+      if(colPlano > -1) novaLinha[colPlano] = "Básico";
+      var colObs = headersCurrent.indexOf("Observações");
+      if(colObs > -1) novaLinha[colObs] = "Registro automático via Login";
+
+      // fallback simple append row se cabecalho estiver totalmente desconfigurado
+      if(colId === -1 || colEmp === -1){
+         novaLinha = [empresa, usuario, whatsapp, spreadsheetUrl, scriptUrl, spreadsheetId, linkMagico, "Ativo", "Básico", "", "", "Registro automático via Login"];
+      }
       sheet.appendRow(novaLinha);
     }
     
@@ -114,13 +136,20 @@ function onEdit(e) {
   
   var row = e.range.getRow();
   var col = e.range.getColumn();
+  if (row <= 1) return;
   
-  // Detetando alteração na Coluna G (Plano - Índice 7) ou Expiração (Coluna I - Índice 9)
-  if (row > 1 && (col === 7 || col === 9)) {
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var colPlano = headers.indexOf("Plano") + 1;
+  var colExp = headers.indexOf("Expiração") + 1;
+  var colId = headers.indexOf("Spreadsheet ID") + 1;
+  var colAtiv = headers.indexOf("Ativação") + 1;
+  
+  // Detetando alteração na Coluna Plano ou Expiração (dinâmico)
+  if (col === colPlano || col === colExp) {
     var ss = e.source;
-    var spreadsheetId = sheet.getRange(row, 5).getValue(); // Coluna E tem o ID
-    var plano = sheet.getRange(row, 7).getValue();         // Coluna G tem o Plano
-    var expiracao = sheet.getRange(row, 9).getValue();     // Coluna I tem a Expiração
+    var spreadsheetId = sheet.getRange(row, colId).getValue();
+    var plano = sheet.getRange(row, colPlano).getValue();
+    var expiracao = sheet.getRange(row, colExp).getValue();
     
     if (!spreadsheetId) return;
     
@@ -128,8 +157,6 @@ function onEdit(e) {
       var clientApp = SpreadsheetApp.openById(spreadsheetId);
       
       // Conforme as especificações, a trava acontece através de propriedades Chave-Valor.
-      // E usamos a aba "Licença" para evitar colidir com a tabela padrão de "Configurações" de Operadores, 
-      // embora estejamos criando a infraestrutura requisitada de plano master.
       var configSheet = clientApp.getSheetByName("Licença");
       
       if (!configSheet) {
@@ -161,7 +188,6 @@ function onEdit(e) {
       if (oldConfig) {
         var td = oldConfig.getDataRange().getValues();
         var headRow = td[0];
-        // Encontra a coluna de plano
         var colPlanoIdx = headRow.indexOf("Plano"); // 0-indexed
         if (colPlanoIdx > -1) {
             for (var u = 1; u < td.length; u++) {
@@ -172,10 +198,12 @@ function onEdit(e) {
         }
       }
       
-      // Preenche a Coluna H ('Ativação') com a data atual se estiver em branco.
-      var ativacaoRange = sheet.getRange(row, 8);
-      if (!ativacaoRange.getValue()) {
-        ativacaoRange.setValue(new Date());
+      // Preenche a Coluna 'Ativação' com a data atual se estiver em branco.
+      if (colAtiv > 0) {
+          var ativacaoRange = sheet.getRange(row, colAtiv);
+          if (!ativacaoRange.getValue()) {
+            ativacaoRange.setValue(new Date());
+          }
       }
       
       sheet.getRange(row, col).clearNote();

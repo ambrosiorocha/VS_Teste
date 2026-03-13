@@ -174,6 +174,7 @@ window.Auth = (function () {
     function _doFirstAccess() {
         const nomeCompleto = document.getElementById('faNomeCompleto')?.value.trim();
         const empresa = document.getElementById('faEmpresa')?.value.trim();
+        const telefone = document.getElementById('faTelefone')?.value.trim();
         const login = document.getElementById('faLogin')?.value.trim();
         const senha = document.getElementById('faSenha')?.value;
         const errEl = document.getElementById('faError');
@@ -181,6 +182,7 @@ window.Auth = (function () {
 
         if (!nomeCompleto) { errEl.textContent = 'Informe seu nome completo.'; errEl.style.display = 'block'; return; }
         if (!empresa) { errEl.textContent = 'Informe o nome da empresa.'; errEl.style.display = 'block'; return; }
+        if (!telefone) { errEl.textContent = 'Informe seu WhatsApp (obrigatório).'; errEl.style.display = 'block'; return; }
         if (!login) { errEl.textContent = 'Defina um login de acesso.'; errEl.style.display = 'block'; return; }
         if (!senha || senha.length < 4) { errEl.textContent = 'A senha deve ter ao menos 4 caracteres.'; errEl.style.display = 'block'; return; }
 
@@ -192,7 +194,7 @@ window.Auth = (function () {
             method: 'POST',
             body: JSON.stringify({
                 action: 'primeiroAcesso',
-                data: { nomeCompleto, empresa, login, senha }
+                data: { nomeCompleto, empresa, telefone, login, senha }
             })
         })
             .then(r => r.text()).then(txt => {
@@ -266,6 +268,11 @@ window.Auth = (function () {
                 <div>
                     <label style="${_sharedLabelStyle}">🏢 Nome da empresa</label>
                     <input id="faEmpresa" type="text" placeholder="Ex: Silva Distribuidora Ltda"
+                        style="${_sharedInputStyle}margin-bottom:0;">
+                </div>
+                <div>
+                    <label style="${_sharedLabelStyle}">📱 WhatsApp (Contato Mestre)</label>
+                    <input id="faTelefone" type="text" placeholder="Ex: 81999999999"
                         style="${_sharedInputStyle}margin-bottom:0;">
                 </div>
                 <div>
