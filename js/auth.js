@@ -137,7 +137,7 @@ window.Auth = (function () {
                     // Dispara o auto-registro na mestra em background
                     fetch(window.SCRIPT_URL, {
                         method: 'POST',
-                        body: JSON.stringify({ action: 'registrarMestra', data: { nome: data.nome, empresa: data.empresa } })
+                        body: JSON.stringify({ action: 'registrarMestra', data: { nome: data.nome, empresa: data.empresa, whatsapp: "Ler de Configurações" } })
                     }).catch(() => console.log('Registro background pendente.'));
 
                 } else {
@@ -194,7 +194,7 @@ window.Auth = (function () {
             method: 'POST',
             body: JSON.stringify({
                 action: 'primeiroAcesso',
-                data: { nomeCompleto, empresa, telefone, login, senha }
+                data: { nomeCompleto, empresa, whatsapp: telefone, login, senha }
             })
         })
             .then(r => r.text()).then(txt => {

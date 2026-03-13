@@ -838,7 +838,7 @@ function realizarPrimeiroAcesso(dados) {
   var senha  = String(dados.senha);
   var nome   = String(dados.nomeCompleto || login).trim();
   var empresa = String(dados.empresa || '').trim();
-  var telefone = String(dados.telefone || '').trim();
+  var telefone = String(dados.whatsapp || dados.telefone || '').trim();
   // Verificar login duplicado
   if (sheet.getLastRow() > 1) {
     var existentes = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().map(function(r){ return String(r[0]).trim(); });
